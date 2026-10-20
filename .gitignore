@@ -1,0 +1,9 @@
+node_modules/
+data/
+storage/
+*.db
+*.log
+.env
+# OAuth credentials file (see .dockerignore — never committed nor baked into images)
+secrets.json
+.DS_Store

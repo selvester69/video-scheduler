@@ -1,0 +1,33 @@
+tools:
+    shell:
+        allow:
+            - ls *
+            - echo *
+            - find *
+            - head *
+            - which python3 node npm go cargo docker *
+            - python3 *
+            - node *
+            - go version
+            - docker *
+            - ffmpeg *
+            - cd *
+            - npm install
+            - tail *
+            - sleep 3
+            - curl *
+            - sleep 2
+            - sleep 15
+            - rm *
+            - npm view better-sqlite3 versions *
+            - npm view better-sqlite3 *
+            - npm view *
+            - timeout 60 npm *
+            - pkill *
+            - sleep 1
+            - grep *
+            - sleep 5
+            - cat *
+            - cp *
+            - sed *
+            - sleep 4

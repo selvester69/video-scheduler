@@ -1,0 +1,28 @@
+{
+  "name": "youtube-video-scheduler",
+  "version": "0.2.0",
+  "description": "Schedule videos for automatic upload to YouTube with titles, hashtags, and rate-limit-aware queuing.",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "worker": "node src/worker.js",
+    "dev:worker": "node --watch src/worker.js",
+    "db:reset": "node scripts/reset-db.js",
+    "seed": "node scripts/seed.js",
+    "test": "node --test tests/scheduler.test.js",
+    "start": "bash ./scripts/start.sh",
+    "stop": "bash ./scripts/stop.sh"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "googleapis": "^154.0.0",
+    "multer": "^1.4.5-lts.1",
+    "pg": "^8.12.3"
+  }
+}

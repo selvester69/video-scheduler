@@ -1,0 +1,14 @@
+node_modules
+data
+storage
+.git
+.gitignore
+*.md
+LICENSE
+tests
+scripts
+**/__pycache__
+# Credentials are NEVER baked into the image — mount via the `secrets.json`
+# bind-mount in docker-compose.yml instead (see .gitignore).
+secrets.json
+.env

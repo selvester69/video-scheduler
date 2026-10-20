@@ -1,0 +1,75 @@
+services:
+  api:
+    build: .
+    image: yt-scheduler:latest
+    ports:
+      - "3001:3001"
+    env_file:
+      - .env
+    environment:
+      # Docker containers use PostgreSQL (pure-JS) — robust, no native build.
+      DB_DRIVER: pg
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/scheduler
+      DRY_RUN: "false"
+    secrets:
+      - google_creds
+    volumes:
+      - storage:/app/storage
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      worker:
+        condition: service_started
+
+  # The worker is a separate process so long uploads never block the API.
+  # Scale horizontally with: docker compose up --scale worker=N
+  worker:
+    build: .
+    image: yt-scheduler:latest
+    env_file:
+      - .env
+    environment:
+      DB_DRIVER: pg
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/scheduler
+      DRY_RUN: "false"
+    secrets:
+      - google_creds
+    volumes:
+      - storage:/app/storage
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "1"
+    command: ["node", "src/worker.js"]
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: scheduler
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:
+  storage:
+
+secrets:
+  # The host's secrets.json is mounted read-only into api+worker at:
+  #   /run/secrets/google_creds
+  # config.js reads it (env vars always override). Never baked into the image.
+  google_creds:
+    file: ./secrets.json
