@@ -32,12 +32,13 @@
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } .row { grid-template-columns: 1fr; } }
     .hidden { display: none; }
+    #connectLink.connected { cursor: default; text-decoration: none; opacity: .9; }
   </style>
 </head>
 <body>
   <header>
     <h1>🎬 YouTube Video Scheduler</h1>
-    <a href="/api/auth/connect" class="ghost" style="color:#93c5fd">Connect Channel</a>
+    <a href="/api/auth/connect" id="connectLink" class="ghost" style="color:#93c5fd">Connect Channel</a>
   </header>
   <main>
     <section class="card">
@@ -45,7 +46,7 @@
       <form id="scheduleForm">
         <div class="row">
           <div><label>Video file</label><input type="file" name="video" accept="video/*" required /></div>
-          <div><label>Title</label><input type="text" name="title" placeholder="My video title" required /></div>
+          <div><label>Title (leave blank to use the file name)</label><input type="text" name="title" placeholder="My video title" /></div>
         </div>
         <label>Description</label>
         <textarea name="description" rows="3" placeholder="Describe your video…"></textarea>
@@ -73,27 +74,66 @@
       <h2>Scheduled jobs</h2>
       <div id="jobs"><p class="muted">Loading…</p></div>
     </section>
+
+    <section class="card" id="editSection" style="display:none;">
+      <h2>Edit job <span id="editId" class="muted"></span></h2>
+      <button class="ghost" id="cancelEdit" style="float:right">✕</button>
+      <div class="row">
+        <div><label>Title</label><input type="text" id="eTitle" /></div>
+        <div><label>Privacy</label><select id="ePrivacy"><option value="private">Private</option><option value="unlisted">Unlisted</option><option value="public">Public</option></select></div>
+      </div>
+      <label>Description</label>
+      <textarea id="eDescription" rows="3"></textarea>
+      <div class="row">
+        <div><label>Hashtags (space or comma separated)</label><input type="text" id="eHashtags" placeholder="#funny #vlog" /></div>
+        <div><label>Tags (comma separated)</label><input type="text" id="eTags" placeholder="comedy, vlog" /></div>
+      </div>
+      <div class="row">
+        <div><label>Schedule at</label><input type="datetime-local" id="eScheduleAt" /></div>
+        <div><label>Channel</label><select id="eChannel"><option value="">Auto-select</option></select></div>
+      </div>
+      <p id="editMsg" class="muted"></p>
+      <button id="saveBtn">Save changes</button>
+    </section>
   </main>
 
   <script>
     const API = "/api";
     const $ = (id) => document.getElementById(id);
 
-    // Load channels into the dropdown + a channel list.
+    // Load channels into the dropdown + the channels list; toggle the header link.
     async function loadChannels() {
       const res = await fetch(`${API}/auth/channels`);
       const list = await res.json();
+      window._channels = list;
+
+      // Header: show the connected channel name, or the "Connect" link.
+      const link = $("connectLink");
+      if (list.length) {
+        const active = list.find(c => c.active) || list[0];
+        link.textContent = `✓ ${active.name}`;
+        link.href = "#";
+        link.classList.add("connected");
+      } else {
+        link.textContent = "Connect Channel";
+        link.href = "/api/auth/connect";
+        link.classList.remove("connected");
+      }
+
+      // Channel dropdown (keep only the first "auto-select" option, then rebuild).
       const sel = $("channelId");
+      while (sel.options.length > 1) sel.remove(1);
       list.forEach(c => {
         const opt = document.createElement("option");
         opt.value = c.id;
-        opt.textContent = `${c.name} (${c.active ? "active" : "inactive"}) — ${c.quota_used}/${0} quota`;
+        opt.textContent = `${c.name} (${c.active ? "active" : "inactive"}) — ${c.quota_used} used`;
         sel.appendChild(opt);
       });
+
       const box = $("channels");
       if (!list.length) { box.innerHTML = '<p class="muted">No channels connected. Click "Connect Channel" in the header.</p>'; return; }
-      box.innerHTML = `<table><tr><th>Channel</th><th>Status</th><th>Quota used</th></tr>` +
-        list.map(c => `<tr><td>${c.name}</td><td>${c.active?'active':'inactive'}</td><td>${c.quota_used}</td></tr>`).join("") + `</table>`;
+      box.innerHTML = `<table><tr><th>Channel</th><th>Status</th><th>Quota used</th><th>Last used</th></tr>` +
+        list.map(c => `<tr><td>${c.name}</td><td>${c.active?'active':'inactive'}</td><td>${c.quota_used}</td><td>${c.last_used_at ? new Date(c.last_used_at*1000).toLocaleString() : '—'}</td></tr>`).join("") + `</table>`;
     }
 
     async function loadJobs() {
@@ -109,7 +149,10 @@
           <td><span class="pill s-${j.status}">${j.status}</span></td>
           <td class="muted">${ts}${due}</td>
           <td class="muted">${escape((j.last_error||"").slice(0,60))}</td>
-          <td>${j.status==='done'?'—':`<a href="#" onclick="dl('${j.id}')">details</a>`}</td>
+          <td>
+            ${j.status==='done'?'—':`<a href="#" onclick="dl('${j.id}')">details</a>`}
+            ${j.status==='pending'?`<button class="ghost" style="margin-left:.4rem" onclick="openEdit('${j.id}')">Edit</button>`:''}
+          </td>
         </tr>`;
       }).join("");
       box.innerHTML = `<table><tr><th>Title</th><th>Status</th><th>Scheduled</th><th>Last error</th><th></th></tr>${rows}</table>`;
@@ -124,11 +167,82 @@
 
     function escape(s) { return String(s||"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
+    // Format an epoch-second value as a `datetime-local` value in the BROWSER's
+    // local timezone (toISOString would render UTC and shift by the tz offset).
+    function toLocalDateTime(epochSec) {
+      const d = new Date(epochSec * 1000);
+      const pad = (n) => String(n).padStart(2, "0");
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
+
+    let _editingId = null;
+    window.openEdit = async function (id) {
+      _editingId = id;
+      const j = await (await fetch(`${API}/videos/${id}`)).json();
+      $("editId").textContent = id.slice(0, 8);
+      $("eTitle").value = j.title || "";
+      $("eDescription").value = j.description || "";
+      $("eHashtags").value = j.hashtags || "";
+      $("eTags").value = j.tags || "";
+      $("ePrivacy").value = j.privacy || "private";
+      // datetime-local is interpreted as LOCAL time, so build a local value
+      // from the stored epoch (NOT toISOString, which would be UTC-shifted).
+      $("eScheduleAt").value = j.scheduled_at ? toLocalDateTime(j.scheduled_at) : "";
+      const ch = $("eChannel");
+      while (ch.options.length > 1) ch.remove(1);
+      (window._channels || []).forEach(c => {
+        const o = document.createElement("option");
+        o.value = c.id;
+        o.textContent = `${c.name}${c.active ? "" : " (inactive)"}`;
+        ch.appendChild(o);
+      });
+      $("eChannel").value = j.channel_id || "";
+      $("editMsg").textContent = "";
+      $("editSection").style.display = "";
+      $("saveBtn").disabled = false;
+      $("eTitle").focus();
+    };
+    window.cancelEdit = function () { $("editSection").style.display = "none"; _editingId = null; };
+
+    $("saveBtn").addEventListener("click", async () => {
+      const btn = $("saveBtn"); btn.disabled = true;
+      $("editMsg").textContent = "Saving…";
+      const sa = $("eScheduleAt").value;
+      const body = {
+        title: $("eTitle").value.trim(),
+        description: $("eDescription").value,
+        hashtags: $("eHashtags").value,
+        tags: $("eTags").value,
+        privacy: $("ePrivacy").value,
+        channelId: $("eChannel").value || null,
+      };
+      if (sa) body.scheduleAt = new Date(sa).toISOString(); // browser-local → absolute UTC
+      try {
+        const res = await fetch(`${API}/videos/${_editingId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const j = await res.json();
+        if (!res.ok) throw new Error(j.error || "failed");
+        $("editMsg").innerHTML = '<span class="pill s-done">✓ saved</span>';
+        setTimeout(() => { cancelEdit(); loadJobs(); }, 500);
+      } catch (e) {
+        $("editMsg").innerHTML = `<span class="pill s-failed">✗ ${e.message}</span>`;
+      }
+      btn.disabled = false;
+    });
+    $("cancelEdit").addEventListener("click", cancelEdit);
+
     $("scheduleForm")?.addEventListener("submit", async (e) => {
       e.preventDefault();
       const btn = $("submitBtn"); btn.disabled = true; btn.textContent = "Scheduling…";
       $("msg").textContent = "";
       const data = new FormData($("scheduleForm"));
+      // datetime-local is local; send an absolute UTC ISO so the (UTC) server
+      // stores the same epoch the user picked, regardless of container TZ.
+      const sa = data.get("scheduleAt");
+      if (sa) data.set("scheduleAt", new Date(sa).toISOString());
       try {
         const res = await fetch(`${API}/videos`, { method: "POST", body: data });
         const j = await res.json();

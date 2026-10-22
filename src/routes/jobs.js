@@ -16,7 +16,9 @@ const router = Router();
 router.post("/", stageUpload.single("video"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "field 'video' is required" });
-    if (!req.body.title) return res.status(400).json({ error: "title is required" });
+    // If no title is given, fall back to the uploaded file's current name.
+    const title = (req.body.title || "").trim() || req.file.originalname;
+    if (!title) return res.status(400).json({ error: "title is required" });
 
     const when = req.body.scheduleAt
       ? new Date(req.body.scheduleAt).getTime()
@@ -28,7 +30,7 @@ router.post("/", stageUpload.single("video"), async (req, res) => {
       id,
       channelId: req.body.channelId || null,
       filename: req.file.filename,
-      title: req.body.title,
+      title,
       description: req.body.description || "",
       hashtags: normalizeHashtags(req.body.hashtags),
       tags: (req.body.tags || "").trim(),
@@ -82,6 +84,62 @@ router.delete("/:id", async (req, res) => {
   const info = await db.prepare(`UPDATE jobs SET status='deleted' WHERE id=@id AND status IN ('pending','queued')`).run({ id: req.params.id });
   if (info.changes === 0) return res.status(404).json({ error: "not found or not deletable" });
   res.json({ id: req.params.id, status: "deleted" });
+});
+
+/**
+ * PATCH /api/videos/:id — edit a SCHEDULED (pending) job's metadata.
+ * The video file itself can't change (that would be a re-upload); only title,
+ * description, hashtags, tags, category, privacy, channelId, priority, and
+ * scheduleAt are editable. Jobs already uploading/done/failed are locked.
+ */
+router.patch("/:id", async (req, res) => {
+  const id = req.params.id;
+  try {
+    const existing = await queries.findJob.get({ id });
+    if (!existing) return res.status(404).json({ error: "not found" });
+    if (existing.status !== "pending") {
+      return res.status(409).json({ error: `can't edit a job that is "${existing.status}"` });
+    }
+
+    const b = req.body || {};
+    const fields = [];
+    const params = { id };
+
+    if (b.title !== undefined) {
+      if (!String(b.title).trim()) return res.status(400).json({ error: "title required" });
+      fields.push("title = @title"); params.title = b.title;
+    }
+    if (b.description !== undefined) { fields.push("description = @description"); params.description = b.description || ""; }
+    if (b.hashtags !== undefined) { fields.push("hashtags = @hashtags"); params.hashtags = normalizeHashtags(b.hashtags); }
+    if (b.tags !== undefined) { fields.push("tags = @tags"); params.tags = (b.tags || "").trim(); }
+    if (b.category !== undefined) { fields.push("category = @category"); params.category = b.category || null; }
+    if (b.privacy !== undefined) { fields.push("privacy = @privacy"); params.privacy = normalizePrivacy(b.privacy); }
+    if (b.channelId !== undefined) { fields.push("channel_id = @channelId"); params.channelId = b.channelId || null; }
+    if (b.priority !== undefined) {
+      const p = parseInt(b.priority || "0", 10);
+      fields.push("priority = @priority"); params.priority = isNaN(p) ? 0 : p;
+    }
+    if (b.scheduleAt !== undefined) {
+      const t = new Date(b.scheduleAt).getTime();
+      if (isNaN(t)) return res.status(400).json({ error: "invalid scheduleAt" });
+      const sec = Math.floor(t / 1000);
+      fields.push("scheduled_at = @scheduledAt", "next_retry_at = @nextRetryAt");
+      params.scheduledAt = sec; params.nextRetryAt = sec;
+    }
+    if (!fields.length) return res.status(400).json({ error: "no updatable fields" });
+
+    fields.push("updated_at = @updatedAt"); params.updatedAt = nowSec();
+    const info = await db.prepare(
+      `UPDATE jobs SET ${fields.join(", ")} WHERE id = @id AND status = 'pending'`
+    ).run(params);
+    if (info.changes === 0) return res.status(409).json({ error: "job no longer editable (in progress or already processed)" });
+
+    const updated = await queries.findJob.get({ id });
+    res.json(updated);
+  } catch (e) {
+    console.error("update job error:", e);
+    res.status(400).json({ error: e.message });
+  }
 });
 
 function normalizeHashtags(raw) {

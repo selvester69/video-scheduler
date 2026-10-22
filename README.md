@@ -85,6 +85,10 @@ DRY_RUN=true npm run dev:worker             # worker
 # Or one command with docker:
 DRY_RUN=true docker compose up --build
 
+# Or use the bundled helpers:
+npm start   # boots api + worker + postgres (docker if up, else local node+sqlite)
+npm stop    # tears down whatever's running
+
 # 2) (Optional) seed a fake channel so scheduling has a target
 npm run seed -- uc-local "Local Channel"
 
@@ -156,6 +160,7 @@ Poll `GET http://localhost:3001/api/videos` — you'll see the job flip
 | GET    | `/api/videos` | List all jobs |
 | GET    | `/api/videos/:id` | Get a job |
 | DELETE | `/api/videos/:id` | Delete a scheduled (`pending`) job |
+| PATCH  | `/api/videos/:id` | Edit a `pending` job's title/description/hashtags/tags/category/privacy/channelId/priority/scheduleAt (the video file itself is not changed — re-schedule a new upload to replace it) |
 
 `POST /api/videos` fields:
 
