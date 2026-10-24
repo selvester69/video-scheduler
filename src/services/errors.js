@@ -35,17 +35,32 @@ export class FatalUploadError extends SchedulerError {
 
 export function fromGoogleError(err) {
   const status = err?.status || err?.code || err?.response?.status;
+  const statusCode = Number(status);
   const data = err?.response?.data || err?.errors;
   const reason = Array.isArray(data?.errors) ? data.errors[0]?.reason : data?.errors?.[0]?.reason;
   const detail = JSON.stringify(reason ? { reason, data } : data);
+  const authMessage = `${err?.message || ""} ${detail}`.toLowerCase();
+
+  // Credentials can fail before the recorded access-token expiry, for example
+  // when a refresh token is revoked or the stored token is otherwise invalid.
+  if (
+    statusCode === 401 ||
+    reason === "authsubForbidden" ||
+    reason === "invalidCredentials" ||
+    reason === "invalidGrant" ||
+    reason === "insufficientScope" ||
+    /invalid authentication credentials|expected oauth 2 access token|invalid_grant|insufficient authentication scopes/.test(authMessage)
+  ) {
+    return new AuthError(`YouTube auth error: ${err?.message || detail || status}`);
+  }
 
   // Rate-limit / quota
   if (
-    status === 429 ||
-    status === 403 ||
-    status === 500 ||
-    status === 502 ||
-    status === 503 ||
+    statusCode === 429 ||
+    statusCode === 403 ||
+    statusCode === 500 ||
+    statusCode === 502 ||
+    statusCode === 503 ||
     reason === "rateLimitExceeded" ||
     reason === "quotaExceeded" ||
     reason === "userRateLimitExceeded"
@@ -56,26 +71,14 @@ export function fromGoogleError(err) {
     return new RateLimitError(`YouTube rate/limit: ${reason || status} ${detail}`, retryAfter);
   }
 
-  // Auth problems — tokens revoked/expired. Do NOT retry the job; disable channel.
-  if (
-    status === 401 ||
-    reason === "authsubForbidden" ||
-    reason === "invalidCredentials" ||
-    reason === "invalid Gracias token" ||
-    reason === "invalidGrant" ||
-    reason === "insufficientScope"
-  ) {
-    return new AuthError(`YouTube auth error: ${detail}`);
-  }
-
   // Fatal / non-retryable.
-  if (status === 400 || reason === "videoTooLong" || reason === "invalid") {
+  if (statusCode === 400 || reason === "videoTooLong" || reason === "invalid") {
     return new FatalUploadError(`YouTube rejected upload: ${detail}`);
   }
 
   // Anything else that looks network-y.
-  if (status === 500 || status === 502 || status === 503 || status === 504) {
-    return new RateLimitError(`YouTube transient: ${status} ${detail}`);
+  if (statusCode === 500 || statusCode === 502 || statusCode === 503 || statusCode === 504) {
+    return new RateLimitError(`YouTube transient: ${statusCode} ${detail}`);
   }
 
   return new SchedulerError(`YouTube error: ${detail}`, "transient");

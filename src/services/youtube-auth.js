@@ -29,12 +29,12 @@ export function makeOauthClient() {
 /** URL the user is redirected to for consent, plus a CSRF `state` token.
  *  The `state` MUST be stored server-side (as an httpOnly cookie) and verified
  *  in the callback to prevent authorization-code interception. */
-export function getAuthUrl() {
+export function getAuthUrl({ reauthenticate = false } = {}) {
   const client = makeOauthClient();
   const state = crypto.randomUUID();
   const url = client.generateAuthUrl({
     access_type: "offline",
-    prompt: "consent", // force refresh_token issuance on every flow
+    prompt: reauthenticate ? "consent select_account" : "consent",
     scope: config.google.scopes,
     state,
   });
@@ -43,7 +43,7 @@ export function getAuthUrl() {
 
 /** Exchange an authorization code for tokens, then look up the YouTube
  *  channel it belongs to. Returns the persisted channel record. */
-export async function handleCallback(code) {
+export async function handleCallback(code, { expectedChannelId } = {}) {
   if (!config.google.clientId || !config.google.clientSecret) {
     throw new Error("GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET are not configured");
   }
@@ -58,6 +58,9 @@ export async function handleCallback(code) {
   const res = await youtube.channels.list({ part: "id,snippet", mine: true });
   const ch = res.data.items?.[0];
   if (!ch) throw new Error("OAuth succeeded but no YouTube channel is linked to this account");
+  if (expectedChannelId && ch.id !== expectedChannelId) {
+    throw new Error("The Google account selected does not match the channel being reauthenticated");
+  }
 
   const now = nowSec();
   const quotaReset = now + 86400; // daily quota resets ~24h later; refined per channel usage.
@@ -83,8 +86,9 @@ export async function handleCallback(code) {
      ON CONFLICT(id) DO UPDATE SET
        name = excluded.name,
        access_token = excluded.access_token,
-       refresh_token = excluded.refresh_token,
-       token_expires_at = excluded.token_expires_at
+       refresh_token = CASE WHEN excluded.refresh_token <> '' THEN excluded.refresh_token ELSE channels.refresh_token END,
+       token_expires_at = excluded.token_expires_at,
+       active = 1
      RETURNING *`
   ).get(record);
 
@@ -101,7 +105,7 @@ export function youtubeForChannel(channel) {
   client.setCredentials({
     access_token: channel.access_token,
     refresh_token: channel.refresh_token,
-    token_expiry_date: channel.token_expires_at ? new Date(channel.token_expires_at * 1000) : undefined,
+    expiry_date: channel.token_expires_at ? channel.token_expires_at * 1000 : undefined,
   });
   // Persist refreshed tokens back to the DB whenever googleapis refreshes them.
   client.on("tokens", (tokens) => {

@@ -31,11 +31,21 @@ function listTablesSql() {
   return "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name";
 }
 
-// GET /api/explorer/tables — every table in the database (read-only).
+// GET /api/explorer/tables — every table in the database, with a read-only row
+// count each (names are whitelisted by the driver's own catalog, so the COUNT
+// is always safe — no user-supplied identifier reaches the driver).
 router.get("/tables", requireAuth, async (_req, res) => {
   try {
-    const result = await rawQuery(listTablesSql());
-    const tables = (result.rows || []).map((r) => r.name);
+    const listed = await rawQuery(listTablesSql());
+    const names = (listed.rows || []).map((r) => r.name);
+    const tables = await Promise.all(names.map(async (name) => {
+      let rowCount = null;
+      try {
+        const r = await rawQuery(`SELECT COUNT(*) AS n FROM ${name}`);
+        rowCount = r.rows?.[0]?.n != null ? Number(r.rows[0].n) : r.rowCount;
+      } catch { rowCount = null; }
+      return { name, rowCount };
+    }));
     res.json({ tables, count: tables.length });
   } catch (e) {
     res.status(400).json({ error: e.message });

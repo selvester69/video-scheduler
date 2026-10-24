@@ -221,16 +221,17 @@ file's own name. The same blob is sent for a single upload.
 For mixed-platform batches, provide an `items` array (same order and length as
 the uploaded `video` fields). Each item accepts `platform` (`youtube` or
 `instagram`), `format` (`video`, `short`, or `reel`), `title` (caption for
-Instagram), `channelId` (YouTube), and `instagramAccountId` (Instagram). Example:
+Instagram), `channelId` (YouTube), `instagramAccountId` (Instagram), and
+`scheduleAt` (an ISO timestamp for that individual file). Each item can have a
+different schedule; if omitted, that upload is queued immediately. Example:
 ```json
 { "items": [
-    { "platform": "youtube", "format": "short", "title": "A Short" },
+    { "platform": "youtube", "format": "short", "title": "A Short",
+      "scheduleAt": "2030-12-31T23:59:00.000Z" },
     { "platform": "instagram", "format": "reel", "title": "A Reel caption",
-      "instagramAccountId": "instagram-account-id" }
-  ],
-  "description": "Shared YouTube description",
-  "privacy": "private",
-  "scheduleAt": "2030-12-31T23:59:00.000Z" }
+      "instagramAccountId": "instagram-account-id",
+      "scheduleAt": "2031-01-01T10:00:00.000Z" }
+  ], "description": "Shared YouTube description", "privacy": "private" }
 ```
 
 **Legacy — flat form/text fields** (one file): `description`, `hashtags`, `tags`,

@@ -44,35 +44,40 @@ export async function uploadJob(job, channel) {
     .join("")
     .trim();
 
-  const res = await youtube.videos.insert(
-    {
-      part: "snippet,status",
-      requestBody: {
-        snippet: {
-          title: job.title,
-          description,
-          tags,
-          // categoryId 22 = "People & Blogs"; override via job.category if needed.
-          categoryId: job.category || "22",
+  let res;
+  try {
+    res = await youtube.videos.insert(
+      {
+        part: "snippet,status",
+        requestBody: {
+          snippet: {
+            title: job.title,
+            description,
+            tags,
+            // categoryId 22 = "People & Blogs"; override via job.category if needed.
+            categoryId: job.category || "22",
+          },
+          status: {
+            privacyStatus: job.privacy || "private",
+            madeForKids: false,
+          },
         },
-        status: {
-          privacyStatus: job.privacy || "private",
-          madeForKids: false,
+        media: {
+          body: fileStream,
         },
       },
-      media: {
-        body: fileStream,
-      },
-    },
-    {
-      // Stream upload; onUploadProgress lets us log progress for big files.
-      onUploadProgress: (evt) => {
-        const pct = Math.round((evt.bytesRead / Math.max(fileSize, 1)) * 100);
-        if (pct % 25 === 0) console.log(`[upload] ${job.id} ${channel.name} ${pct}%`);
-      },
-      timeout: 0, // resumable uploads can exceed the default 1h; don't let http timeout abort us.
-    }
-  );
+      {
+        // Stream upload; onUploadProgress lets us log progress for big files.
+        onUploadProgress: (evt) => {
+          const pct = Math.round((evt.bytesRead / Math.max(fileSize, 1)) * 100);
+          if (pct % 25 === 0) console.log(`[upload] ${job.id} ${channel.name} ${pct}%`);
+        },
+        timeout: 0, // resumable uploads can exceed the default 1h; don't let http timeout abort us.
+      }
+    );
+  } catch (err) {
+    throw fromGoogleError(err);
+  }
 
   const videoId = res.data.id;
   const url = videoId ? `https://youtu.be/${videoId}` : null;

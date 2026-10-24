@@ -28,6 +28,7 @@ function errorPage(msg) {
 }
 
 const OAUTH_STATE_COOKIE = "oauth_state";
+const OAUTH_REAUTH_CHANNEL_COOKIE = "oauth_reauth_channel";
 const STATE_MAX_AGE = 5 * 60 * 1000; // 5 minutes
 
 /**
@@ -38,6 +39,12 @@ const STATE_MAX_AGE = 5 * 60 * 1000; // 5 minutes
  */
 router.get("/connect", (_req, res) => {
   const { url, state } = getAuthUrl();
+  res.clearCookie(OAUTH_REAUTH_CHANNEL_COOKIE, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: false,
+    path: "/",
+  });
   res.cookie(OAUTH_STATE_COOKIE, state, {
     httpOnly: true,
     sameSite: "lax",
@@ -46,6 +53,28 @@ router.get("/connect", (_req, res) => {
     maxAge: STATE_MAX_AGE,
   });
   res.redirect(url);
+});
+
+router.get("/channels/:id/reauth", requireAuth, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const channel = await db.prepare(`SELECT id FROM channels WHERE id = @id`).get({ id });
+    if (!channel) return res.status(404).json({ error: "Channel not found" });
+
+    const { url, state } = getAuthUrl({ reauthenticate: true });
+    const cookieOptions = {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: false,
+      path: "/",
+      maxAge: STATE_MAX_AGE,
+    };
+    res.cookie(OAUTH_STATE_COOKIE, state, cookieOptions);
+    res.cookie(OAUTH_REAUTH_CHANNEL_COOKIE, id, cookieOptions);
+    res.redirect(url);
+  } catch (error) {
+    next(error);
+  }
 });
 
 /**
@@ -59,29 +88,37 @@ router.get("/callback", async (req, res) => {
   const code = req.query.code;
   const state = req.query.state;
   const cookieState = readCookie(req, OAUTH_STATE_COOKIE);
+  const reauthChannelId = readCookie(req, OAUTH_REAUTH_CHANNEL_COOKIE);
 
-  const clearState = () =>
+  const clearOAuthCookies = () => {
     res.clearCookie(OAUTH_STATE_COOKIE, {
       httpOnly: true,
       sameSite: "lax",
       secure: false,
       path: "/",
     });
+    res.clearCookie(OAUTH_REAUTH_CHANNEL_COOKIE, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: false,
+      path: "/",
+    });
+  };
 
   // Reject anything without a valid, matching state: missing code, missing
   // state, no cookie, or a tampered/mismatched state.
   if (!code || !state || !cookieState || state !== cookieState) {
-    clearState();
+    clearOAuthCookies();
     return res
       .status(400)
       .send(errorPage("Invalid or expired OAuth state. Please try connecting again."));
   }
 
   // State is single-use: drop it before we do the (slower) token exchange.
-  clearState();
+  clearOAuthCookies();
 
   try {
-    await handleCallback(code);
+    await handleCallback(code, { expectedChannelId: reauthChannelId });
     res.redirect("/");
   } catch (e) {
     console.error("OAuth callback error:", e);
@@ -94,7 +131,7 @@ router.get("/callback", async (req, res) => {
  */
 router.get("/channels", requireAuth, async (_req, res) => {
   const rows = await db
-    .prepare(`SELECT id, name, quota_used, quota_reset_at, active, last_used_at FROM channels ORDER BY name`)
+    .prepare(`SELECT id, name, quota_used, quota_reset_at, active, last_used_at, token_expires_at FROM channels ORDER BY name`)
     .all();
   res.json(rows);
 });

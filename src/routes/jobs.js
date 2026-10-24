@@ -42,8 +42,9 @@ router.post("/", stageUpload.array("video", config.upload.maxFiles), async (req,
       catch { return res.status(400).json({ error: "invalid metadata JSON" }); }
     }
     const hasMeta = Boolean(req.body.metadata);
-    const items = Array.isArray(meta.items) ? meta.items : [];
-    if (items.length && items.length !== files.length) {
+    const hasItems = Array.isArray(meta.items);
+    const items = hasItems ? meta.items : [];
+    if (hasItems && items.length !== files.length) {
       return res.status(400).json({ error: "metadata items must match the number of uploaded files" });
     }
 
@@ -64,6 +65,12 @@ router.post("/", stageUpload.array("video", config.upload.maxFiles), async (req,
 
     const jobs = files.map((file, i) => {
       const item = items[i] || {};
+      const itemWhen = item.scheduleAt
+        ? new Date(item.scheduleAt).getTime()
+        : when;
+      if (!Number.isFinite(itemWhen)) {
+        throw Object.assign(new Error(`invalid scheduleAt for ${file.originalname}`), { statusCode: 400 });
+      }
       const platform = item.platform || meta.platform || "youtube";
       const format = item.format || meta.format || "video";
       const title = String(item.caption ?? item.title ?? perTitles[i] ?? sharedTitle ?? "").trim() || file.originalname;
@@ -91,7 +98,10 @@ router.post("/", stageUpload.array("video", config.upload.maxFiles), async (req,
           throw Object.assign(new Error(`Instagram captions must be 2,200 characters or fewer (${file.originalname})`), { statusCode: 400 });
         }
       }
-      return { file, item, platform, format, title, channelId, instagramAccountId };
+      return {
+        file, item, platform, format, title, channelId, instagramAccountId,
+        scheduledAt: Math.floor(itemWhen / 1000),
+      };
     });
 
     for (const job of jobs) {
@@ -105,7 +115,7 @@ router.post("/", stageUpload.array("video", config.upload.maxFiles), async (req,
 
     const created = [];
     for (let i = 0; i < files.length; i++) {
-      const { file: f, item, platform, format, title, channelId, instagramAccountId } = jobs[i];
+      const { file: f, item, platform, format, title, channelId, instagramAccountId, scheduledAt: itemScheduledAt } = jobs[i];
 
       const id = crypto.randomUUID();
       await queries.insertPlatformJob.run({
@@ -121,17 +131,17 @@ router.post("/", stageUpload.array("video", config.upload.maxFiles), async (req,
         tags: platform === "youtube" ? String(item.tags ?? (hasMeta ? meta.tags : req.body.tags) ?? "").trim() : "",
         category: hasMeta ? (meta.category || null) : (req.body.category || null),
         privacy: normalizePrivacy(item.privacy || (hasMeta ? (meta.privacy || "private") : req.body.privacy)),
-        scheduledAt,
+        scheduledAt: itemScheduledAt,
         priority: parseInt(hasMeta ? (meta.priority || "0") : (req.body.priority || "0"), 10),
-        nextRetryAt: scheduledAt,
+        nextRetryAt: itemScheduledAt,
         status: "pending",
         created: now,
         updated: now,
       });
-      created.push({ id, title, scheduledAt });
+      created.push({ id, title, scheduledAt: itemScheduledAt });
     }
 
-    const verb = when <= Date.now() ? "Queued" : "Scheduled";
+    const verb = jobs.some((job) => job.scheduledAt > now) ? "Scheduled" : "Queued";
     res.status(201).json({
       created,
       count: created.length,
