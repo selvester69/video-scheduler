@@ -5,8 +5,8 @@
  */
 import multer from "multer";
 import { existsSync, mkdirSync } from "fs";
-import { config } from "../config.js";
 import { join } from "path";
+import { config } from "../config.js";
 
 const dir = config.storageRoot;
 if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
@@ -17,7 +17,10 @@ export const stageUpload = multer({
     filename: (_req, file, cb) =>
       cb(null, `${crypto.randomUUID()}${extname(file.originalname)}`),
   }),
-  limits: { fileSize: 5 * 1024 * 1024 * 1024 }, // 5 GB cap (YouTube limit); tune as needed
+  limits: {
+    fileSize: config.upload.maxFileSize,   // per-file cap (default 5 GB)
+    files: config.upload.maxFiles,         // per-request file cap
+  },
   fileFilter: (_req, file, cb) => {
     const ok = file.mimetype.startsWith("video/") ||
       file.mimetype === "application/octet-stream" ||

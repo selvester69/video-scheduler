@@ -46,7 +46,11 @@ export const config = {
     // Environment variables (incl. .env) always take precedence.
     clientId: process.env.GOOGLE_CLIENT_ID || secrets?.web?.client_id || secrets?.google?.client_id || "",
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || secrets?.web?.client_secret || secrets?.google?.client_secret || "",
-    callbackUrl: process.env.GOOGLE_CALLBACK_URL || "http://localhost:3000/auth/callback",
+    callbackUrl: process.env.GOOGLE_CALLBACK_URL || `http://localhost:${process.env.PORT || 3001}/auth/callback`,
+    // Google SSO (app login). The callback below MUST be registered as an
+    // authorized redirect URI in Google Cloud (e.g. http://localhost:3001/api/auth/google/callback).
+    ssoCallbackUrl: process.env.GOOGLE_SSO_CALLBACK_URL || `http://localhost:${process.env.PORT || 3001}/api/auth/google/callback`,
+    ssoScopes: (process.env.GOOGLE_SSO_SCOPES || "openid,email,profile").split(",").map((s) => s.trim()),
     scopes: (process.env.YOUTUBE_SCOPES || "https://www.googleapis.com/auth/youtube.upload,https://www.googleapis.com/auth/youtube.readonly").split(",").map((s) => s.trim()),
   },
 
@@ -54,6 +58,26 @@ export const config = {
     tickMs: parseInt(process.env.WORKER_TICK_MS || "2000", 10),
     maxConcurrent: parseInt(process.env.MAX_CONCURRENT_UPLOADS || "2", 10),
     perChannelMaxConcurrent: parseInt(process.env.PER_CHANNEL_MAX_CONCURRENT || "1", 10),
+    // How often the worker runs the rotation Assignment Planner tick.
+    planIntervalMs: parseInt(process.env.PLAN_INTERVAL_MS || String(5 * 60 * 1000), 10),
+  },
+  // Folder watcher (Phase 2)
+  watcher: {
+    settleMs: parseInt(process.env.WATCHER_SETTLE_MS || "2000", 10), // de-bounce churn
+  },
+
+  auth: {
+    // Toggle login-gating of the scheduler API (default: on, since the app
+    // has a login/profile feature). Set REQUIRE_AUTH=0 to keep /api/videos open.
+    require: parseBool(process.env.REQUIRE_AUTH, true),
+    jwtSecret: process.env.JWT_SECRET || "dev-change-me-in-prod",
+    jwtExpires: process.env.JWT_EXPIRES_IN || "7d",
+    cookieName: process.env.AUTH_COOKIE_NAME || "scheduler_auth",
+    cookieMaxAge: 60 * 60 * 24 * 7,           // 7 days, in seconds (Max-Age)
+    cookieSecure: parseBool(process.env.AUTH_COOKIE_SECURE, false), // flip on behind TLS
+    // Default admin seeded into an empty DB (first run). Change both.
+    seedEmail: process.env.LOGIN_EMAIL || "admin@scheduler.local",
+    seedPassword: process.env.LOGIN_PASSWORD || "scheduler",
   },
 
   quota: {
@@ -63,5 +87,12 @@ export const config = {
     backoffBase: parseInt(process.env.BACKOFF_BASE || "15", 10),
     backoffMax: parseInt(process.env.BACKOFF_MAX || "3600", 10),
     maxRetries: parseInt(process.env.MAX_RETRIES || "8", 10),
+  },
+
+  upload: {
+    // Max number of video files accepted in a single POST /api/videos (multiple-upload).
+    maxFiles: parseInt(process.env.MAX_UPLOAD_FILES || "20", 10),
+    // Max size per file (bytes). 5 GB ~= YouTube's limit.
+    maxFileSize: parseInt(process.env.UPLOAD_MAX_FILE_SIZE || String(5 * 1024 * 1024 * 1024), 10),
   },
 };

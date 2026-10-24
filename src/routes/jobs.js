@@ -1,62 +1,97 @@
 import { Router } from "express";
 import { queries, db, nowSec } from "../db.js";
 import { stageUpload } from "../middleware/stageUpload.js";
+import { config } from "../config.js";
 
 const router = Router();
 
 /**
  * POST /api/videos
- *   Multipart: `video` (file) + JSON-ish text fields:
- *     title*, description, hashtags, tags, privacy, channelId, scheduleAt
- *   (`*` required.) On success returns the created job (status: pending/done).
+ *   Multipart form. Field name `video` is repeatable for multiple uploads;
+ *   one job is created per file and all become `pending` (the worker dispatches
+ *   due ones next tick, up to MAX_CONCURRENT_UPLOADS).
+ *
+ *   Text/metadata is sent in ONE of two ways:
+ *     1. `metadata` — a JSON string blob (preferred, used by the web UI) with:
+ *        { titles:[...], description, hashtags, tags, category, privacy,
+ *          channelId, priority, scheduleAt }
+ *        - titles[] is an ordered array, one per file (blank → use file name).
+ *     2. Flat text fields: `description,hashtags,tags,category,privacy,
+ *        channelId,priority,scheduleAt` (legacy single-upload clients). A single
+ *        `title` applies when exactly one file is sent; `title[]` (repeated) is
+ *        an ordered per-file array.
  *
  *   scheduleAt: ISO timestamp; omitted/`now` = upload ASAP. The worker only
  *   picks up jobs whose scheduled_at <= now, so future jobs stay `pending`.
+ *
+ *   Response (always batch-shaped):
+ *     { created: [{id,title,scheduledAt}], count, message }
  */
-router.post("/", stageUpload.single("video"), async (req, res) => {
+router.post("/", stageUpload.array("video", config.upload.maxFiles), async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ error: "field 'video' is required" });
-    // If no title is given, fall back to the uploaded file's current name.
-    const title = (req.body.title || "").trim() || req.file.originalname;
-    if (!title) return res.status(400).json({ error: "title is required" });
+    const files = req.files || [];
+    if (!files.length) return res.status(400).json({ error: "at least one 'video' file is required" });
 
-    const when = req.body.scheduleAt
-      ? new Date(req.body.scheduleAt).getTime()
-      : Date.now();
+    // Metadata: prefer the compact `metadata` JSON blob (sent by the web UI for
+    // multiple uploads; it carries per-file titles + shared fields). Fall back
+    // to flat text fields for legacy single-upload clients.
+    let meta = {};
+    if (req.body.metadata) { try { meta = JSON.parse(req.body.metadata); } catch { /* ignore bad JSON */ } }
+    const hasMeta = Boolean(req.body.metadata);
+
+    // Per-file titles (ordered, one per file).
+    let perTitles = [];
+    if (hasMeta) {
+      perTitles = Array.isArray(meta.titles) ? meta.titles : [];
+    } else if (req.body["title[]"]) {
+      perTitles = Array.isArray(req.body["title[]"]) ? req.body["title[]"] : [req.body["title[]"]];
+    }
+    const sharedTitle = hasMeta ? null : (req.body.title ? String(req.body.title).trim() : null);
+
+    const whenStr = hasMeta ? (meta.scheduleAt || req.body.scheduleAt) : req.body.scheduleAt;
+    const when = whenStr ? new Date(whenStr).getTime() : Date.now();
     if (isNaN(when)) return res.status(400).json({ error: "invalid scheduleAt" });
+    const scheduledAt = Math.floor(when / 1000);
+    const now = nowSec();
 
-    const id = crypto.randomUUID();
-    const job = {
-      id,
-      channelId: req.body.channelId || null,
-      filename: req.file.filename,
-      title,
-      description: req.body.description || "",
-      hashtags: normalizeHashtags(req.body.hashtags),
-      tags: (req.body.tags || "").trim(),
-      category: req.body.category || null,
-      privacy: normalizePrivacy(req.body.privacy),
-      scheduledAt: Math.floor(when / 1000),
-      priority: parseInt(req.body.priority || "0", 10),
-      nextRetryAt: Math.floor(when / 1000),
-      status: "pending",
-    };
+    const created = [];
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      const title =
+        (perTitles[i] && String(perTitles[i]).trim()) ||
+        (files.length === 1 && sharedTitle) ||
+        f.originalname;
+      if (!title) return res.status(400).json({ error: `title is required (${f.originalname})` });
 
-    await queries.insertJob.run({
-      ...job,
-      created: nowSec(),
-      updated: nowSec(),
-    });
+      const id = crypto.randomUUID();
+      await queries.insertJob.run({
+        id,
+        channelId: hasMeta ? (meta.channelId || null) : (req.body.channelId || null),
+        filename: f.filename,
+        title,
+        description: hasMeta ? (meta.description || "") : (req.body.description || ""),
+        hashtags: hasMeta ? normalizeHashtags(meta.hashtags || "") : normalizeHashtags(req.body.hashtags || ""),
+        tags: hasMeta ? (meta.tags || "").trim() : (req.body.tags || "").trim(),
+        category: hasMeta ? (meta.category || null) : (req.body.category || null),
+        privacy: normalizePrivacy(hasMeta ? (meta.privacy || "private") : req.body.privacy),
+        scheduledAt,
+        priority: parseInt(hasMeta ? (meta.priority || "0") : (req.body.priority || "0"), 10),
+        nextRetryAt: scheduledAt,
+        status: "pending",
+        created: now,
+        updated: now,
+      });
+      created.push({ id, title, scheduledAt });
+    }
+
+    const verb = when <= Date.now() ? "Queued" : "Scheduled";
     res.status(201).json({
-      id,
-      status: "scheduled",
-      scheduledAt: job.scheduledAt,
-      message: when <= Date.now()
-        ? "Queued for immediate processing"
-        : "Scheduled; will upload at the scheduled time",
+      created,
+      count: created.length,
+      message: `${verb} ${created.length} video(s) for upload`,
     });
   } catch (e) {
-    console.error("create job error:", e);
+    console.error("create job(s) error:", e);
     res.status(400).json({ error: e.message });
   }
 });

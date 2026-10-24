@@ -106,6 +106,8 @@ test("happy path: scheduled job uploads and becomes done", async () => {
   const uploads = await getDb().prepare("SELECT * FROM uploads WHERE job_id=@id").all({ id: jobId });
   assert.equal(uploads.length, 1, "one upload row recorded");
   assert.match(uploads[0].youtube_url, /^https:\/\/youtu.be\//);
+  const listedJob = (await queries.listJobs.all()).find((item) => item.id === jobId);
+  assert.equal(listedJob.youtube_url, uploads[0].youtube_url, "job history includes the published video URL");
 
   const ch = await getDb().prepare("SELECT id, quota_used FROM channels ORDER BY id").all();
   console.log("  quota after:", JSON.stringify(ch));

@@ -37,6 +37,18 @@ CREATE TABLE IF NOT EXISTS channels (
   active               INTEGER NOT NULL DEFAULT 1
 );
 
+CREATE TABLE IF NOT EXISTS users (
+  id            TEXT PRIMARY KEY,
+  email         TEXT NOT NULL UNIQUE,
+  name          TEXT,
+  password_hash TEXT,
+  google_sub    TEXT UNIQUE,
+  avatar        TEXT,
+  created_at    BIGINT NOT NULL,
+  updated_at    BIGINT NOT NULL
+);
+
+
 CREATE TABLE IF NOT EXISTS jobs (
   id            TEXT PRIMARY KEY,
   channel_id    TEXT REFERENCES channels(id),
@@ -71,6 +83,86 @@ CREATE TABLE IF NOT EXISTS uploads (
 CREATE INDEX IF NOT EXISTS idx_jobs_pending
   ON jobs (status, scheduled_at, priority)
   WHERE status = 'pending';
+
+/* ================= Folder-import / rotation feature ===============
+ *
+ * A SourceFolder points the scanner at a watched directory. Files discovered
+ * there become SourceItems, deduplicated app-wide by sha256. RotationRules
+ * bind a folder to a channel with an independent schedule. The Assignment
+ * Planner (Phase 2) turns assignments into real jobs rows, which the
+ * existing worker uploads unchanged — so the publish path is reused.
+ *
+ * media_assets tracks files copied into the app's own media store
+ * (config.storageRoot). A job may reference one (jobs.media_asset_id) so a
+ * single copy can be reused across multiple channels (shared pool) and cleaned
+ * up once nothing references it (Phase 2 cleanup policy).
+ */
+CREATE TABLE IF NOT EXISTS source_folders (
+  id            TEXT PRIMARY KEY,
+  path          TEXT NOT NULL,                 -- absolute watched path
+  active        INTEGER NOT NULL DEFAULT 1,
+  scan_interval INTEGER NOT NULL DEFAULT 300,  -- seconds (polling safety net)
+  status        TEXT NOT NULL DEFAULT 'reachable', -- reachable | unreachable (FR-ROT-07)
+  last_scan_at  BIGINT,
+  created_at    BIGINT NOT NULL,
+  updated_at    BIGINT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS source_items (
+  id          TEXT PRIMARY KEY,
+  folder_id   TEXT NOT NULL REFERENCES source_folders(id) ON DELETE CASCADE,
+  filename    TEXT NOT NULL,
+  file_path   TEXT NOT NULL,
+  size_bytes  BIGINT NOT NULL,
+  sha256      TEXT NOT NULL UNIQUE,            -- app-wide dedup key (FR-ROT-06)
+  detected_at BIGINT NOT NULL,
+  status      TEXT NOT NULL DEFAULT 'new',     -- new | used | skipped | failed
+  created_at  BIGINT NOT NULL,
+  updated_at  BIGINT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS rotation_rules (
+  id               TEXT PRIMARY KEY,
+  folder_id        TEXT NOT NULL REFERENCES source_folders(id) ON DELETE CASCADE,
+  channel_id       TEXT NOT NULL REFERENCES channels(id),
+  frequency        TEXT NOT NULL,              -- daily | every_n_days | weekdays
+  interval_n       INTEGER,                    -- for every_n_days
+  weekdays         TEXT,                       -- CSV of 0-6 (Mon-Sun) for weekdays
+  time_of_day      TEXT NOT NULL,              -- "HH:mm"
+  timezone         TEXT NOT NULL DEFAULT 'UTC',
+  start_date       BIGINT NOT NULL,            -- epoch seconds (UTC day boundary)
+  pool_mode        TEXT NOT NULL DEFAULT 'shared', -- shared | dedicated
+  caption_template TEXT,                       -- {filename} {index} {date}
+  active           INTEGER NOT NULL DEFAULT 1,
+  created_at       BIGINT NOT NULL,
+  updated_at       BIGINT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS rotation_assignments (
+  id           TEXT PRIMARY KEY,
+  rule_id      TEXT NOT NULL REFERENCES rotation_rules(id) ON DELETE CASCADE,
+  item_id      TEXT NOT NULL REFERENCES source_items(id) ON DELETE CASCADE,
+  scheduled_at BIGINT,                         -- NULL until promoted to a job
+  job_id       TEXT REFERENCES jobs(id),       -- NULL until a job is created (horizon)
+  status       TEXT NOT NULL DEFAULT 'planned',-- planned | scheduled | published | failed | skipped
+  created_at   BIGINT NOT NULL,
+  updated_at   BIGINT NOT NULL,
+  UNIQUE(rule_id, item_id)
+);
+
+CREATE TABLE IF NOT EXISTS media_assets (
+  id         TEXT PRIMARY KEY,
+  sha256     TEXT NOT NULL UNIQUE,
+  path       TEXT NOT NULL,                    -- relative to storageRoot (== jobs.filename)
+  size_bytes BIGINT NOT NULL,
+  created_at BIGINT NOT NULL,
+  updated_at BIGINT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_items_folder    ON source_items(folder_id);
+CREATE INDEX IF NOT EXISTS idx_rules_folder    ON rotation_rules(folder_id);
+CREATE INDEX IF NOT EXISTS idx_assign_rule     ON rotation_assignments(rule_id, status, scheduled_at);
+CREATE INDEX IF NOT EXISTS idx_assign_item     ON rotation_assignments(item_id);
 `;
 
 let driver = null;
@@ -94,6 +186,18 @@ async function sqliteDriver() {
   return {
     prepare: (sql) => stmt(db.prepare(sql)),
     exec: async (sql) => { db.exec(sql); },
+    // Raw ad-hoc SQL, read-only by contract (the /api/explorer route enforces
+    // SELECT-only BEFORE it reaches here). Returns { columns, rows, rowCount }.
+    queryRaw: async (sql) => {
+      const st = db.prepare(sql);
+      const rows = st.all();
+      const cols = (st.columns() || []).map((c) => c.name);
+      return {
+        columns: cols.length ? cols : (rows.length ? Object.keys(rows[0]) : []),
+        rows,
+        rowCount: rows.length,
+      };
+    },
     close: async () => db.close(),
     raw: db,
   };
@@ -170,6 +274,16 @@ async function pgDriver() {
         await pool.query(s);
       }
     },
+    // Raw ad-hoc SQL, read-only by contract (the /api/explorer route enforces
+    // SELECT-only BEFORE it reaches here). Returns { columns, rows, rowCount }.
+    queryRaw: async (sql) => {
+      const r = await runQuery(sql);
+      return {
+        columns: (r.fields || []).map((f) => f.name),
+        rows: r.rows,
+        rowCount: r.rowCount != null ? r.rowCount : r.rows.length,
+      };
+    },
     close: async () => pool.end(),
   };
 }
@@ -178,9 +292,36 @@ async function pgDriver() {
 export const queries = {};   // populated by initDb() (populated in place)
 export let db = null;        // set by initDb(); live binding for static importers
 
+// Ad-hoc read-only SQL for the DB Explorer UI. The caller (route) is responsible
+// for enforcing SELECT-only; this just executes and returns { columns, rows, rowCount }.
+export async function rawQuery(sql) {
+  if (!db) throw new Error("database not initialized");
+  return db.queryRaw(sql);
+}
+
 export async function initDb() {
   if (!driver) driver = await (config.dbDriver === "pg" ? pgDriver() : sqliteDriver());
   await driver.exec(schema);
+
+  // --- Idempotent migrations for the `users` table (existing deployments) ---
+  // google_sub was added after the initial email/password rollout. Fresh DBs
+  // get it from CREATE TABLE above; here we add it to older DBs WITHOUT
+  // downtime. Both statements are wrapped so "already exists" errors are
+  // ignored — safe to re-run.
+  const migrations = [
+    `ALTER TABLE users ADD COLUMN google_sub TEXT`,
+    `CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_sub ON users(google_sub)`,
+    // Rotation feature: tag jobs created by the folder-import planner (vs. 'manual'),
+    // and optionally point a job at a reused media_asset row (shared pool, Phase 2).
+    `ALTER TABLE jobs ADD COLUMN source TEXT NOT NULL DEFAULT 'manual'`,
+    `ALTER TABLE jobs ADD COLUMN media_asset_id TEXT`,
+    // Folder watcher: track whether a watched path is currently reachable.
+    `ALTER TABLE source_folders ADD COLUMN status TEXT NOT NULL DEFAULT 'reachable'`,
+  ];
+  for (const sql of migrations) {
+    try { await driver.exec(sql); }
+    catch (e) { /* column/index already present — OK */ }
+  }
 
   // Build the statement set AFTER schema exists (sqlite validates INSERT
   // column lists at prepare time). All statements carry the same async surface
@@ -194,6 +335,14 @@ export async function initDb() {
   queries.deactivateChannel = S(`UPDATE channels SET active = 0 WHERE id = @id`);
   queries.saveTokens = S(`UPDATE channels SET access_token = @accessToken, refresh_token = COALESCE(@refreshToken, refresh_token), token_expires_at = @expiresAt WHERE id = @id`);
 
+  queries.insertUser = S(`INSERT INTO users (id, email, name, password_hash, avatar, created_at, updated_at) VALUES (@id, @email, @name, @passwordHash, @avatar, @created, @updated) RETURNING id, email, name, avatar, created_at`);
+  queries.findUserByEmail = S(`SELECT id, email, name, password_hash, avatar, google_sub, created_at FROM users WHERE email = @email`);
+  queries.findUserByGoogleSub = S(`SELECT id, email, name, password_hash, avatar, google_sub, created_at FROM users WHERE google_sub = @googleSub`);
+  queries.linkGoogle = S(`UPDATE users SET email = @email, name = COALESCE(@name, name), avatar = COALESCE(@avatar, avatar), google_sub = @googleSub, updated_at = @updatedAt WHERE id = @id RETURNING id, email, name, avatar, created_at`);
+  queries.findUserById = S(`SELECT id, email, name, password_hash, avatar, created_at FROM users WHERE id = @id`);
+  queries.updateUser = S(`UPDATE users SET email = COALESCE(@email, email), name = COALESCE(@name, name), avatar = COALESCE(@avatar, avatar), updated_at = @updatedAt WHERE id = @id RETURNING id, email, name, avatar, created_at`);
+  queries.userCount = S(`SELECT COUNT(*) AS n FROM users`);
+
   queries.insertJob = S(`INSERT INTO jobs (id, channel_id, filename, title, description, hashtags, tags, category, privacy, scheduled_at, priority, next_retry_at, status, created_at, updated_at) VALUES (@id, @channelId, @filename, @title, @description, @hashtags, @tags, @category, @privacy, @scheduledAt, @priority, @nextRetryAt, @status, @created, @updated)`);
   queries.claimJob = S(`UPDATE jobs SET status = 'uploading' WHERE id = @id AND status = 'pending' RETURNING *`);
   queries.dueJobs = S(`SELECT * FROM jobs WHERE status = 'pending' AND scheduled_at <= @now AND (next_retry_at IS NULL OR next_retry_at <= @now) ORDER BY priority ASC, scheduled_at ASC, created_at ASC`);
@@ -201,8 +350,55 @@ export async function initDb() {
   queries.requeueJob = S(`UPDATE jobs SET status = 'pending', retry_count = retry_count + 1, next_retry_at = @nextRetryAt, channel_id = @channelId, last_error = @lastError, updated_at = @updatedAt WHERE id = @id`);
   queries.markDone = S(`UPDATE jobs SET status = 'done', retry_count = @retryCount, last_error = NULL, updated_at = @updatedAt WHERE id = @id`);
   queries.findJob = S(`SELECT * FROM jobs WHERE id = @id`);
-  queries.listJobs = S(`SELECT * FROM jobs ORDER BY priority ASC, scheduled_at ASC, created_at DESC`);
+  queries.listJobs = S(`SELECT jobs.*, uploads.youtube_url
+    FROM jobs
+    LEFT JOIN uploads ON uploads.job_id = jobs.id
+    ORDER BY jobs.priority ASC, jobs.scheduled_at ASC, jobs.created_at DESC`);
   queries.insertUpload = S(`INSERT INTO uploads (id, job_id, channel_id, youtube_id, youtube_url, etag, quota_cost, created_at) VALUES (@id, @jobId, @channelId, @youtubeId, @youtubeUrl, @etag, @quotaCost, @created)`);
+
+  /* ---- folder import / rotation queries ---- */
+  queries.insertFolder = S(`INSERT INTO source_folders (id, path, active, scan_interval, last_scan_at, created_at, updated_at) VALUES (@id, @path, @active, @scanInterval, @lastScanAt, @created, @updated)`);
+  queries.findFolderByPath = S(`SELECT * FROM source_folders WHERE path = @path`);
+  queries.findFolder = S(`SELECT * FROM source_folders WHERE id = @id`);
+  queries.deleteFolder = S(`DELETE FROM source_folders WHERE id = @id`);
+  queries.listFolders = S(`SELECT *, (SELECT COUNT(*) FROM source_items WHERE folder_id = source_folders.id) AS item_count FROM source_folders ORDER BY created_at DESC`);
+  queries.setFolderLastScan = S(`UPDATE source_folders SET last_scan_at = @lastScanAt, updated_at = @updatedAt WHERE id = @folderId`);
+  queries.setFolderStatus = S(`UPDATE source_folders SET status = @status, updated_at = @updatedAt WHERE id = @folderId`);
+  queries.listActiveFolders = S(`SELECT * FROM source_folders WHERE active = 1 ORDER BY created_at ASC`);
+
+  queries.insertItem = S(`INSERT INTO source_items (id, folder_id, filename, file_path, size_bytes, sha256, detected_at, status, created_at, updated_at) VALUES (@id, @folderId, @filename, @filePath, @sizeBytes, @sha256, @detectedAt, @status, @created, @updated)`);
+  queries.findItemByHash = S(`SELECT * FROM source_items WHERE sha256 = @sha256`);
+  queries.updateItemLocation = S(`UPDATE source_items SET filename = @filename, file_path = @filePath, size_bytes = @sizeBytes, updated_at = @updatedAt WHERE id = @id`);
+  queries.updateItemStatus = S(`UPDATE source_items SET status = @status, updated_at = @updatedAt WHERE id = @id`);
+  queries.listFolderItems = S(`SELECT * FROM source_items WHERE folder_id = @folderId ORDER BY detected_at DESC`);
+
+  queries.insertRule = S(`INSERT INTO rotation_rules (id, folder_id, channel_id, frequency, interval_n, weekdays, time_of_day, timezone, start_date, pool_mode, caption_template, active, created_at, updated_at) VALUES (@id, @folderId, @channelId, @frequency, @intervalN, @weekdays, @timeOfDay, @timezone, @startDate, @poolMode, @captionTemplate, @active, @created, @updated)`);
+  queries.findRule = S(`SELECT * FROM rotation_rules WHERE id = @id`);
+  queries.listRulesForFolder = S(`SELECT * FROM rotation_rules WHERE folder_id = @folderId ORDER BY created_at DESC`);
+  queries.updateRule = S(`UPDATE rotation_rules SET frequency = @frequency, interval_n = @intervalN, weekdays = @weekdays, time_of_day = @timeOfDay, timezone = @timezone, start_date = @startDate, pool_mode = @poolMode, caption_template = @captionTemplate, active = @active, updated_at = @updatedAt WHERE id = @id`);
+  queries.deleteRule = S(`DELETE FROM rotation_rules WHERE id = @id`);
+
+  queries.insertAssignment = S(`INSERT INTO rotation_assignments (id, rule_id, item_id, scheduled_at, job_id, status, created_at, updated_at) VALUES (@id, @ruleId, @itemId, @scheduledAt, @jobId, @status, @created, @updated)`);
+  queries.findAssignmentByItem = S(`SELECT * FROM rotation_assignments WHERE item_id = @itemId`);
+  queries.listAssignmentsForRule = S(`SELECT a.*, i.filename, i.sha256 FROM rotation_assignments a JOIN source_items i ON i.id = a.item_id WHERE a.rule_id = @ruleId ORDER BY a.created_at DESC`);
+  queries.updateAssignmentSlot = S(`UPDATE rotation_assignments SET scheduled_at = @scheduledAt, job_id = @jobId, status = @status, updated_at = @updatedAt WHERE id = @id`);
+
+  queries.insertMediaAsset = S(`INSERT INTO media_assets (id, sha256, path, size_bytes, created_at, updated_at) VALUES (@id, @sha256, @path, @sizeBytes, @created, @updated)`);
+  queries.findMediaByHash = S(`SELECT * FROM media_assets WHERE sha256 = @sha256`);
+  queries.deleteMediaAsset = S(`DELETE FROM media_assets WHERE id = @id`);
+  queries.listOrphanedMedia = S(`SELECT m.* FROM media_assets m LEFT JOIN jobs j ON j.media_asset_id = m.id WHERE j.id IS NULL`);
+
+  /* ---- assignment-planner queries (Phase 2) ---- */
+  queries.listActiveRules = S(`SELECT * FROM rotation_rules WHERE active = 1 ORDER BY created_at ASC`);
+  queries.findAssignmentForSlot = S(`SELECT * FROM rotation_assignments WHERE rule_id = @ruleId AND scheduled_at = @scheduledAt`);
+  queries.countAssignmentsBeforeSlot = S(`SELECT COUNT(*) AS n FROM rotation_assignments WHERE rule_id = @ruleId AND scheduled_at < @scheduledAt`);
+  // Eligible items for the planner. dedicated: never assigned to ANY rule yet.
+  // shared: not yet assigned to THIS rule (a 'used' item is still eligible for
+  // other rules/channels, but each rule publishes it at most once).
+  queries.pickItemDedicated = S(`SELECT s.* FROM source_items s WHERE s.folder_id = @folderId AND s.status = 'new' AND NOT EXISTS (SELECT 1 FROM rotation_assignments a WHERE a.item_id = s.id) ORDER BY s.detected_at ASC, s.created_at ASC`);
+  queries.pickItemShared = S(`SELECT s.* FROM source_items s WHERE s.folder_id = @folderId AND s.status IN ('new','used') AND NOT EXISTS (SELECT 1 FROM rotation_assignments a WHERE a.rule_id = @ruleId AND a.item_id = s.id) ORDER BY s.detected_at ASC, s.created_at ASC`);
+  // Rotation-created jobs reuse the same columns but carry source='rotation' + media_asset_id.
+  queries.insertRotationJob = S(`INSERT INTO jobs (id, channel_id, filename, title, description, hashtags, tags, category, privacy, scheduled_at, priority, next_retry_at, status, created_at, updated_at, source, media_asset_id) VALUES (@id, @channelId, @filename, @title, @description, @hashtags, @tags, @category, @privacy, @scheduledAt, @priority, @nextRetryAt, @status, @created, @updated, 'rotation', @mediaAssetId)`);
 
   db = driver; // activate live binding for static importers
   return driver;

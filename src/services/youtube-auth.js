@@ -26,15 +26,19 @@ export function makeOauthClient() {
   });
 }
 
-/** URL the user is redirected to for consent. Includes offline access
- *  so we receive a refresh_token (required for unattended scheduling). */
+/** URL the user is redirected to for consent, plus a CSRF `state` token.
+ *  The `state` MUST be stored server-side (as an httpOnly cookie) and verified
+ *  in the callback to prevent authorization-code interception. */
 export function getAuthUrl() {
   const client = makeOauthClient();
-  return client.generateAuthUrl({
+  const state = crypto.randomUUID();
+  const url = client.generateAuthUrl({
     access_type: "offline",
     prompt: "consent", // force refresh_token issuance on every flow
     scope: config.google.scopes,
+    state,
   });
+  return { url, state };
 }
 
 /** Exchange an authorization code for tokens, then look up the YouTube

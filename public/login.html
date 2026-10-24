@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign in · Castline</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@72..144,400..900&family=Outfit:wght@300..600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --color-canvas:#100e0c; --color-surface:#1b1814; --color-surface-2:#262119;
+      --color-fg:#f4efe6; --color-muted:#c2b6a8; --color-faint:#8f8478; --color-line:#3a332b;
+      --color-signal:#e6a23c; --color-signal-ink:#1a1206; --color-sage:#8eae82; --color-coral:#e07a68;
+    }
+    * { box-sizing: border-box; }
+    html,body { margin:0; min-height:100%; background:var(--color-canvas); color:var(--color-fg); }
+    body { font-family:"Outfit",ui-sans-serif,system-ui,sans-serif; display:flex; align-items:center; justify-content:center; }
+    .card { background:var(--color-surface); border:1px solid var(--color-line); border-radius:1.125rem; padding:2rem; width:min(100%,22rem); box-shadow:0 1px 3px rgba(0,0,0,.4); }
+    h1 { font-family:"Fraunces",Georgia,serif; font-size:1.5rem; margin:0 0 1.5rem; text-align:center; }
+    .field-label { font-size:.8rem; color:var(--color-muted); margin-bottom:.3rem; display:block; }
+    .field {
+      width:100%; border-radius:.75rem; border:1px solid var(--color-line); background:var(--color-canvas);
+      color:var(--color-fg); font-size:.85rem; padding:.6rem .85rem; outline:none; font-family:inherit;
+    }
+    .field::placeholder { color:var(--color-faint); }
+    .field:focus { border-color:var(--color-signal); }
+    .btn {
+      width:100%; margin-top:1.25rem; height:2.75rem; border-radius:.75rem; border:1px solid var(--color-signal);
+      background:var(--color-signal); color:var(--color-signal-ink); font-size:.85rem; font-weight:600;
+      transition:filter .15s;
+    }
+    .btn:hover { filter:brightness(1.1); }
+    .row { display:flex; justify-content:center; gap:.5rem; margin-top:1rem; font-size:.85rem; color:var(--color-muted); }
+    .row a { color:var(--color-signal); }
+    .error { color:var(--color-coral); font-size:.8rem; margin-top:.75rem; }
+    ::selection { background:var(--color-signal); color:var(--color-signal-ink); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1 id="title">Sign in with email</h1>
+    <p class="row" style="margin:0 0 1.25rem">Enter your email and password to continue.</p>
+    <form id="form">
+      <input type="hidden" name="action" value="login" />
+      <div id="nameWrap" style="display:none">
+        <label class="field-label">Name</label>
+        <input class="field" name="name" placeholder="Jane Doe" />
+      </div>
+      <label class="field-label">Email</label>
+      <input class="field" name="email" type="email" placeholder="you@example.com" required />
+      <label class="field-label">Password</label>
+      <input class="field" name="password" type="password" placeholder="••••••••" required />
+      <button type="submit" class="btn">Sign in</button>
+      <p id="err" class="error"></p>
+    </form>
+    <div class="row">
+      <span>No account?</span>
+      <a href="#" id="toggle">Register</a>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("form");
+    const title = document.getElementById("title");
+    const nameWrap = document.getElementById("nameWrap");
+    const action = form.querySelector('[name=action]');
+    const toggle = document.getElementById("toggle");
+    const err = document.getElementById("err");
+    let mode = "login";
+
+    function setMode(m) {
+      mode = m; action.value = m;
+      title.textContent = m === "login" ? "Sign in with email" : "Create account";
+      nameWrap.style.display = m === "register" ? "" : "none";
+      toggle.textContent = m === "login" ? "Register" : "Sign in";
+      document.querySelector('button[type=submit]').textContent = m === "login" ? "Sign in" : "Create account";
+      err.textContent = "";
+    }
+    toggle.addEventListener("click", (e) => { e.preventDefault(); setMode(mode === "login" ? "register" : "login"); });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      err.textContent = "";
+      const data = new FormData(form);
+      const body = { email: data.get("email"), password: data.get("password") };
+      if (mode === "register") body.name = data.get("name");
+      const res = await fetch(`/api/auth/${mode === "register" ? "register" : "login"}`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+      });
+      const j = await res.json();
+      if (!res.ok) { err.textContent = j.error || "failed"; return; }
+      location.href = "/";
+    });
+    setMode("login");
+  </script>
+</body>
+</html>

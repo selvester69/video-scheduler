@@ -3,178 +3,731 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>YouTube Video Scheduler</title>
+  <title>Video Scheduler</title>
+
+  <!-- Fonts: Outfit (sans) + Fraunces (display), same as Castline -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@72..144,400..900&family=Outfit:wght@300..600;700&display=swap" rel="stylesheet" />
+
   <style>
-    :root { color-scheme: dark; }
+    :root {
+      --color-canvas:   #100e0c;
+      --color-surface:  #1b1814;
+      --color-surface-2:#262119;
+      --color-fg:       #f4efe6;
+      --color-muted:    #c2b6a8;
+      --color-faint:    #8f8478;
+      --color-line:     #3a332b;
+      --color-signal:   #e6a23c;   /* amber accent */
+      --color-signal-ink: #1a1206;
+      --color-sage:     #8eae82;   /* green / connected */
+      --color-coral:    #e07a68;   /* danger */
+      --radius-sm: .375rem;
+      --radius-md: .75rem;
+      --radius-lg: 1.125rem;
+    }
+
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #e2e8f0; }
-    header { padding: 1.25rem 2rem; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; }
-    header h1 { margin: 0; font-size: 1.3rem; }
-    main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
-    .card { background: #1e293b; border: 1px solid #33475b; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; }
-    .card h2 { margin-top: 0; font-size: 1.05rem; }
-    label { display: block; font-size: .8rem; color: #94a3b8; margin-bottom: .25rem; }
-    input, select, textarea { width: 100%; padding: .6rem; border: 1px solid #33475b; border-radius: 8px; background: #0f172a; color: #e2e8f0; }
-    input[type="file"] { padding: 0; }
+    html, body { margin: 0; min-height: 100%; }
+    html { background: var(--color-canvas); color: var(--color-fg); color-scheme: dark; }
+    body {
+      font-family: "Outfit", ui-sans-serif, system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh;
+    }
+    .font-display { font-family: "Fraunces", Georgia, serif; font-weight: 700; }
+    h1, h2, h3 { font-family: "Fraunces", Georgia, serif; font-weight: 700; text-wrap: balance; }
+    p { text-wrap: pretty; }
+    a { color: inherit; text-decoration: none; }
+    button, [role=button] { cursor: pointer; }
+
+    /* Layout: horizontal top tabs (no side nav) */
+    .main { margin-left: 0; }
+
+    .brand { display: inline-flex; align-items: center; gap: .5rem; font-size: .9rem; }
+    .brand .logo { font-family: "Fraunces", Georgia, serif; font-size: 1.05rem; }
+    .brand .subtitle { font-size: .65rem; letter-spacing: .2em; text-transform: uppercase; color: var(--color-faint); }
+
+    /* Top tab bar: brand | tabs | actions */
+    .tabs {
+      display: flex; align-items: center; gap: .2rem;
+      flex: 1 1 auto; justify-content: center; min-width: 0;
+      overflow-x: auto; overflow-y: hidden;
+    }
+    .tablink {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .6rem .9rem;
+      border-radius: var(--radius-md) var(--radius-md) 0 0;
+      font-size: .85rem; color: var(--color-muted);
+      border-bottom: 2px solid transparent;
+      transition: color .15s, border-color .15s;
+      white-space: nowrap;
+    }
+    .tablink:hover { color: var(--color-fg); }
+    .tablink.active { color: var(--color-fg); border-bottom-color: var(--color-signal); }
+    .tablink svg { width: 1rem; height: 1rem; flex-shrink: 0; }
+    .tab-count {
+      background: color-mix(in srgb, var(--color-signal), transparent 78%);
+      color: var(--color-signal);
+      border: 1px solid var(--color-signal);
+      border-radius: 999px;
+      padding: .05rem .55rem; font-size: .7rem; font-weight: 700;
+      min-width: 1.1rem; text-align: center;
+    }
+    /* inline "rotation" source tag on queued/completed rows */
+    .tag.rotation {
+      display: inline-block; margin-left: .4rem;
+      background: color-mix(in srgb, var(--color-signal-ink), transparent 82%);
+      color: var(--color-signal);
+      border: 1px solid var(--color-signal);
+      border-radius: var(--radius-sm);
+      padding: .05rem .45rem; font-size: .62rem; font-weight: 700;
+      vertical-align: middle;
+    }
+
+    /* Rotation folder card + rule editor modal */
+    .folder-card { background: var(--color-surface); border: 1px solid var(--color-line);
+      border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1rem; }
+    .rule-row { padding: .4rem 0; border-bottom: 1px solid var(--color-line);
+      display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,.55);
+      display: flex; align-items: center; justify-content: center; z-index: 1000;
+    }
+    .modal { background: var(--color-surface); border: 1px solid var(--color-line);
+      border-radius: var(--radius-lg); padding: 1.5rem; width: min(90vw, 42rem); max-height: 85vh; overflow: auto; }
+    .modal .field-label { color: var(--color-muted); }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .explorer-table { border-collapse: collapse; width: 100%; font-size: .8rem; margin-top: .75rem; overflow: auto; display: block; }
+    .explorer-table th, .explorer-table td { border: 1px solid var(--color-line); padding: .25rem .4rem; text-align: left; vertical-align: top; }
+    .explorer-table th { background: var(--color-muted-bg); }
+    .explorer-table tr:nth-child(even) { background: var(--color-muted-bg); }
+    .pill.error { color: var(--color-coral); border-color: var(--color-coral); background: color-mix(in srgb, var(--color-coral), transparent 82%); }
+
+    /* Header right-side actions (New upload + user menu) */
+    .header-actions { display: inline-flex; align-items: center; gap: .75rem; }
+    #newUpload {
+      display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+      height: 2.75rem; border-radius: var(--radius-md);
+      background: var(--color-signal); color: var(--color-signal-ink);
+      font-size: .85rem; font-weight: 600; transition: filter .15s;
+      border: 1px solid var(--color-signal);
+    }
+    #newUpload:hover { filter: brightness(1.1); }
+    #newUpload svg { width: 1rem; height: 1rem; }
+
+    /* Sticky top header (brand | tabs | actions) */
+    .topheader {
+      position: sticky; top: 0; z-index: 20;
+      display: flex; align-items: stretch; justify-content: space-between;
+      gap: .75rem;
+      border-bottom: 1px solid var(--color-line);
+      background: var(--color-canvas);
+      backdrop-filter: blur(8px);
+      padding: .5rem 1.5rem;
+      min-height: 3.5rem;
+    }
+    @media (max-width: 1023px) { .topheader { padding: .4rem .9rem; } }
+    .topheader .title { font-family: "Fraunces", Georgia, serif; font-size: 1.25rem; }
+    .channel { display: inline-flex; align-items: center; gap: .45rem; font-size: .85rem; color: var(--color-muted); }
+    .dot { width: .55rem; height: .55rem; border-radius: 999px; display: inline-block; }
+    .dot.sage { background: var(--color-sage); }
+    .dot.signal { background: var(--color-signal); }
+    .dot.coral { background: var(--color-coral); }
+
+    main { padding: 1.5rem; }
+    @media (min-width: 1024px) { main { padding: 1.75rem 2rem; } }
+
+    /* Cards / surfaces */
+    .card {
+      background: var(--color-surface); border: 1px solid var(--color-line);
+      border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1.5rem;
+    }
+    .card h2 { margin: 0 0 .75rem; font-size: 1.1rem; }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+      height: 2.75rem; border-radius: var(--radius-md);
+      border: 1px solid var(--color-line); font-size: .85rem; font-weight: 600;
+      transition: filter .15s, background .15s;
+    }
+    .btn-primary { background: var(--color-signal); color: var(--color-signal-ink); border-color: var(--color-signal); }
+    .btn-primary:hover { filter: brightness(1.1); }
+    .btn-ghost { background: transparent; color: var(--color-muted); }
+    .btn-ghost:hover { background: var(--color-surface-2); color: var(--color-fg); }
+    .btn .icon { width: 1rem; height: 1rem; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* Forms */
+    .field-label { font-size: .8rem; color: var(--color-muted); margin-bottom: .3rem; display: block; }
+    .field {
+      width: 100%; border-radius: var(--radius-md); border: 1px solid var(--color-line);
+      background: var(--color-canvas); color: var(--color-fg); font-size: .85rem;
+      padding: .6rem .85rem; outline: none;
+    }
+    .field::placeholder { color: var(--color-faint); }
+    .field:focus { border-color: var(--color-signal); }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .pill { display: inline-block; padding: .15rem .6rem; border-radius: 999px; font-size: .75rem; }
-    .s-pending { background: #33455b; color: #93c5fd; }
-    .s-processing, .s-uploading { background: #78350f; color: #fbbf24; }
-    .s-done { background: #14532d; color: #4ade80; }
-    .s-failed, .s-exhausted { background: #450a0a; color: #f87171; }
-    .muted { color: #64748b; font-size: .8rem; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid #1e293b; font-size: .85rem; }
-    th { color: #94a3b8; font-weight: 600; }
-    button { background: #2563eb; color: #fff; border: none; border-radius: 8px; padding: .55rem 1rem; cursor: pointer; }
-    button.ghost { background: transparent; border-color: #33475b; }
-    button:disabled { opacity: .6; cursor: not-allowed; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } .row { grid-template-columns: 1fr; } }
+    @media (max-width: 720px) { .row { grid-template-columns: 1fr; } }
+    .file-row { display: flex; align-items: flex-end; gap: .75rem; margin-bottom: .4rem; }
+    .file-row:last-child { margin-bottom: .6rem; }
+    .file-name { color: var(--color-muted); font-size: .8rem; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Status pills */
+    .pill { display: inline-flex; align-items: center; gap: .35rem; border-radius: 999px; padding: .15rem .7rem; font-size: .72rem; font-weight: 600; }
+    .pill.pending   { background: color-mix(in srgb, var(--color-signal), transparent 85%); color: var(--color-signal); }
+    .pill.processing{ background: color-mix(in srgb, var(--color-signal), transparent 85%); color: var(--color-signal); }
+    .pill.uploading { background: color-mix(in srgb, var(--color-signal), transparent 85%); color: var(--color-signal); }
+    .pill.done      { background: color-mix(in srgb, var(--color-sage), transparent 82%); color: var(--color-sage); }
+    .pill.failed,
+    .pill.exhausted { background: color-mix(in srgb, var(--color-coral), transparent 85%); color: var(--color-coral); }
+    .pill.deleted   { background: var(--color-surface-2); color: var(--color-faint); }
+    .pill .dot { width: .4rem; height: .4rem; border-radius: 999px; background: currentColor; }
+
+    table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    th, td { text-align: left; padding: .55rem .6rem; border-bottom: 1px solid var(--color-line); }
+    th { color: var(--color-muted); font-weight: 600; font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; }
+    td.muted { color: var(--color-faint); }
+    tr a { color: var(--color-signal); }
+    tr:hover { background: color-mix(in srgb, var(--color-surface-2) 25%, transparent); }
+
+    .muted { color: var(--color-faint); }
     .hidden { display: none; }
-    #connectLink.connected { cursor: default; text-decoration: none; opacity: .9; }
+    .empty {
+      border: 1px dashed var(--color-line); border-radius: var(--radius-md);
+      padding: 2.5rem 1rem; text-align: center;
+    }
+    .empty h3 { font-size: 1.25rem; color: var(--color-fg); }
+    .empty p { color: var(--color-muted); margin-top: .5rem; max-width: 26rem; margin-left: auto; margin-right: auto; font-size: .85rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .8rem; margin: 1rem 0; }
+    .stat-card { background: var(--color-surface-2); border: 1px solid var(--color-line); border-radius: var(--radius-md); padding: 1rem; }
+    .stat-label { color: var(--color-muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; }
+    .stat-value { font: 700 1.8rem "Fraunces", Georgia, serif; margin-top: .35rem; }
+    .section-heading { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+    .section-heading h2 { margin-bottom: .75rem; }
+    .toolbar { display: flex; gap: .75rem; margin: .75rem 0 1rem; }
+    .toolbar > * { max-width: 18rem; }
+    .table-wrap { overflow-x: auto; }
+    .table-wrap table { min-width: 42rem; }
+    .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 1rem; }
+    .media-card { min-width: 0; border: 1px solid var(--color-line); background: var(--color-surface-2); border-radius: var(--radius-md); padding: .75rem; }
+    .media-card video { display: block; width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: var(--radius-sm); }
+    .media-card h3 { font: 600 .95rem "Outfit", ui-sans-serif, system-ui, sans-serif; margin: .75rem 0 .35rem; overflow-wrap: anywhere; }
+    .media-card p { margin: .25rem 0; color: var(--color-faint); font-size: .78rem; overflow-wrap: anywhere; }
+    .inline-link { color: var(--color-signal); }
+    @media (max-width: 760px) {
+      .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .topheader { flex-wrap: wrap; }
+      .tabs { order: 3; flex-basis: 100%; justify-content: flex-start; }
+      .header-actions { margin-left: auto; }
+    }
+    @media (max-width: 480px) {
+      main { padding: 1rem .75rem; }
+      .stats-grid { gap: .5rem; }
+      .stat-card { padding: .75rem; }
+      .stat-value { font-size: 1.45rem; }
+      .toolbar { flex-direction: column; }
+      .toolbar > * { max-width: none; }
+      .header-actions #userMenu { display: none; }
+    }
+
+    ::selection { background: var(--color-signal); color: var(--color-signal-ink); }
+    input[type=checkbox] { accent-color: var(--color-signal); }
   </style>
 </head>
 <body>
-  <header>
-    <h1>🎬 YouTube Video Scheduler</h1>
-    <a href="/api/auth/connect" id="connectLink" class="ghost" style="color:#93c5fd">Connect Channel</a>
-  </header>
-  <main>
-    <section class="card">
-      <h2>Schedule an upload</h2>
-      <form id="scheduleForm">
-        <div class="row">
-          <div><label>Video file</label><input type="file" name="video" accept="video/*" required /></div>
-          <div><label>Title (leave blank to use the file name)</label><input type="text" name="title" placeholder="My video title" /></div>
-        </div>
-        <label>Description</label>
-        <textarea name="description" rows="3" placeholder="Describe your video…"></textarea>
-        <div class="row">
-          <div><label>Hashtags (space or comma separated)</label><input type="text" name="hashtags" placeholder="#funny #vlog" /></div>
-          <div><label>Tags (comma separated)</label><input type="text" name="tags" placeholder="comedy, vlog" /></div>
-        </div>
-        <div class="row">
-          <div><label>Privacy</label><select name="privacy"><option value="private">Private</option><option value="unlisted">Unlisted</option><option value="public">Public</option></select></div>
-          <div><label>Schedule at</label><input type="datetime-local" name="scheduleAt" /></div>
-        </div>
-        <label>Channel (leave blank to auto-pick across your connected channels)</label>
-        <select name="channelId"><option value="">Auto-select (spreads load across channels)</option></select>
-        <button type="submit" id="submitBtn">Schedule upload</button>
-        <p id="msg" class="muted"></p>
-      </form>
-    </section>
-
-    <section class="card">
-      <h2>Channels</h2>
-      <div id="channels"><p class="muted">Loading…</p></div>
-    </section>
-
-    <section class="card">
-      <h2>Scheduled jobs</h2>
-      <div id="jobs"><p class="muted">Loading…</p></div>
-    </section>
-
-    <section class="card" id="editSection" style="display:none;">
-      <h2>Edit job <span id="editId" class="muted"></span></h2>
-      <button class="ghost" id="cancelEdit" style="float:right">✕</button>
-      <div class="row">
-        <div><label>Title</label><input type="text" id="eTitle" /></div>
-        <div><label>Privacy</label><select id="ePrivacy"><option value="private">Private</option><option value="unlisted">Unlisted</option><option value="public">Public</option></select></div>
+  <div class="main">
+        <header class="topheader">
+      <div class="brand">
+        <span class="dot signal"></span>
+        <span class="logo font-display">Castline</span>
+        <span class="subtitle">Studio desk</span>
       </div>
-      <label>Description</label>
-      <textarea id="eDescription" rows="3"></textarea>
-      <div class="row">
-        <div><label>Hashtags (space or comma separated)</label><input type="text" id="eHashtags" placeholder="#funny #vlog" /></div>
-        <div><label>Tags (comma separated)</label><input type="text" id="eTags" placeholder="comedy, vlog" /></div>
+      <nav class="tabs">
+        <a href="#desk"    data-section="Desk"    class="tablink active">
+          <!-- dashboard -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Desk
+        </a>
+        <a href="#compose" data-section="Schedule" class="tablink">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.85 0 1 1 4 4L10 21H6v-4L17 3z"/><circle cx="13" cy="8" r="1"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          Schedule
+        </a>
+        <a href="#queue"  data-section="Queue"   class="tablink">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6l8 2v10l-8-2z"/><path d="M16 14l-8 2v-2M12 12l8-2v10l-8 2z"/></svg>
+          Queue
+          <span id="queueCount" class="tab-count" aria-live="polite"></span>
+        </a>
+        <a href="#history" data-section="History" class="tablink">History</a>
+        <a href="#rotation" data-section="Rotation" class="tablink">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/><path d="M6 10l6 6 6-6"/></svg>
+          Rotation
+        </a>
+        <a href="#media" data-section="Media" class="tablink">Media</a>
+        <a href="#channels" data-section="Channels" class="tablink">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16M4 20l6-6h4l6 6"/></svg>
+          Channels
+        </a>
+        <a href="#settings" data-section="Settings" class="tablink">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 10v6M4.22 4.22l4.24 4.24m-4.22 7.08 4.24 4.24M20 12h-6m-2 0H7"/></svg>
+          Settings
+        </a>
+        <a href="#explorer" data-section="Explorer" class="tablink">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v9a2 2 0 002 2z"/></svg>
+          Explorer
+        </a>
+      </nav>
+      <div class="header-actions">
+        <button id="newUpload" class="btn btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          New upload
+        </button>
+        <span id="userMenu" class="channel"></span>
+        <a id="connectLink" class="channel" href="/api/auth/connect">
+          <span class="dot signal"></span>
+          <span>Connect Channel</span>
+        </a>
       </div>
-      <div class="row">
-        <div><label>Schedule at</label><input type="datetime-local" id="eScheduleAt" /></div>
-        <div><label>Channel</label><select id="eChannel"><option value="">Auto-select</option></select></div>
+    </header>
+<main>
+      <!-- Desk: overview -->
+      <section id="desk" class="card">
+        <div class="section-heading">
+          <div>
+            <h2>Studio desk</h2>
+            <p class="muted">A live view of your scheduled YouTube uploads.</p>
+          </div>
+          <div style="display:flex; align-items:center; gap:.75rem">
+            <span id="lastRefresh" class="muted" style="font-size:.75rem"></span>
+            <button type="button" class="btn-ghost" onclick="loadJobs()">Refresh</button>
+            <a class="inline-link" href="#queue">View queue →</a>
+          </div>
+        </div>
+        <div id="dashboardStats" class="stats-grid" aria-live="polite">
+          <div class="muted">Loading schedule…</div>
+        </div>
+        <h3>Recent activity</h3>
+        <div id="recentActivity" class="muted">Loading…</div>
+        <details style="margin-top:1.25rem">
+          <summary class="muted">Service status</summary>
+          <div id="health" class="muted" style="margin-top:.75rem">Loading…</div>
+        </details>
+      </section>
+
+      <!-- Schedule -->
+      <section id="compose" class="card">
+        <h2>Schedule an upload</h2>
+        <form id="scheduleForm">
+          <div class="row">
+            <div>
+              <label class="field-label">Video file (select several to schedule multiple uploads at once)</label>
+              <input type="file" id="videoInput" name="video" accept="video/*" multiple required class="field" style="padding:0" />
+            </div>
+          </div>
+          <div id="fileList" class="muted" style="font-size:.85rem;margin-top:.5rem">No files chosen.</div>
+          <label class="field-label">Description</label>
+          <textarea id="description" name="description" rows="3" placeholder="Describe your video…" class="field"></textarea>
+          <div class="row">
+            <div><label class="field-label">Hashtags (space or comma separated)</label><input id="hashtags" type="text" name="hashtags" placeholder="#funny #vlog" class="field" /></div>
+            <div><label class="field-label">Tags (comma separated)</label><input id="tags" type="text" name="tags" placeholder="comedy, vlog" class="field" /></div>
+          </div>
+          <div class="row">
+            <div><label class="field-label">Privacy</label>
+              <select id="privacy" name="privacy" class="field">
+                <option value="private">Private</option>
+                <option value="unlisted">Unlisted</option>
+                <option value="public">Public</option>
+              </select>
+            </div>
+            <div><label class="field-label">Schedule at (your local time)</label><input id="scheduleAt" type="datetime-local" name="scheduleAt" class="field" /></div>
+          </div>
+          <label class="field-label">Channel (blank = auto-select across your channels)</label>
+          <select id="channelId" name="channelId" class="field">
+            <option value="">Auto-select (spreads load across channels)</option>
+          </select>
+
+          <button type="submit" id="submitBtn" class="btn-primary" style="margin-top:1rem">
+            <span id="submitIcon">✓</span> Schedule upload(s)
+          </button>
+          <p id="msg" class="muted" style="margin-top:.5rem"></p>
+        </form>
+      </section>
+
+      <!-- Channels -->
+      <section id="channels" class="card">
+        <h2>Channels</h2>
+        <div id="channelList"><p class="muted">Loading…</p></div>
+      </section>
+
+      <!-- Queue: jobs + edit panel -->
+      <section id="queue" class="card">
+        <div class="section-heading">
+          <h2>Queue</h2>
+          <button type="button" class="btn-ghost" onclick="loadJobs()">Refresh</button>
+        </div>
+        <div class="toolbar">
+          <input id="queueSearch" class="field" type="search" placeholder="Search queued uploads" aria-label="Search queued uploads" />
+          <select id="queueStatus" class="field" aria-label="Filter queue by status">
+            <option value="all">All active statuses</option>
+            <option value="pending">Pending</option>
+            <option value="processing">Processing</option>
+            <option value="uploading">Uploading</option>
+          </select>
+        </div>
+        <div id="jobs"><p class="muted">Loading…</p></div>
+      </section>
+
+      <section id="history" class="card">
+        <div class="section-heading"><h2>Upload history</h2></div>
+        <div class="toolbar">
+          <input id="historySearch" class="field" type="search" placeholder="Search upload history" aria-label="Search upload history" />
+        </div>
+        <div id="historyJobs"><p class="muted">Loading…</p></div>
+      </section>
+
+      <section id="media" class="card">
+        <div class="section-heading">
+          <div>
+            <h2>Video library</h2>
+            <p class="muted">Preview staged video files attached to your scheduled and completed jobs.</p>
+          </div>
+        </div>
+        <div id="mediaLibrary" class="media-grid"><p class="muted">Loading…</p></div>
+      </section>
+
+      <!-- Edit panel (revealed per job) -->
+      <section class="card" id="editSection" style="display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <h2>Edit job <span id="editId" class="muted"></span></h2>
+          <button type="button" id="cancelEdit" class="btn-ghost">Cancel</button>
+        </div>
+        <div class="row">
+          <div><label class="field-label">Title</label><input type="text" id="eTitle" class="field" /></div>
+          <div><label class="field-label">Privacy</label>
+            <select id="ePrivacy" class="field">
+              <option value="private">Private</option>
+              <option value="unlisted">Unlisted</option>
+              <option value="public">Public</option>
+            </select>
+          </div>
+        </div>
+        <label class="field-label">Description</label>
+        <textarea id="eDescription" rows="3" class="field"></textarea>
+        <div class="row">
+          <div><label class="field-label">Hashtags</label><input type="text" id="eHashtags" class="field" placeholder="#funny #vlog" /></div>
+          <div><label class="field-label">Tags</label><input type="text" id="eTags" class="field" placeholder="comedy, vlog" /></div>
+        </div>
+        <div class="row">
+          <div><label class="field-label">Schedule at (your local time)</label><input type="datetime-local" id="eScheduleAt" class="field" /></div>
+          <div><label class="field-label">Channel</label><select id="eChannel" class="field"><option value="">Auto-select</option></select></div>
+        </div>
+        <p id="editMsg" class="muted" style="margin-top:.5rem"></p>
+        <button id="saveBtn" class="btn-primary">Save changes</button>
+      </section>
+
+      <!-- Settings: profile (name) + logout -->
+      <section id="settings" class="card">
+        <h2>Profile</h2>
+        <div id="profile" class="muted" style="margin-bottom:1rem">Loading…</div>
+        <div class="row" style="align-items:flex-end">
+          <div><label class="field-label">Display name</label><input type="text" id="pName" class="field" /></div>
+          <div><label class="field-label">Sign-in email</label><input type="email" id="pEmail" class="field" autocomplete="email" required /></div>
+        </div>
+        <button id="saveProfile" class="btn-primary" style="margin-top:1rem">Save profile</button>
+        <div style="margin-top:1.5rem">
+          <button id="logoutBtn" class="btn-ghost">Log out</button>
+        </div>
+      </section>
+      <!-- Rotation: watched folders + per-channel schedules (Phase 2) -->
+      <section id="rotation" class="card">
+        <div class="section-heading">
+          <div>
+            <h2>Folder rotation</h2>
+            <p class="muted">Watch a folder, then schedule one video per post per channel over its own calendar.</p>
+          </div>
+          <a class="inline-link" href="#queue">View queue →</a>
+        </div>
+
+        <form id="addFolderForm" class="row" style="gap:.75rem; align-items:flex-end">
+          <div><label class="field-label">Folder path</label><input id="folderPath" type="path" class="field" placeholder="/absolute/path/to/videos" style="width:22rem" /></div>
+          <div><label class="field-label">Scan interval (s)</label><input id="folderScanInterval" type="number" min="30" class="field" value="300" /></div>
+          <button type="submit" class="btn-primary">Add folder</button>
+        </form>
+        <div id="folders" class="muted" style="margin-top:1rem">Loading…</div>
+      </section>
+
+      <!-- Rotation rule editor modal (add / edit) -->
+      <div id="ruleModal" class="modal-backdrop" style="display:none">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ruleModalTitle">
+          <h3 id="ruleModalTitle">Schedule rotation</h3>
+          <form id="ruleForm" class="row" style="gap:.75rem; flex-wrap:wrap">
+            <input type="hidden" id="ruleId" />
+            <input type="hidden" id="ruleFolderId" />
+            <div><label class="field-label">Channel</label>
+              <select id="ruleChannel" class="field" style="min-width:16rem"></select></div>
+            <div><label class="field-label">Frequency</label>
+              <select id="ruleFreq" class="field">
+                <option value="daily">Daily</option>
+                <option value="every_n_days">Every N days</option>
+                <option value="weekdays">Weekdays</option>
+              </select></div>
+            <div><label class="field-label">Interval N (every_n_days)</label><input id="ruleIntervalN" type="number" min="1" class="field" value="1" /></div>
+            <div><label class="field-label">Weekdays (Mon=0..Sun=6)</label><input id="ruleWeekdays" type="text" class="field" placeholder="1,3,5" /></div>
+            <div><label class="field-label">Time of day (HH:mm)</label><input id="ruleTimeOfDay" type="time" class="field" value="09:00" /></div>
+            <div><label class="field-label">Timezone</label><input id="ruleTimezone" type="text" class="field" value="UTC" placeholder="America/New_York" /></div>
+            <div><label class="field-label">Start date</label><input id="ruleStartDate" type="date" class="field" /></div>
+            <div><label class="field-label">Pool mode</label>
+              <select id="rulePool" class="field">
+                <option value="shared">shared (one file → all channels, burns per-channel quota)</option>
+                <option value="dedicated">dedicated (one file → one channel)</option>
+              </select></div>
+            <div style="width:100%"><label class="field-label">Caption template</label>
+              <input id="ruleTemplate" type="text" class="field" style="width:100%" placeholder="Drop #{index}: {filename}" /></div>
+            <div><label class="field-label">Active</label>
+              <select id="ruleActive" class="field"><option value="1">yes</option><option value="0">no (paused)</option></select></div>
+            <div style="width:100%; margin-top:.5rem; text-align:right">
+              <span id="ruleMsg" class="muted"></span>
+              <button type="button" id="ruleCancel" class="btn-ghost">Cancel</button>
+              <button type="submit" class="btn-primary">Save</button>
+            </div>
+          </form>
+        </div>
       </div>
-      <p id="editMsg" class="muted"></p>
-      <button id="saveBtn">Save changes</button>
-    </section>
-  </main>
+
+      <!-- DB Explorer: read-only SQL on the configured database (auth-gated) -->
+      <section id="explorer" class="card">
+        <h2>Database Explorer</h2>
+        <p class="muted">Run read-only SQL against the configured database. Only
+          <code>SELECT</code>/<code>WITH</code>/<code>SHOW</code>/<code>EXPLAIN</code>/<code>VALUES</code>
+          are allowed; writes, DDL, and stacked statements are rejected server-side.</p>
+        <form id="explorerForm" class="row" style="gap:.75rem; align-items:flex-end">
+          <textarea id="explorerSql" class="field mono" rows="4" placeholder="SELECT * FROM channels LIMIT 20"
+            style="width:100%; font-family:ui-monospace,monospace; font-size:.8rem">SELECT id, email, name, google_sub IS NOT NULL AS has_google FROM users ORDER BY created_at DESC LIMIT 50</textarea>
+          <button type="submit" class="btn-primary">Run query</button>
+        </form>
+        <div id="explorerResult" class="muted" style="margin-top:1rem">Press “Run query” to execute.</div>
+      </section>
+    </main>
+  </div>
 
   <script>
     const API = "/api";
     const $ = (id) => document.getElementById(id);
 
-    // Load channels into the dropdown + the channels list; toggle the header link.
+    // fetch() wrapper: on a 401 (no/gone session) bounce to the login screen.
+    async function api(url, opts = {}) {
+      const res = await fetch(url, opts);
+      if (res.status === 401) { window.location.href = "/login"; throw new Error("not authenticated"); }
+      return res;
+    }
+
+    const nowSec = () => Math.floor(Date.now() / 1000);
+
+    function formatBytes(n) {
+      if (!n || n < 0) return "—";
+      const u = ["B", "KB", "MB", "GB", "TB"]; let i = 0; let v = n;
+      while (v >= 1024 && i < u.length - 1) { v /= 1024; i++; }
+      return `${v < 10 ? v.toFixed(1) : Math.round(v)} ${u[i]}`;
+    }
+
+    // { file, input } entries, kept in selection order so titles[] line up with files.
+    const fileRows = [];
+
+    // Format an epoch-second value as a `datetime-local` value in the BROWSER's
+    // local timezone (NOT toISOString, which would render UTC-shifted).
+    function toLocalDateTime(epochSec) {
+      const d = new Date(epochSec * 1000);
+      const pad = (n) => String(n).padStart(2, "0");
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    // ---- Top tab sync (active tab follows the hash) ----
+    function setActiveNav() {
+      const hash = location.hash || "#desk";
+      document.querySelectorAll(".tablink").forEach(a => {
+        a.classList.toggle("active", a.getAttribute("href") === hash);
+      });
+      if (hash === "#media") loadJobs({ refreshMedia: true });
+    }
+    window.addEventListener("hashchange", setActiveNav);
+    setActiveNav();
+
+    // ---- Channel connect + header toggle ----
     async function loadChannels() {
-      const res = await fetch(`${API}/auth/channels`);
+      const res = await api(`${API}/auth/channels`);
       const list = await res.json();
       window._channels = list;
 
-      // Header: show the connected channel name, or the "Connect" link.
       const link = $("connectLink");
       if (list.length) {
         const active = list.find(c => c.active) || list[0];
-        link.textContent = `✓ ${active.name}`;
+        link.innerHTML = `<span class="dot sage"></span><span>✓ ${escape(active.name)}</span>`;
         link.href = "#";
         link.classList.add("connected");
       } else {
-        link.textContent = "Connect Channel";
+        link.innerHTML = `<span class="dot signal"></span><span>Connect Channel</span>`;
         link.href = "/api/auth/connect";
         link.classList.remove("connected");
       }
 
-      // Channel dropdown (keep only the first "auto-select" option, then rebuild).
+      // Schedule form channel dropdown
       const sel = $("channelId");
       while (sel.options.length > 1) sel.remove(1);
       list.forEach(c => {
         const opt = document.createElement("option");
         opt.value = c.id;
-        opt.textContent = `${c.name} (${c.active ? "active" : "inactive"}) — ${c.quota_used} used`;
+        opt.textContent = `${c.name}${c.active ? " (active)" : ""} — ${c.quota_used} used`;
         sel.appendChild(opt);
       });
 
-      const box = $("channels");
+      const box = $("channelList");
       if (!list.length) { box.innerHTML = '<p class="muted">No channels connected. Click "Connect Channel" in the header.</p>'; return; }
       box.innerHTML = `<table><tr><th>Channel</th><th>Status</th><th>Quota used</th><th>Last used</th></tr>` +
-        list.map(c => `<tr><td>${c.name}</td><td>${c.active?'active':'inactive'}</td><td>${c.quota_used}</td><td>${c.last_used_at ? new Date(c.last_used_at*1000).toLocaleString() : '—'}</td></tr>`).join("") + `</table>`;
+        list.map(c => `<tr>
+          <td>${escape(c.name)}</td>
+          <td>${c.active?'active':'inactive'}</td>
+          <td>${c.quota_used}</td>
+          <td class="muted">${c.last_used_at ? new Date(c.last_used_at*1000).toLocaleString() : '—'}</td>
+        </tr>`).join("") + `</table>`;
     }
 
-    async function loadJobs() {
-      const res = await fetch(`${API}/videos`);
-      const list = await res.json();
-      const box = $("jobs");
-      if (!list.length) { box.innerHTML = '<p class="muted">No jobs.</p>'; return; }
+    async function loadHealth() {
+      const res = await fetch(`${API}/health`);
+      const h = await res.json();
+      $("health").innerHTML = `
+        <table>
+          <tr><th>Status</th><td><span class="pill done"><span class="dot"></span> ${h.status}</span></td></tr>
+          <tr><th>Database</th><td>${h.dbDriver}</td></tr>
+          <tr><th>Mode</th><td>${h.dryRun ? "dry-run" : "real"}</td></tr>
+          <tr><th>Channels</th><td>${h.channels}</td></tr>
+          <tr><th>Uptime (s)</th><td>${h.uptime != null ? Math.round(h.uptime) : "—"}</td></tr>
+        </table>`;
+    }
+
+    function statusPillClass(s) {
+      return ({ pending: "pending", processing: "processing", uploading: "uploading", done: "done", failed: "failed", exhausted: "exhausted", deleted: "deleted" }[s] || "pending");
+    }
+    function statusLabel(s) {
+      return ({ pending: "Pending", processing: "Processing", uploading: "Uploading", done: "Done", failed: "Failed", exhausted: "Exhausted", deleted: "Deleted" }[s] || s);
+    }
+
+    function jobMatchesSearch(job, query) {
+      const haystack = `${job.title || ""} ${job.filename || ""} ${job.last_error || ""}`.toLowerCase();
+      return haystack.includes(query.trim().toLowerCase());
+    }
+
+    function renderJobTable(list, showHistory = false) {
+      if (!list.length) return `<div class="empty"><h3>${showHistory ? "No upload history yet." : "Your queue is clear."}</h3>
+        <p>${showHistory ? "Completed and unsuccessful uploads will appear here." : "Scheduled uploads will appear here once you add a video."}</p></div>`;
       const rows = list.map(j => {
-        const ts = j.scheduled_at ? new Date(j.scheduled_at*1000).toLocaleString() : "—";
-        const due = j.scheduled_at && j.scheduled_at <= Math.floor(Date.now()/1000) ? " (due)" : "";
+        const ts = j.scheduled_at ? new Date(j.scheduled_at * 1000).toLocaleString() : "—";
+        const cls = statusPillClass(j.status);
+        const publishLink = j.youtube_url
+          ? `<a href="${escape(j.youtube_url)}" target="_blank" rel="noopener noreferrer">View on YouTube</a>`
+          : "—";
+        const actions = showHistory
+          ? publishLink
+          : `${j.status === "pending" ? `<button type="button" class="btn-ghost" onclick="openEdit('${escape(j.id)}')">Edit</button>
+              <button type="button" class="btn-ghost" onclick="cancelJob('${escape(j.id)}')">Cancel</button>` : "—"}`;
         return `<tr>
-          <td>${escape(j.title)}</td>
-          <td><span class="pill s-${j.status}">${j.status}</span></td>
-          <td class="muted">${ts}${due}</td>
-          <td class="muted">${escape((j.last_error||"").slice(0,60))}</td>
-          <td>
-            ${j.status==='done'?'—':`<a href="#" onclick="dl('${j.id}')">details</a>`}
-            ${j.status==='pending'?`<button class="ghost" style="margin-left:.4rem" onclick="openEdit('${j.id}')">Edit</button>`:''}
-          </td>
+          <td>${escape(j.title)}${j.source === "rotation" ? '<span class="tag rotation">rotation</span>' : ""}</td>
+          <td><span class="pill ${cls}"><span class="dot"></span>${statusLabel(j.status)}</span></td>
+          <td class="muted">${ts}</td>
+          <td class="muted">${escape((j.last_error || "").slice(0, 100)) || "—"}</td>
+          <td>${actions}</td>
         </tr>`;
       }).join("");
-      box.innerHTML = `<table><tr><th>Title</th><th>Status</th><th>Scheduled</th><th>Last error</th><th></th></tr>${rows}</table>`;
+      return `<div class="table-wrap"><table><thead><tr><th>Video</th><th>Status</th><th>Scheduled</th><th>${showHistory ? "Result" : "Last error"}</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
     }
 
-    window.dl = async (id) => {
-      const res = await fetch(`${API}/videos/${id}`);
-      const j = await res.json();
-      alert(JSON.stringify(j, null, 2));
-      loadJobs();
+    function renderDashboard(list) {
+      const counts = {
+        pending: list.filter(j => j.status === "pending").length,
+        processing: list.filter(j => ["processing", "uploading"].includes(j.status)).length,
+        done: list.filter(j => j.status === "done").length,
+        attention: list.filter(j => ["failed", "exhausted"].includes(j.status)).length,
+        rotation: list.filter(j => j.source === "rotation" && ["pending", "processing", "uploading"].includes(j.status)).length,
+      };
+      // Rotation badge on the Queue tab.
+      const qc = $("queueCount");
+      if (qc) qc.textContent = counts.rotation || "";
+      $("dashboardStats").innerHTML = [
+        ["Scheduled", counts.pending],
+        ["In progress", counts.processing],
+        ["Published", counts.done],
+        ["Needs attention", counts.attention],
+        ["Rotation", counts.rotation],
+      ].map(([label, value]) => `<article class="stat-card"><div class="stat-label">${label}</div><div class="stat-value">${value}</div></article>`).join("");
+
+      const recent = [...list].sort((a, b) => (b.updated_at || b.created_at || 0) - (a.updated_at || a.created_at || 0)).slice(0, 5);
+      $("recentActivity").innerHTML = recent.length
+        ? `<div class="table-wrap"><table><thead><tr><th>Video</th><th>Status</th><th>Updated</th></tr></thead><tbody>${recent.map(j =>
+            `<tr><td>${escape(j.title)}</td><td><span class="pill ${statusPillClass(j.status)}"><span class="dot"></span>${statusLabel(j.status)}</span></td><td class="muted">${j.updated_at ? new Date(j.updated_at * 1000).toLocaleString() : "—"}</td></tr>`
+          ).join("")}</tbody></table></div>`
+        : `<p class="muted">No uploads yet. <a class="inline-link" href="#compose">Schedule your first video.</a></p>`;
+    }
+
+    function renderQueue(list) {
+      const active = list.filter(j => ["pending", "processing", "uploading"].includes(j.status));
+      const status = $("queueStatus").value;
+      const query = $("queueSearch").value;
+      const filtered = active.filter(j => (status === "all" || j.status === status) && jobMatchesSearch(j, query));
+      $("jobs").innerHTML = renderJobTable(filtered);
+    }
+
+    function renderHistory(list) {
+      const history = list.filter(j => ["done", "failed", "exhausted", "deleted"].includes(j.status));
+      const filtered = history.filter(j => jobMatchesSearch(j, $("historySearch").value))
+        .sort((a, b) => (b.updated_at || b.created_at || 0) - (a.updated_at || a.created_at || 0));
+      $("historyJobs").innerHTML = renderJobTable(filtered, true);
+    }
+
+    function renderMedia(list) {
+      const assets = list.filter(j => j.filename);
+      $("mediaLibrary").innerHTML = assets.length
+        ? assets.map(j => `<article class="media-card">
+            <video controls preload="none" src="/media/${encodeURIComponent(j.filename)}" aria-label="Preview ${escape(j.title)}"></video>
+            <h3>${escape(j.title)}</h3>
+            <p><span class="pill ${statusPillClass(j.status)}"><span class="dot"></span>${statusLabel(j.status)}</span></p>
+            <p>File: ${escape(j.filename)}</p>
+          </article>`).join("")
+        : `<div class="empty"><h3>No videos in your library.</h3><p>Uploaded video files linked to jobs will appear here.</p></div>`;
+    }
+
+    async function loadJobs({ refreshMedia = false } = {}) {
+      const res = await api(`${API}/videos`);
+      const list = await res.json();
+      window._jobs = list;
+      renderDashboard(list);
+      renderQueue(list);
+      renderHistory(list);
+      if (refreshMedia || location.hash !== "#media") renderMedia(list);
+      // Stamp the last successful refresh so stale data is visible at a glance.
+      // NOTE: we deliberately do NOT auto-poll /api/videos — the worker is what
+      // talks to the YouTube Data API (quota-burning), and a timer here would
+      // only re-read local job rows. Refresh is manual via the Desk/Queue button.
+      const stamp = $("lastRefresh");
+      if (stamp) stamp.textContent = `Updated ${new Date().toLocaleTimeString()}`;
+    }
+
+    window.cancelJob = async (id) => {
+      if (!window.confirm("Cancel this scheduled upload?")) return;
+      try {
+        const res = await api(`${API}/videos/${encodeURIComponent(id)}`, { method: "DELETE" });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error || "Could not cancel upload");
+        await loadJobs();
+      } catch (error) {
+        window.alert(error.message || "Could not cancel upload");
+      }
     };
 
-    function escape(s) { return String(s||"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+    $("queueSearch").addEventListener("input", () => renderQueue(window._jobs || []));
+    $("queueStatus").addEventListener("change", () => renderQueue(window._jobs || []));
+    $("historySearch").addEventListener("input", () => renderHistory(window._jobs || []));
 
-    // Format an epoch-second value as a `datetime-local` value in the BROWSER's
-    // local timezone (toISOString would render UTC and shift by the tz offset).
-    function toLocalDateTime(epochSec) {
-      const d = new Date(epochSec * 1000);
-      const pad = (n) => String(n).padStart(2, "0");
-      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    };
-
+    // ---- Edit a scheduled job ----
     let _editingId = null;
     window.openEdit = async function (id) {
       _editingId = id;
@@ -185,15 +738,12 @@
       $("eHashtags").value = j.hashtags || "";
       $("eTags").value = j.tags || "";
       $("ePrivacy").value = j.privacy || "private";
-      // datetime-local is interpreted as LOCAL time, so build a local value
-      // from the stored epoch (NOT toISOString, which would be UTC-shifted).
       $("eScheduleAt").value = j.scheduled_at ? toLocalDateTime(j.scheduled_at) : "";
       const ch = $("eChannel");
       while (ch.options.length > 1) ch.remove(1);
       (window._channels || []).forEach(c => {
         const o = document.createElement("option");
-        o.value = c.id;
-        o.textContent = `${c.name}${c.active ? "" : " (inactive)"}`;
+        o.value = c.id; o.textContent = `${c.name}${c.active ? "" : " (inactive)"}`;
         ch.appendChild(o);
       });
       $("eChannel").value = j.channel_id || "";
@@ -225,41 +775,344 @@
         });
         const j = await res.json();
         if (!res.ok) throw new Error(j.error || "failed");
-        $("editMsg").innerHTML = '<span class="pill s-done">✓ saved</span>';
+        $("editMsg").innerHTML = '<span class="pill done"><span class="dot"></span> saved</span>';
         setTimeout(() => { cancelEdit(); loadJobs(); }, 500);
       } catch (e) {
-        $("editMsg").innerHTML = `<span class="pill s-failed">✗ ${e.message}</span>`;
+        $("editMsg").innerHTML = `<span class="pill failed"><span class="dot"></span> ${e.message}</span>`;
       }
       btn.disabled = false;
     });
     $("cancelEdit").addEventListener("click", cancelEdit);
 
+    function escape(s) { return String(s||"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+    /* ---- Folder rotation editor (Phase 2) ---- */
+    function freqLabel(r) {
+      if (r.frequency === "every_n_days") return `Every ${r.intervalN || 1} days @ ${r.timeOfDay}`;
+      if (r.frequency === "weekdays") return `Weekdays (${r.weekdays}) @ ${r.timeOfDay}`;
+      return `Daily @ ${r.timeOfDay}`;
+    }
+    async function loadFolders() {
+      const res = await api(`${API}/folders`);
+      const folders = await res.json();
+      const box = $("folders");
+      if (!folders.length) { box.innerHTML = '<p class="muted">No watched folders. Add one below.</p>'; return; }
+      box.innerHTML = "";
+      for (const f of folders) {
+        const card = document.createElement("article");
+        card.className = "folder-card";
+        await renderFolderCard(card, f);
+        box.appendChild(card);
+      }
+    }
+    async function renderFolderCard(card, f) {
+      const it = await (await api(`${API}/folders/${encodeURIComponent(f.id)}/items`)).json();
+      const rules = await (await api(`${API}/folders/${encodeURIComponent(f.id)}/rules`)).json();
+      const reach = f.status === "reachable";
+      card.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap">
+          <div>
+            <strong>${escape(f.path)}</strong>
+            <span class="pill ${reach ? "done" : "failed"}"><span class="dot"></span>${f.status}</span>
+            <span class="muted"> · ${f.itemCount} file(s) · scan interval ${f.scanInterval}s</span>
+          </div>
+          <div style="display:flex; gap:.5rem">
+            <button type="button" class="btn-ghost" onclick="rescanFolder('${f.id}')">Rescan</button>
+            <button type="button" class="btn-ghost" onclick="openRuleForm('${f.id}', null)">+ Schedule</button>
+          </div>
+        </div>
+        <div class="table-wrap" style="margin-top:.6rem">
+          <table style="font-size:.8rem">
+            <thead><tr><th>File</th><th>Size</th><th>Hash</th><th>State</th></tr></thead><tbody>
+            ${it.map(i => `<tr><td>${escape(i.filename)}</td><td class="muted">${formatBytes(i.sizeBytes)}</td><td class="muted">${escape(i.sha256).slice(0,12)}…</td><td>${i.status}</td></tr>`).join("")}
+            </tbody></table>
+        </div>
+        <div style="margin-top:.75rem">
+          <div class="muted" style="font-size:.72rem; text-transform:uppercase">Schedules (${rules.length})</div>
+          ${rules.length ? rules.map(r => ruleRow(f.id, r)).join("") : '<p class="muted" style="margin:0">No schedules yet.</p>'}
+        </div>`;
+    }
+    function ruleRow(folderId, r) {
+      const reach = r.channel_id;
+      return `<div class="rule-row">
+        <div>
+          <strong>${escape(r.channel_id.slice(0, 8))}</strong>
+          <span class="muted"> · ${freqLabel(r)} · ${r.timezone || "UTC"} · ${r.pool_mode}</span>
+          ${r.caption_template ? `<span class="muted"> · template: ${escape(r.caption_template)}</span>` : ""}
+          <span class="pill ${r.active ? "done" : "deleted"}"><span class="dot"></span>${r.active ? "active" : "paused"}</span>
+        </div>
+        <div style="display:flex; gap:.4rem">
+          <button type="button" class="btn-ghost" onclick="openRuleForm('${folderId}', '${r.id}')">Edit</button>
+          <button type="button" class="btn-ghost" onclick="deleteRule('${r.id}')">Delete</button>
+        </div>
+      </div>`;
+    }
+    $("addFolderForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const path = $("folderPath").value.trim();
+      const scan = $("folderScanInterval").value;
+      const msg = (i) => { $("folderPath").insertAdjacentHTML("afterend", `<div class="muted" style="margin-top:.3rem">${i}</div>`); };
+      try {
+        const res = await api(`${API}/folders`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path, scanInterval: Number(scan) }) });
+        const j = await res.json();
+        if (!res.ok) throw new Error(j.error || "could not add folder");
+        $("folderPath").value = ""; $("folders").innerHTML = "Loading…";
+        loadFolders();
+      } catch (er) { $("folderPath").insertAdjacentHTML("afterend", `<div class="muted" style="color:var(--color-coral); margin-top:.3rem">✗ ${er.message}</div>`); }
+    });
+    function populateChannels(selectId, chosen) {
+      const sel = $(selectId);
+      sel.innerHTML = "";
+      (window._channels || []).forEach(c => {
+        const o = document.createElement("option");
+        o.value = c.id;
+        o.textContent = `${c.name}${c.active ? "" : " (inactive"}`;
+        if (c.id === chosen) o.selected = true;
+        sel.appendChild(o);
+      });
+    }
+    window.openRuleForm = function (folderId, ruleId) {
+      $("ruleId").value = ruleId || "";
+      $("ruleFolderId").value = folderId;
+      $("ruleMsg").textContent = "";
+      $("ruleForm").reset();
+      $("ruleStartDate").value = new Date().toISOString().slice(0, 10);
+      populateChannels("ruleChannel", "");
+      if (ruleId) {
+        api(`${API}/folders/${encodeURIComponent(folderId)}/rules`).then(async (res) => {
+          const rules = await res.json();
+          const r = rules.find((x) => x.id === ruleId);
+          if (!r) return;
+          $("ruleChannel").value = r.channelId;
+          $("ruleFreq").value = r.frequency;
+          $("ruleIntervalN").value = r.intervalN ?? 1;
+          $("ruleWeekdays").value = r.weekdays ?? "";
+          $("ruleTimeOfDay").value = r.timeOfDay || "09:00";
+          $("ruleTimezone").value = r.timezone || "UTC";
+          $("ruleStartDate").value = r.startDate ? new Date(r.startDate * 1000).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
+          $("rulePool").value = r.poolMode;
+          $("ruleTemplate").value = r.captionTemplate ?? "";
+          $("ruleActive").value = r.active ? "1" : "0";
+        });
+      }
+      $("ruleModal").style.display = "flex";
+      $("ruleChannel").focus();
+    };
+    window.closeRuleForm = function () { $("ruleModal").style.display = "none"; };
+    $("ruleCancel").addEventListener("click", () => closeRuleForm());
+    $("ruleModal").addEventListener("click", (e) => { if (e.target === $("ruleModal")) closeRuleForm(); });
+    $("ruleForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const freq = $("ruleFreq").value;
+      const body = {
+        channelId: $("ruleChannel").value,
+        frequency: freq,
+        intervalN: freq === "every_n_days" ? Number($("ruleIntervalN").value) : undefined,
+        weekdays: freq === "weekdays" ? $("ruleWeekdays").value : undefined,
+        timeOfDay: $("ruleTimeOfDay").value,
+        timezone: $("ruleTimezone").value,
+        startDate: $("ruleStartDate").value,
+        poolMode: $("rulePool").value,
+        captionTemplate: $("ruleTemplate").value || undefined,
+        active: $("ruleActive").value === "1" ? true : false,
+      };
+      try {
+        let res;
+        if ($("ruleId").value) {
+          res = await api(`${API}/rules/${encodeURIComponent($("ruleId").value)}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        } else {
+          res = await api(`${API}/folders/${encodeURIComponent($("ruleFolderId").value)}/rules`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        }
+        const j = await res.json();
+        if (!res.ok) throw new Error(j.error || "could not save rule");
+        closeRuleForm();
+        loadFolders();
+      } catch (er) { $("ruleMsg").textContent = `✗ ${er.message}`; }
+    });
+    window.rescanFolder = async function (id) {
+      const r = await api(`${API}/folders/${encodeURIComponent(id)}/rescan`, { method: "POST" });
+      const j = await r.json();
+      loadFolders();
+    };
+    window.deleteRule = async function (id) {
+      if (!confirm("Stop this schedule rule?")) return;
+      const r = await api(`${API}/rules/${encodeURIComponent(id)}`, { method: "DELETE" });
+      if (r.ok) loadFolders();
+    };
+
+    // ---- DB Explorer (read-only) ----
+    async function runExplorerQuery() {
+      const sql = $("explorerSql").value;
+      const box = $("explorerResult");
+      box.innerHTML = '<span class="muted">Running…</span>';
+      try {
+        const res = await api(`${API}/explorer/query`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sql }) });
+        const j = await res.json();
+        if (!res.ok) { box.innerHTML = `<span class="pill error"><span class="dot"></span> ✗ ${escape(j.error)}</span>`; return; }
+        renderExplorerResults(j);
+      } catch (e) {
+        box.innerHTML = `<span class="pill error"><span class="dot"></span> ✗ ${escape(e.message)}</span>`;
+      }
+    }
+    function renderExplorerResults(j) {
+      const box = $("explorerResult");
+      if (!j.columns || !j.columns.length) {
+        box.innerHTML = `<span class="pill done"><span class="dot"></span> ✓ ${j.rowCount} row(s)</span>`;
+        return;
+      }
+      const rows = j.rows || [];
+      let html = "<table class='explorer-table'><thead><tr>" +
+        j.columns.map((c) => `<th>${escape(c)}</th>`).join("") + "</tr></thead><tbody>";
+      if (!rows.length) { html += "<tr><td colspan='" + j.columns.length + "' class='muted'>no rows</td></tr>"; }
+      else {
+        html += rows.map((r) => "<tr>" + j.columns.map((c) => `<td>${escape(r[c])}</td>`).join("") + "</tr>").join("");
+      }
+      html += "</tbody></table>";
+      box.innerHTML = html + `<div class="muted" style="margin-top:.4rem">rows: ${j.rowCount}${j.truncated ? " (truncated)" : ""}</div>`;
+    }
+    $("explorerForm")?.addEventListener("submit", async (e) => { e.preventDefault(); runExplorerQuery(); });
+    window.runExplorerQuery = runExplorerQuery; // for quick manual calls from console
+
+    // ---- Auth: profile + logout ----
+    async function loadProfile() {
+      let j;
+      try { j = await (await api(`${API}/auth/profile`)).json(); }
+      catch (_) { return; } // 401 → already redirected to /login
+      const menu = $("userMenu");
+      menu.innerHTML = `<span class="dot sage"></span><span style="color:var(--color-muted)">${escape(j.name || j.email)}</span>`;
+      $("pName").value = j.name || "";
+      $("pEmail").value = j.email || "";
+      $("profile").innerHTML = `<span class="pill done"><span class="dot"></span> Signed in</span>
+        <div class="muted" style="margin-top:.35rem">Sign-in email: ${escape(j.email)}</div>`;
+    }
+
+    $("saveProfile")?.addEventListener("click", async () => {
+      const name = $("pName").value.trim();
+      const email = $("pEmail").value.trim();
+      try {
+        const res = await api(`${API}/auth/profile`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, email }) });
+        const j = await res.json();
+        if (!res.ok) throw new Error(j.error || "failed");
+        loadProfile();
+        $("profile").innerHTML = `<span class="pill done"><span class="dot"></span> Profile saved</span>
+          <div class="muted" style="margin-top:.35rem">Sign-in email: ${escape(j.email)}</div>`;
+      } catch (e) { $("profile").innerHTML = `<span class="pill failed"><span class="dot"></span> ${e.message}</span>`; }
+    });
+
+    $("logoutBtn")?.addEventListener("click", async () => {
+      await fetch(`${API}/auth/logout`, { method: "POST" });
+      window.location.href = "/login";
+    });
+
+
+    // "New upload" button scrolls to the schedule form
+    $("newUpload")?.addEventListener("click", () => {
+      location.hash = "#compose";
+      resetScheduleForm();
+    });
+
+    function resetScheduleForm() {
+      $("scheduleForm").reset();
+      $("fileList").innerHTML = '<span class="muted">No files chosen.</span>';
+      fileRows.length = 0;
+      $("msg").textContent = "";
+    }
+
+    // Build a per-file title row whenever files are selected.
+    $("videoInput")?.addEventListener("change", () => {
+      const list = $("fileList");
+      fileRows.length = 0;
+      const files = Array.from($("videoInput").files || []);
+      if (!files.length) {
+        list.innerHTML = '<span class="muted">No files chosen.</span>';
+        return;
+      }
+      list.innerHTML = "";
+      for (const f of files) {
+        const row = document.createElement("div");
+        row.className = "file-row";
+        const name = document.createElement("span");
+        name.className = "file-name";
+        name.textContent = `${f.name} — ${formatBytes(f.size)}`;
+        const inp = document.createElement("input");
+        inp.type = "text";
+        inp.className = "field";
+        inp.style.flex = "1 1 12rem";
+        inp.placeholder = "Leave blank to use the file name";
+        inp.value = f.name;
+        row.appendChild(name);
+        row.appendChild(inp);
+        list.appendChild(row);
+        fileRows.push({ file: f, input: inp });
+      }
+    });
+
     $("scheduleForm")?.addEventListener("submit", async (e) => {
       e.preventDefault();
       const btn = $("submitBtn"); btn.disabled = true; btn.textContent = "Scheduling…";
       $("msg").textContent = "";
-      const data = new FormData($("scheduleForm"));
-      // datetime-local is local; send an absolute UTC ISO so the (UTC) server
-      // stores the same epoch the user picked, regardless of container TZ.
-      const sa = data.get("scheduleAt");
-      if (sa) data.set("scheduleAt", new Date(sa).toISOString());
+
+      if (!fileRows.length) {
+        $("msg").innerHTML = '<span class="pill failed"><span class="dot"></span> ✗ Select at least one video</span>';
+        btn.disabled = false; btn.textContent = "Schedule upload(s)";
+        return;
+      }
+
+      const data = new FormData();
+      const meta = {
+        titles: fileRows.map((r) => r.input.value.trim()), // one per file, in order (blank → filename)
+        description: $("description").value,
+        hashtags: $("hashtags").value,
+        tags: $("tags").value,
+        category: $("category")?.value || null,
+        privacy: $("privacy").value,
+        channelId: $("channelId").value || null,
+      };
+      const sa = $("scheduleAt").value;
+      if (sa) meta.scheduleAt = new Date(sa).toISOString(); // browser-local → absolute UTC
+      data.append("metadata", new Blob([JSON.stringify(meta)], { type: "application/json" }), "metadata.json");
+      fileRows.forEach((r) => data.append("video", r.file)); // files, in order
+
       try {
         const res = await fetch(`${API}/videos`, { method: "POST", body: data });
         const j = await res.json();
         if (!res.ok) throw new Error(j.error || "failed");
-        $("msg").innerHTML = `<span class="pill s-done">✓ ${j.message} (id: ${j.id})</span>`;
-        $("scheduleForm").reset();
+        const ids = (j.created || []).map((c) => c.id.slice(0, 8)).join(", ");
+        $("msg").innerHTML =
+          `<span class="pill done"><span class="dot"></span> ✓ ${j.message} ` +
+          `(${j.count} video(s)${ids ? `, ids: ${ids}` : ""})</span>`;
+        resetScheduleForm();
         loadJobs();
       } catch (err) {
-        $("msg").innerHTML = `<span class="pill s-failed">✗ ${err.message}</span>`;
+        $("msg").innerHTML = `<span class="pill failed"><span class="dot"></span> ✗ ${err.message}</span>`;
       } finally {
-        btn.disabled = false; btn.textContent = "Schedule upload";
+        btn.disabled = false; btn.textContent = "Schedule upload(s)";
       }
     });
 
+    loadProfile();
     loadChannels();
+    loadHealth();
     loadJobs();
-    setInterval(loadJobs, 4000);
+    loadFolders();
+    setInterval(loadFolders, 5000); // Rotation editor: refresh folder status/items (DB-only, safe)
+    // Jobs are refreshed manually via the Desk/Queue "Refresh" buttons. We do NOT
+    // auto-poll GET /api/videos on a 4s timer: the worker is what talks to the
+    // YouTube Data API (quota-burning) and a short /videos timer only re-reads
+    // local rows while risking noise. A single re-fetch on tab focus keeps the
+    // Desk current without any polling.
+    let focusTicking = false;
+    const refreshOnFocus = () => {
+      if (!focusTicking) { focusTicking = true; loadJobs(); setTimeout(() => (focusTicking = false), 1500); }
+    };
+    window.addEventListener("focus", refreshOnFocus);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshOnFocus(); });
+    if (location.hash === "#rotation") loadFolders();
+    if (location.hash === "#explorer") runExplorerQuery();
+    window.addEventListener("hashchange", () => {
+      if (location.hash === "#rotation") loadFolders();
+      if (location.hash === "#explorer") runExplorerQuery();
+    });
   </script>
 </body>
 </html>
