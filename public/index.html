@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -7,123 +8,365 @@
 
   <!-- Fonts: Outfit (sans) + Fraunces (display), same as Castline -->
   <link rel="preconnect" href="https://fonts.gstatic.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@72..144,400..900&family=Outfit:wght@300..600;700&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@72..144,400..900&family=Outfit:wght@300..600;700&display=swap"
+    rel="stylesheet" />
 
   <style>
     :root {
-      --color-canvas:   #100e0c;
-      --color-surface:  #1b1814;
-      --color-surface-2:#262119;
-      --color-fg:       #f4efe6;
-      --color-muted:    #c2b6a8;
-      --color-faint:    #8f8478;
-      --color-line:     #3a332b;
-      --color-signal:   #e6a23c;   /* amber accent */
+      --color-canvas: #100e0c;
+      --color-surface: #1b1814;
+      --color-surface-2: #262119;
+      --color-fg: #f4efe6;
+      --color-muted: #c2b6a8;
+      --color-faint: #8f8478;
+      --color-line: #3a332b;
+      --color-signal: #e6a23c;
+      /* amber accent */
       --color-signal-ink: #1a1206;
-      --color-sage:     #8eae82;   /* green / connected */
-      --color-coral:    #e07a68;   /* danger */
+      --color-sage: #8eae82;
+      /* green / connected */
+      --color-coral: #e07a68;
+      /* danger */
       --radius-sm: .375rem;
       --radius-md: .75rem;
       --radius-lg: 1.125rem;
     }
 
-    * { box-sizing: border-box; }
-    html, body { margin: 0; min-height: 100%; }
-    html { background: var(--color-canvas); color: var(--color-fg); color-scheme: dark; }
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+    }
+
+    html {
+      background: var(--color-canvas);
+      color: var(--color-fg);
+      color-scheme: dark;
+    }
+
     body {
       font-family: "Outfit", ui-sans-serif, system-ui, sans-serif;
-      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
       min-height: 100vh;
     }
-    .font-display { font-family: "Fraunces", Georgia, serif; font-weight: 700; }
-    h1, h2, h3 { font-family: "Fraunces", Georgia, serif; font-weight: 700; text-wrap: balance; }
-    p { text-wrap: pretty; }
-    a { color: inherit; text-decoration: none; }
-    button, [role=button] { cursor: pointer; }
+
+    .font-display {
+      font-family: "Fraunces", Georgia, serif;
+      font-weight: 700;
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-family: "Fraunces", Georgia, serif;
+      font-weight: 700;
+      text-wrap: balance;
+    }
+
+    p {
+      text-wrap: pretty;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    [role=button] {
+      cursor: pointer;
+    }
 
     /* Layout: horizontal top tabs (no side nav) */
-    .main { margin-left: 0; }
+    .main {
+      margin-left: 0;
+    }
 
     /* Dashboard tabs: only the hash-matched section is visible. */
-    main > section { display: none; }
-    main > section.active { display: block; }
+    main>section {
+      display: none;
+    }
 
-    .brand { display: inline-flex; align-items: center; gap: .5rem; font-size: .9rem; }
-    .brand .logo { font-family: "Fraunces", Georgia, serif; font-size: 1.05rem; }
-    .brand .subtitle { font-size: .65rem; letter-spacing: .2em; text-transform: uppercase; color: var(--color-faint); }
+    main>section.active {
+      display: block;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      font-size: .9rem;
+    }
+
+    .brand .logo {
+      font-family: "Fraunces", Georgia, serif;
+      font-size: 1.05rem;
+    }
+
+    .brand .subtitle {
+      font-size: .65rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--color-faint);
+    }
 
     /* Top tab bar: brand | tabs | actions */
     .tabs {
-      display: flex; align-items: center; gap: .2rem;
-      flex: 1 1 auto; justify-content: center; min-width: 0;
-      overflow-x: auto; overflow-y: hidden;
+      display: flex;
+      align-items: center;
+      gap: .2rem;
+      flex: 1 1 auto;
+      justify-content: center;
+      min-width: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
     }
+
     .tablink {
-      display: inline-flex; align-items: center; gap: .4rem;
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
       padding: .6rem .9rem;
       border-radius: var(--radius-md) var(--radius-md) 0 0;
-      font-size: .85rem; color: var(--color-muted);
+      font-size: .85rem;
+      color: var(--color-muted);
       border-bottom: 2px solid transparent;
       transition: color .15s, border-color .15s;
       white-space: nowrap;
     }
-    .tablink:hover { color: var(--color-fg); }
-    .tablink.active { color: var(--color-fg); border-bottom-color: var(--color-signal); }
-    .tablink svg { width: 1rem; height: 1rem; flex-shrink: 0; }
+
+    .tablink:hover {
+      color: var(--color-fg);
+    }
+
+    .tablink.active {
+      color: var(--color-fg);
+      border-bottom-color: var(--color-signal);
+    }
+
+    .tablink svg {
+      width: 1rem;
+      height: 1rem;
+      flex-shrink: 0;
+    }
+
     .tab-count {
       background: color-mix(in srgb, var(--color-signal), transparent 78%);
       color: var(--color-signal);
       border: 1px solid var(--color-signal);
       border-radius: 999px;
-      padding: .05rem .55rem; font-size: .7rem; font-weight: 700;
-      min-width: 1.1rem; text-align: center;
+      padding: .05rem .55rem;
+      font-size: .7rem;
+      font-weight: 700;
+      min-width: 1.1rem;
+      text-align: center;
     }
+
     /* inline "rotation" source tag on queued/completed rows */
     .tag.rotation {
-      display: inline-block; margin-left: .4rem;
+      display: inline-block;
+      margin-left: .4rem;
       background: color-mix(in srgb, var(--color-signal-ink), transparent 82%);
       color: var(--color-signal);
       border: 1px solid var(--color-signal);
       border-radius: var(--radius-sm);
-      padding: .05rem .45rem; font-size: .62rem; font-weight: 700;
+      padding: .05rem .45rem;
+      font-size: .62rem;
+      font-weight: 700;
       vertical-align: middle;
     }
 
     /* Rotation folder card + rule editor modal */
-    .folder-card { background: var(--color-surface); border: 1px solid var(--color-line);
-      border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1rem; }
-    .rule-row { padding: .4rem 0; border-bottom: 1px solid var(--color-line);
-      display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
-    .modal-backdrop {
-      position: fixed; inset: 0; background: rgba(0,0,0,.55);
-      display: flex; align-items: center; justify-content: center; z-index: 1000;
+    .folder-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      margin-bottom: 1rem;
     }
-    .modal { background: var(--color-surface); border: 1px solid var(--color-line);
-      border-radius: var(--radius-lg); padding: 1.5rem; width: min(90vw, 42rem); max-height: 85vh; overflow: auto; }
-    .modal .field-label { color: var(--color-muted); }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-    .explorer-table { border-collapse: collapse; width: 100%; font-size: .8rem; margin-top: .75rem; overflow: auto; display: block; }
-    .explorer-table th, .explorer-table td { border: 1px solid var(--color-line); padding: .25rem .4rem; text-align: left; vertical-align: top; }
-    .explorer-table th { background: var(--color-muted-bg); }
-    .explorer-table tr:nth-child(even) { background: var(--color-muted-bg); }
-    .pill.error { color: var(--color-coral); border-color: var(--color-coral); background: color-mix(in srgb, var(--color-coral), transparent 82%); }
+
+    .rule-row {
+      padding: .4rem 0;
+      border-bottom: 1px solid var(--color-line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal {
+      background: var(--color-surface);
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      width: min(90vw, 42rem);
+      max-height: 85vh;
+      overflow: auto;
+    }
+
+    .modal .field-label {
+      color: var(--color-muted);
+    }
+
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .explorer-table {
+      border-collapse: collapse;
+      width: max-content;
+      min-width: 100%;
+      font-size: .84rem;
+    }
+
+    .explorer-table th,
+    .explorer-table td {
+      border-bottom: 1px solid var(--color-line);
+      padding: .7rem .85rem;
+      text-align: left;
+      vertical-align: top;
+      max-width: 28rem;
+      overflow-wrap: anywhere;
+    }
+
+    .explorer-table th {
+      background: var(--color-muted-bg);
+      color: var(--color-muted);
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .045em;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .explorer-table tbody tr:hover {
+      background: color-mix(in srgb, var(--color-signal) 6%, var(--color-surface));
+    }
+
+    .explorer-tables {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+      gap: .5rem;
+      margin-top: 1rem;
+    }
+
+    .explorer-table-button {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      min-width: 0;
+      text-align: left;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .explorer-table-button .explorer-count {
+      flex: 0 0 auto;
+      color: var(--color-faint);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .explorer-table-button.cc-btn--active .explorer-count {
+      color: var(--color-sage);
+    }
+
+    .explorer-result-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .75rem;
+      margin: 1.5rem 0 .6rem;
+    }
+
+    .explorer-result-heading h3 {
+      margin: 0;
+      font: 600 .95rem "Outfit", ui-sans-serif, system-ui, sans-serif;
+      overflow-wrap: anywhere;
+    }
+
+    .explorer-grid-wrap {
+      max-height: min(65vh, 44rem);
+      overflow: auto;
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-md);
+      background: var(--color-surface);
+    }
+
+    .explorer-empty {
+      padding: 1.25rem;
+      border: 1px dashed var(--color-line);
+      border-radius: var(--radius-md);
+      color: var(--color-muted);
+      text-align: center;
+    }
+
+    .explorer-null {
+      color: var(--color-faint);
+      font-style: italic;
+    }
+
+    .pill.error {
+      color: var(--color-coral);
+      border-color: var(--color-coral);
+      background: color-mix(in srgb, var(--color-coral), transparent 82%);
+    }
 
     /* Header right-side actions (New upload + user menu) */
-    .header-actions { display: inline-flex; align-items: center; gap: .75rem; }
+    .header-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: .75rem;
+    }
+
     #newUpload {
-      display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
-      height: 2.75rem; border-radius: var(--radius-md);
-      background: var(--color-signal); color: var(--color-signal-ink);
-      font-size: .85rem; font-weight: 600; transition: filter .15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      height: 2.75rem;
+      border-radius: var(--radius-md);
+      background: var(--color-signal);
+      color: var(--color-signal-ink);
+      font-size: .85rem;
+      font-weight: 600;
+      transition: filter .15s;
       border: 1px solid var(--color-signal);
     }
-    #newUpload:hover { filter: brightness(1.1); }
-    #newUpload svg { width: 1rem; height: 1rem; }
+
+    #newUpload:hover {
+      filter: brightness(1.1);
+    }
+
+    #newUpload svg {
+      width: 1rem;
+      height: 1rem;
+    }
 
     /* Sticky top header (brand | tabs | actions) */
     .topheader {
-      position: sticky; top: 0; z-index: 20;
-      display: flex; align-items: stretch; justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: stretch;
+      justify-content: space-between;
       gap: .75rem;
       border-bottom: 1px solid var(--color-line);
       background: var(--color-canvas);
@@ -131,357 +374,1655 @@
       padding: .5rem 1.5rem;
       min-height: 3.5rem;
     }
-    @media (max-width: 1023px) { .topheader { padding: .4rem .9rem; } }
-    .topheader .title { font-family: "Fraunces", Georgia, serif; font-size: 1.25rem; }
-    .channel { display: inline-flex; align-items: center; gap: .45rem; font-size: .85rem; color: var(--color-muted); }
-    .dot { width: .55rem; height: .55rem; border-radius: 999px; display: inline-block; }
-    .dot.sage { background: var(--color-sage); }
-    .dot.signal { background: var(--color-signal); }
-    .dot.coral { background: var(--color-coral); }
 
-    main { padding: 1.5rem; }
-    @media (min-width: 1024px) { main { padding: 1.75rem 2rem; } }
+    @media (max-width: 1023px) {
+      .topheader {
+        padding: .4rem .9rem;
+      }
+    }
+
+    .topheader .title {
+      font-family: "Fraunces", Georgia, serif;
+      font-size: 1.25rem;
+    }
+
+    .channel {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      font-size: .85rem;
+      color: var(--color-muted);
+    }
+
+    .dot {
+      width: .55rem;
+      height: .55rem;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    .dot.sage {
+      background: var(--color-sage);
+    }
+
+    .dot.signal {
+      background: var(--color-signal);
+    }
+
+    .dot.coral {
+      background: var(--color-coral);
+    }
+
+    main {
+      padding: 1.5rem;
+    }
+
+    @media (min-width: 1024px) {
+      main {
+        padding: 1.75rem 2rem;
+      }
+    }
 
     /* Cards / surfaces */
     .card {
-      background: var(--color-surface); border: 1px solid var(--color-line);
-      border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1.5rem;
+      background: var(--color-surface);
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
     }
-    .card h2 { margin: 0 0 .75rem; font-size: 1.1rem; }
+
+    .card h2 {
+      margin: 0 0 .75rem;
+      font-size: 1.1rem;
+    }
 
     /* Buttons */
     .btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
-      height: 2.75rem; border-radius: var(--radius-md);
-      border: 1px solid var(--color-line); font-size: .85rem; font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      height: 2.75rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-line);
+      font-size: .85rem;
+      font-weight: 600;
       transition: filter .15s, background .15s;
     }
-    .btn-primary { background: var(--color-signal); color: var(--color-signal-ink); border-color: var(--color-signal); }
-    .btn-primary:hover { filter: brightness(1.1); }
-    .btn-ghost { background: transparent; color: var(--color-muted); }
-    .btn-ghost:hover { background: var(--color-surface-2); color: var(--color-fg); }
-    .btn .icon { width: 1rem; height: 1rem; }
-    button:disabled { opacity: .5; cursor: not-allowed; }
+
+    .btn-primary {
+      background: var(--color-signal);
+      color: var(--color-signal-ink);
+      border-color: var(--color-signal);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.1);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--color-muted);
+    }
+
+    .btn-ghost:hover {
+      background: var(--color-surface-2);
+      color: var(--color-fg);
+    }
+
+    .btn .icon {
+      width: 1rem;
+      height: 1rem;
+    }
+
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
 
     /* Forms */
-    .field-label { font-size: .8rem; color: var(--color-muted); margin-bottom: .3rem; display: block; }
-    .field {
-      width: 100%; border-radius: var(--radius-md); border: 1px solid var(--color-line);
-      background: var(--color-canvas); color: var(--color-fg); font-size: .85rem;
-      padding: .6rem .85rem; outline: none;
+    .field-label {
+      font-size: .8rem;
+      color: var(--color-muted);
+      margin-bottom: .3rem;
+      display: block;
     }
-    .field::placeholder { color: var(--color-faint); }
-    .field:focus { border-color: var(--color-signal); }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    @media (max-width: 720px) { .row { grid-template-columns: 1fr; } }
-    .file-row { display: flex; align-items: flex-end; gap: .75rem; margin-bottom: .4rem; }
-    .file-row:last-child { margin-bottom: .6rem; }
-    .file-name { color: var(--color-muted); font-size: .8rem; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .field {
+      width: 100%;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-line);
+      background: var(--color-canvas);
+      color: var(--color-fg);
+      font-size: .85rem;
+      padding: .6rem .85rem;
+      outline: none;
+    }
+
+    .field::placeholder {
+      color: var(--color-faint);
+    }
+
+    .field:focus {
+      border-color: var(--color-signal);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 720px) {
+      .row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .file-row {
+      display: flex;
+      align-items: flex-end;
+      gap: .75rem;
+      margin-bottom: .4rem;
+    }
+
+    .file-row:last-child {
+      margin-bottom: .6rem;
+    }
+
+    .file-name {
+      color: var(--color-muted);
+      font-size: .8rem;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
 
     /* Status pills */
-    .pill { display: inline-flex; align-items: center; gap: .35rem; border-radius: 999px; padding: .15rem .7rem; font-size: .72rem; font-weight: 600; }
-    .pill.pending   { background: color-mix(in srgb, var(--color-signal), transparent 85%); color: var(--color-signal); }
-    .pill.processing{ background: color-mix(in srgb, var(--color-signal), transparent 85%); color: var(--color-signal); }
-    .pill.uploading { background: color-mix(in srgb, var(--color-signal), transparent 85%); color: var(--color-signal); }
-    .pill.done      { background: color-mix(in srgb, var(--color-sage), transparent 82%); color: var(--color-sage); }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      border-radius: 999px;
+      padding: .15rem .7rem;
+      font-size: .72rem;
+      font-weight: 600;
+    }
+
+    .pill.pending {
+      background: color-mix(in srgb, var(--color-signal), transparent 85%);
+      color: var(--color-signal);
+    }
+
+    .pill.processing {
+      background: color-mix(in srgb, var(--color-signal), transparent 85%);
+      color: var(--color-signal);
+    }
+
+    .pill.uploading {
+      background: color-mix(in srgb, var(--color-signal), transparent 85%);
+      color: var(--color-signal);
+    }
+
+    .pill.done {
+      background: color-mix(in srgb, var(--color-sage), transparent 82%);
+      color: var(--color-sage);
+    }
+
     .pill.failed,
-    .pill.exhausted { background: color-mix(in srgb, var(--color-coral), transparent 85%); color: var(--color-coral); }
-    .pill.deleted   { background: var(--color-surface-2); color: var(--color-faint); }
-    .pill .dot { width: .4rem; height: .4rem; border-radius: 999px; background: currentColor; }
+    .pill.exhausted {
+      background: color-mix(in srgb, var(--color-coral), transparent 85%);
+      color: var(--color-coral);
+    }
 
-    table { width: 100%; border-collapse: collapse; font-size: .85rem; }
-    th, td { text-align: left; padding: .55rem .6rem; border-bottom: 1px solid var(--color-line); }
-    th { color: var(--color-muted); font-weight: 600; font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; }
-    td.muted { color: var(--color-faint); }
-    tr a { color: var(--color-signal); }
-    tr:hover { background: color-mix(in srgb, var(--color-surface-2) 25%, transparent); }
+    .pill.deleted {
+      background: var(--color-surface-2);
+      color: var(--color-faint);
+    }
 
-    .muted { color: var(--color-faint); }
-    .hidden { display: none; }
+    .pill .dot {
+      width: .4rem;
+      height: .4rem;
+      border-radius: 999px;
+      background: currentColor;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .85rem;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: .55rem .6rem;
+      border-bottom: 1px solid var(--color-line);
+    }
+
+    th {
+      color: var(--color-muted);
+      font-weight: 600;
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+    }
+
+    td.muted {
+      color: var(--color-faint);
+    }
+
+    tr a {
+      color: var(--color-signal);
+    }
+
+    tr:hover {
+      background: color-mix(in srgb, var(--color-surface-2) 25%, transparent);
+    }
+
+    .muted {
+      color: var(--color-faint);
+    }
+
+    .hidden {
+      display: none;
+    }
+
     .empty {
-      border: 1px dashed var(--color-line); border-radius: var(--radius-md);
-      padding: 2.5rem 1rem; text-align: center;
-    }
-    .empty h3 { font-size: 1.25rem; color: var(--color-fg); }
-    .empty p { color: var(--color-muted); margin-top: .5rem; max-width: 26rem; margin-left: auto; margin-right: auto; font-size: .85rem; }
-    .stats-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .8rem; margin: 1rem 0; }
-    .stat-card { background: var(--color-surface-2); border: 1px solid var(--color-line); border-radius: var(--radius-md); padding: 1rem; }
-    .stat-label { color: var(--color-muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; }
-    .stat-value { font: 700 1.8rem "Fraunces", Georgia, serif; margin-top: .35rem; }
-    .section-heading { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
-    .section-heading h2 { margin-bottom: .75rem; }
-    .toolbar { display: flex; gap: .75rem; margin: .75rem 0 1rem; }
-    .toolbar > * { max-width: 18rem; }
-    .table-wrap { overflow-x: auto; }
-    .table-wrap table { min-width: 42rem; }
-    .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 1rem; }
-    .media-card { min-width: 0; border: 1px solid var(--color-line); background: var(--color-surface-2); border-radius: var(--radius-md); padding: .75rem; }
-    .media-card video { display: block; width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: var(--radius-sm); }
-    .media-card h3 { font: 600 .95rem "Outfit", ui-sans-serif, system-ui, sans-serif; margin: .75rem 0 .35rem; overflow-wrap: anywhere; }
-    .media-card p { margin: .25rem 0; color: var(--color-faint); font-size: .78rem; overflow-wrap: anywhere; }
-    .inline-link { color: var(--color-signal); }
-    @media (max-width: 760px) {
-      .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
-    @media (max-width: 480px) {
-      main { padding: 1rem .75rem; }
-      .stats-grid { gap: .5rem; }
-      .stat-card { padding: .75rem; }
-      .stat-value { font-size: 1.45rem; }
-      .toolbar { flex-direction: column; }
-      .toolbar > * { max-width: none; }
-      .header-actions #userMenu { display: none; }
+      border: 1px dashed var(--color-line);
+      border-radius: var(--radius-md);
+      padding: 2.5rem 1rem;
+      text-align: center;
     }
 
-    ::selection { background: var(--color-signal); color: var(--color-signal-ink); }
+    .empty h3 {
+      font-size: 1.25rem;
+      color: var(--color-fg);
+    }
+
+    .empty p {
+      color: var(--color-muted);
+      margin-top: .5rem;
+      max-width: 26rem;
+      margin-left: auto;
+      margin-right: auto;
+      font-size: .85rem;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: .8rem;
+      margin: 1rem 0;
+    }
+
+    .stat-card {
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+    }
+
+    .stat-label {
+      color: var(--color-muted);
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .stat-value {
+      font: 700 1.8rem "Fraunces", Georgia, serif;
+      margin-top: .35rem;
+    }
+
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .section-heading h2 {
+      margin-bottom: .75rem;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: .75rem;
+      margin: .75rem 0 1rem;
+    }
+
+    .toolbar>* {
+      max-width: 18rem;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    .table-wrap table {
+      min-width: 42rem;
+    }
+
+    .media-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+      gap: 1rem;
+    }
+
+    .media-card {
+      min-width: 0;
+      border: 1px solid var(--color-line);
+      background: var(--color-surface-2);
+      border-radius: var(--radius-md);
+      padding: .75rem;
+    }
+
+    .media-card video {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      border-radius: var(--radius-sm);
+    }
+
+    .media-card h3 {
+      font: 600 .95rem "Outfit", ui-sans-serif, system-ui, sans-serif;
+      margin: .75rem 0 .35rem;
+      overflow-wrap: anywhere;
+    }
+
+    .media-card p {
+      margin: .25rem 0;
+      color: var(--color-faint);
+      font-size: .78rem;
+      overflow-wrap: anywhere;
+    }
+
+    .inline-link {
+      color: var(--color-signal);
+    }
+
+    @media (max-width: 760px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 480px) {
+      main {
+        padding: 1rem .75rem;
+      }
+
+      .stats-grid {
+        gap: .5rem;
+      }
+
+      .stat-card {
+        padding: .75rem;
+      }
+
+      .stat-value {
+        font-size: 1.45rem;
+      }
+
+      .toolbar {
+        flex-direction: column;
+      }
+
+      .toolbar>* {
+        max-width: none;
+      }
+
+      .header-actions #userMenu {
+        display: none;
+      }
+    }
+
+    ::selection {
+      background: var(--color-signal);
+      color: var(--color-signal-ink);
+    }
 
     /* Dashboard shell with persistent left navigation. */
-    :root { --color-canvas:#f5f7fb; --color-surface:#fff; --color-surface-2:#f8fafc; --color-fg:#172033; --color-muted:#64748b; --color-faint:#94a3b8; --color-line:#e2e8f0; --color-signal:#4f46e5; --color-signal-ink:#fff; --color-sage:#16a34a; --color-coral:#dc2626; color-scheme:light; }
-    html.dark { --color-canvas:#0f172a; --color-surface:#111c32; --color-surface-2:#17243b; --color-fg:#e5e7eb; --color-muted:#a8b3c7; --color-faint:#71809a; --color-line:#263653; --color-signal:#818cf8; --color-signal-ink:#111827; color-scheme:dark; }
-    body { background:var(--color-canvas); }
-    .main { margin-left:250px; min-height:100vh; }
+    :root {
+      --color-canvas: #f5f7fb;
+      --color-surface: #fff;
+      --color-surface-2: #f8fafc;
+      --color-fg: #172033;
+      --color-muted: #64748b;
+      --color-faint: #94a3b8;
+      --color-line: #e2e8f0;
+      --color-signal: #4f46e5;
+      --color-signal-ink: #fff;
+      --color-sage: #16a34a;
+      --color-coral: #dc2626;
+      color-scheme: light;
+    }
+
+    html.dark {
+      --color-canvas: #0f172a;
+      --color-surface: #111c32;
+      --color-surface-2: #17243b;
+      --color-fg: #e5e7eb;
+      --color-muted: #a8b3c7;
+      --color-faint: #71809a;
+      --color-line: #263653;
+      --color-signal: #818cf8;
+      --color-signal-ink: #111827;
+      color-scheme: dark;
+    }
+
+    body {
+      background: var(--color-canvas);
+    }
+
+    .main {
+      margin-left: 250px;
+      min-height: 100vh;
+    }
+
     .topheader {
-      position:sticky; top:0; left:250px; min-height:4.5rem; padding:.65rem 1.75rem;
-      align-items:center; justify-content:flex-end; background:var(--color-surface); border-bottom-color:var(--color-line);
-      box-shadow:0 1px 2px rgba(15,23,42,.04);
+      position: sticky;
+      top: 0;
+      left: 250px;
+      min-height: 4.5rem;
+      padding: .65rem 1.75rem;
+      align-items: center;
+      justify-content: flex-end;
+      background: var(--color-surface);
+      border-bottom-color: var(--color-line);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
     }
-    .sidebar { position:fixed; inset:0 auto 0 0; z-index:30; display:flex; flex-direction:column; width:250px; padding:1.25rem 1rem 1rem; background:var(--color-surface); border-right:1px solid var(--color-line); }
-    .sidebar-brand { display:flex; align-items:center; gap:.7rem; padding:.25rem .65rem 1.5rem; color:var(--color-fg); font-weight:700; }
-    .sidebar-brand-mark { display:grid; place-items:center; flex:0 0 2.15rem; height:2.15rem; border-radius:.65rem; color:#fff; background:var(--color-signal); font-size:.9rem; }
-    .sidebar-brand .brand { position:static; width:auto; padding:0; background:transparent; border:0; }
-    .sidebar-brand .brand .dot { display:none; }
-    .sidebar-brand .brand .logo { color:var(--color-fg); font-size:1rem; }
-    .sidebar-brand .brand .subtitle { display:none; }
-    .sidebar-group { margin:.85rem .7rem .4rem; color:var(--color-faint); font-size:.64rem; font-weight:700; letter-spacing:.11em; text-transform:uppercase; }
+
+    .sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 30;
+      display: flex;
+      flex-direction: column;
+      width: 250px;
+      padding: 1.25rem 1rem 1rem;
+      background: var(--color-surface);
+      border-right: 1px solid var(--color-line);
+    }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      padding: .25rem .65rem 1.5rem;
+      color: var(--color-fg);
+      font-weight: 700;
+    }
+
+    .sidebar-brand-mark {
+      display: grid;
+      place-items: center;
+      flex: 0 0 2.15rem;
+      height: 2.15rem;
+      border-radius: .65rem;
+      color: #fff;
+      background: var(--color-signal);
+      font-size: .9rem;
+    }
+
+    .sidebar-brand .brand {
+      position: static;
+      width: auto;
+      padding: 0;
+      background: transparent;
+      border: 0;
+    }
+
+    .sidebar-brand .brand .dot {
+      display: none;
+    }
+
+    .sidebar-brand .brand .logo {
+      color: var(--color-fg);
+      font-size: 1rem;
+    }
+
+    .sidebar-brand .brand .subtitle {
+      display: none;
+    }
+
+    .sidebar-group {
+      margin: .85rem .7rem .4rem;
+      color: var(--color-faint);
+      font-size: .64rem;
+      font-weight: 700;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+    }
+
     .tabs {
-      position:static !important; inset:auto; width:auto; min-width:0; height:auto;
-      flex:1 1 auto; padding:0; display:flex !important; flex-direction:column;
-      align-items:stretch; justify-content:flex-start; gap:.25rem; overflow-x:hidden;
-      overflow-y:auto; background:transparent; scrollbar-width:thin; scrollbar-color:var(--color-line) transparent;
+      position: static !important;
+      inset: auto;
+      width: auto;
+      min-width: 0;
+      height: auto;
+      flex: 1 1 auto;
+      padding: 0;
+      display: flex !important;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+      gap: .25rem;
+      overflow-x: hidden;
+      overflow-y: auto;
+      background: transparent;
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-line) transparent;
     }
+
     .tabs .tablink {
-      display:flex; align-items:center; justify-content:flex-start; width:100%; min-width:0;
-      min-height:2.55rem; border:1px solid transparent; border-radius:.55rem;
-      padding:.55rem .75rem; color:var(--color-muted); font-size:.84rem; text-align:left;
-      visibility:visible; opacity:1; transition:color .15s, background .15s, border-color .15s;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      width: 100%;
+      min-width: 0;
+      min-height: 2.55rem;
+      border: 1px solid transparent;
+      border-radius: .55rem;
+      padding: .55rem .75rem;
+      color: var(--color-muted);
+      font-size: .84rem;
+      text-align: left;
+      visibility: visible;
+      opacity: 1;
+      transition: color .15s, background .15s, border-color .15s;
+      position: relative;
     }
+
     .tabs .tablink.active {
-      color:var(--color-signal); background:color-mix(in srgb,var(--color-signal) 10%,transparent);
-      border-color:color-mix(in srgb,var(--color-signal) 18%,transparent); font-weight:600;
+      color: var(--color-signal);
+      background: color-mix(in srgb, var(--color-signal) 10%, transparent);
+      border-color: color-mix(in srgb, var(--color-signal) 18%, transparent);
+      font-weight: 600;
     }
-    .tabs .tablink:hover:not(.active) { color:var(--color-fg); background:var(--color-surface-2); }
-    .tabs .tablink svg { width:1.05rem; height:1.05rem; flex:0 0 1.05rem; }
-    .tabs .tablink .tab-count:empty { display:none; }
-    .tabs .tablink:focus-visible { outline:2px solid var(--color-signal); outline-offset:2px; }
-    .sidebar-account { border-top:1px solid var(--color-line); margin-top:.8rem; padding:.9rem .6rem .2rem; }
-    .sidebar-account #userMenu { display:flex; align-items:center; gap:.5rem; padding:.35rem 0; border:0; font-size:.78rem; }
-    main { max-width:1280px; margin:0 auto; padding:2rem; }
-    .card { padding:1.5rem; border-radius:.75rem; box-shadow:0 1px 3px rgba(15,23,42,.05); }
-    .card h2 { font-family:"Outfit",sans-serif; font-size:1.2rem; letter-spacing:-.02em; }
-    .field { background:var(--color-surface); border-color:var(--color-line); border-radius:.5rem; min-height:2.75rem; }
-    .field:focus { border-color:var(--color-signal); box-shadow:0 0 0 3px color-mix(in srgb,var(--color-signal) 15%,transparent); }
-    .field-label { color:var(--color-muted); font-weight:500; }
-    .btn,.btn-primary,#newUpload { border-radius:.5rem; }
-    .btn-primary,#newUpload { background:var(--color-signal); border-color:var(--color-signal); color:#fff; padding:0 .95rem; }
-    .btn-ghost { color:var(--color-muted); border:1px solid var(--color-line); background:var(--color-surface); padding:.55rem .8rem; border-radius:.5rem; }
-    #connectLink { padding:.55rem .75rem; border:1px solid var(--color-line); border-radius:.5rem; }
-    #connectLink.needs-reauth { color:var(--color-coral); border-color:var(--color-coral); background:color-mix(in srgb,var(--color-coral) 10%,transparent); }
-    #userMenu { padding:.55rem .75rem; border-left:1px solid var(--color-line); }
-    #compose form { display:grid; gap:1rem; }
-    #compose form > .row { margin:0; }
-    #compose form > .row:first-child { grid-template-columns:minmax(0,1fr); }
+
+    .tabs .tablink:hover:not(.active) {
+      color: var(--color-fg);
+      background: var(--color-surface-2);
+    }
+
+    .tabs .tablink svg {
+      width: 1.05rem;
+      height: 1.05rem;
+      flex: 0 0 1.05rem;
+    }
+
+    .tabs .tablink .tab-count:empty {
+      display: none;
+    }
+
+    .tabs .tablink:focus-visible {
+      outline: 2px solid var(--color-signal);
+      outline-offset: 2px;
+    }
+
+    .sidebar-account {
+      border-top: 1px solid var(--color-line);
+      margin-top: .8rem;
+      padding: .9rem .6rem .2rem;
+    }
+
+    .sidebar-account #userMenu {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .35rem 0;
+      border: 0;
+      font-size: .78rem;
+    }
+
+    main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .card {
+      padding: 1.5rem;
+      border-radius: .75rem;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, .05);
+    }
+
+    .card h2 {
+      font-family: "Outfit", sans-serif;
+      font-size: 1.2rem;
+      letter-spacing: -.02em;
+    }
+
+    .field {
+      background: var(--color-surface);
+      border-color: var(--color-line);
+      border-radius: .5rem;
+      min-height: 2.75rem;
+    }
+
+    .field:focus {
+      border-color: var(--color-signal);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-signal) 15%, transparent);
+    }
+
+    .field-label {
+      color: var(--color-muted);
+      font-weight: 500;
+    }
+
+    .btn,
+    .btn-primary,
+    #newUpload {
+      border-radius: .5rem;
+    }
+
+    .btn-primary,
+    #newUpload {
+      background: var(--color-signal);
+      border-color: var(--color-signal);
+      color: #fff;
+      padding: 0 .95rem;
+    }
+
+    .btn-ghost {
+      color: var(--color-muted);
+      border: 1px solid var(--color-line);
+      background: var(--color-surface);
+      padding: .55rem .8rem;
+      border-radius: .5rem;
+    }
+
+    #connectLink {
+      padding: .55rem .75rem;
+      border: 1px solid var(--color-line);
+      border-radius: .5rem;
+    }
+
+    #connectLink.needs-reauth {
+      color: var(--color-coral);
+      border-color: var(--color-coral);
+      background: color-mix(in srgb, var(--color-coral) 10%, transparent);
+    }
+
+    #userMenu {
+      padding: .55rem .75rem;
+      border-left: 1px solid var(--color-line);
+    }
+
+    #compose form {
+      display: grid;
+      gap: 1rem;
+    }
+
+    #compose form>.row {
+      margin: 0;
+    }
+
+    #compose form>.row:first-child {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
     .upload-dropzone {
-      position:relative; display:flex; align-items:center; gap:1rem; min-height:6.25rem;
-      padding:1rem 1.15rem; border:1.5px dashed var(--color-line); border-radius:.8rem;
-      background:linear-gradient(135deg,color-mix(in srgb,var(--color-signal) 7%,var(--color-surface)),var(--color-surface-2));
-      cursor:pointer; transition:border-color .18s,background .18s,box-shadow .18s,transform .18s;
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      min-height: 6.25rem;
+      padding: 1rem 1.15rem;
+      border: 1.5px dashed var(--color-line);
+      border-radius: .8rem;
+      background: linear-gradient(135deg, color-mix(in srgb, var(--color-signal) 7%, var(--color-surface)), var(--color-surface-2));
+      cursor: pointer;
+      transition: border-color .18s, background .18s, box-shadow .18s, transform .18s;
     }
-    .upload-dropzone:hover,.upload-dropzone.is-dragging {
-      border-color:var(--color-signal); background:color-mix(in srgb,var(--color-signal) 10%,var(--color-surface));
-      box-shadow:0 0 0 3px color-mix(in srgb,var(--color-signal) 12%,transparent);
+
+    .upload-dropzone:hover,
+    .upload-dropzone.is-dragging {
+      border-color: var(--color-signal);
+      background: color-mix(in srgb, var(--color-signal) 10%, var(--color-surface));
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-signal) 12%, transparent);
     }
-    .upload-dropzone.is-dragging { transform:scale(1.005); }
-    .upload-dropzone:focus-within { outline:2px solid var(--color-signal); outline-offset:3px; }
+
+    .upload-dropzone.is-dragging {
+      transform: scale(1.005);
+    }
+
+    .upload-dropzone:focus-within {
+      outline: 2px solid var(--color-signal);
+      outline-offset: 3px;
+    }
+
     .upload-file-input {
-      position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
-      clip:rect(0,0,0,0); white-space:nowrap; clip-path:inset(50%); border:0;
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      clip-path: inset(50%);
+      border: 0;
     }
+
     .upload-drop-icon {
-      display:grid; flex:0 0 3rem; width:3rem; height:3rem; place-items:center;
-      border:1px solid color-mix(in srgb,var(--color-signal) 24%,var(--color-line));
-      border-radius:.75rem; color:var(--color-signal);
-      background:color-mix(in srgb,var(--color-signal) 12%,var(--color-surface));
+      display: grid;
+      flex: 0 0 3rem;
+      width: 3rem;
+      height: 3rem;
+      place-items: center;
+      border: 1px solid color-mix(in srgb, var(--color-signal) 24%, var(--color-line));
+      border-radius: .75rem;
+      color: var(--color-signal);
+      background: color-mix(in srgb, var(--color-signal) 12%, var(--color-surface));
     }
-    .upload-drop-icon svg { width:1.4rem; height:1.4rem; }
-    .upload-drop-copy { min-width:0; }
-    .upload-drop-title { display:block; color:var(--color-fg); font-size:.92rem; font-weight:650; }
-    .upload-browse { color:var(--color-signal); text-decoration:underline; text-underline-offset:3px; }
-    .upload-drop-hint { display:block; margin-top:.2rem; color:var(--color-muted); font-size:.76rem; }
-    .upload-selection-count { margin-left:auto; color:var(--color-muted); font-size:.78rem; text-align:right; white-space:nowrap; }
+
+    .upload-drop-icon svg {
+      width: 1.4rem;
+      height: 1.4rem;
+    }
+
+    .upload-drop-copy {
+      min-width: 0;
+    }
+
+    .upload-drop-title {
+      display: block;
+      color: var(--color-fg);
+      font-size: .92rem;
+      font-weight: 650;
+    }
+
+    .upload-browse {
+      color: var(--color-signal);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .upload-drop-hint {
+      display: block;
+      margin-top: .2rem;
+      color: var(--color-muted);
+      font-size: .76rem;
+    }
+
+    .upload-selection-count {
+      margin-left: auto;
+      color: var(--color-muted);
+      font-size: .78rem;
+      text-align: right;
+      white-space: nowrap;
+    }
+
     @media (max-width:560px) {
-      .upload-dropzone { align-items:flex-start; gap:.7rem; padding:.85rem; }
-      .upload-drop-icon { flex-basis:2.5rem; width:2.5rem; height:2.5rem; }
-      .upload-selection-count { position:absolute; right:.85rem; bottom:.65rem; font-size:.7rem; }
-      .upload-drop-copy { padding-bottom:.7rem; }
+      .upload-dropzone {
+        align-items: flex-start;
+        gap: .7rem;
+        padding: .85rem;
+      }
+
+      .upload-drop-icon {
+        flex-basis: 2.5rem;
+        width: 2.5rem;
+        height: 2.5rem;
+      }
+
+      .upload-selection-count {
+        position: absolute;
+        right: .85rem;
+        bottom: .65rem;
+        font-size: .7rem;
+      }
+
+      .upload-drop-copy {
+        padding-bottom: .7rem;
+      }
     }
-    #fileList { display:grid; gap:.75rem; }
-    .schedule-file { display:grid; grid-template-columns:minmax(0,1fr); gap:.7rem; padding:1rem; border:1px solid var(--color-line); border-radius:.65rem; background:var(--color-surface-2); }
-    .schedule-file-meta { display:flex; align-items:center; gap:.7rem; min-width:0; }
-    .schedule-file-icon { display:grid; place-items:center; flex:0 0 2.4rem; height:2.4rem; border-radius:.55rem; color:var(--color-signal); background:color-mix(in srgb,var(--color-signal) 10%,transparent); font-size:1.1rem; }
-    .schedule-file-name { min-width:0; color:var(--color-fg); font-size:.9rem; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .schedule-file-size { margin-top:.15rem; color:var(--color-muted); font-size:.78rem; }
-    .schedule-file-title { display:grid; gap:.35rem; }
-    .schedule-file-title .field { margin:0; }
+
+    #fileList {
+      display: grid;
+      gap: .75rem;
+    }
+
+    .schedule-file {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: .7rem;
+      padding: 1rem;
+      border: 1px solid var(--color-line);
+      border-radius: .65rem;
+      background: var(--color-surface-2);
+    }
+
+    .schedule-file-meta {
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      min-width: 0;
+    }
+
+    .schedule-file-icon {
+      display: grid;
+      place-items: center;
+      flex: 0 0 2.4rem;
+      height: 2.4rem;
+      border-radius: .55rem;
+      color: var(--color-signal);
+      background: color-mix(in srgb, var(--color-signal) 10%, transparent);
+      font-size: 1.1rem;
+    }
+
+    .schedule-file-name {
+      min-width: 0;
+      color: var(--color-fg);
+      font-size: .9rem;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .schedule-file-size {
+      margin-top: .15rem;
+      color: var(--color-muted);
+      font-size: .78rem;
+    }
+
+    .schedule-file-title {
+      display: grid;
+      gap: .35rem;
+    }
+
+    .schedule-file-title .field {
+      margin: 0;
+    }
+
     @media (max-width:640px) {
-      .sidebar { width:190px; padding:1rem .65rem; }
-      .sidebar-brand { padding:.25rem .4rem 1.1rem; }
-      .sidebar-group { margin:.65rem .5rem .3rem; }
-      .tabs .tablink { min-height:2.4rem; padding:.45rem .55rem; font-size:.78rem; }
-      .main { margin-left:190px; }
-      .topheader { left:190px; padding:.55rem .75rem; }
-      main { padding:1rem .75rem; }
+      .sidebar {
+        width: 190px;
+        padding: 1rem .65rem;
+      }
+
+      .sidebar-brand {
+        padding: .25rem .4rem 1.1rem;
+      }
+
+      .sidebar-group {
+        margin: .65rem .5rem .3rem;
+      }
+
+      .tabs .tablink {
+        min-height: 2.4rem;
+        padding: .45rem .55rem;
+        font-size: .78rem;
+      }
+
+      .main {
+        margin-left: 190px;
+      }
+
+      .topheader {
+        left: 190px;
+        padding: .55rem .75rem;
+      }
+
+      main {
+        padding: 1rem .75rem;
+      }
     }
+
     @media (max-width:500px) {
-      .sidebar { width:58px; padding:.75rem .35rem; }
-      .sidebar-brand { justify-content:center; padding:.2rem 0 .9rem; }
-      .sidebar-brand .brand,.sidebar-group,.sidebar-account { display:none; }
-      .sidebar-brand-mark { flex-basis:2.1rem; height:2.1rem; }
-      .tabs { align-items:center; }
-      .tabs .tablink { width:2.45rem; min-height:2.45rem; }
-      .tabs .tablink { justify-content:center; padding:.45rem; font-size:0; }
-      .tabs .tablink svg { width:1.1rem; height:1.1rem; }
-      .tabs .tablink .tab-count { font-size:.62rem; padding:.04rem .28rem; }
-      .main { margin-left:58px; }
-      .topheader { left:58px; min-height:3.8rem; padding:.5rem .65rem; }
-      .header-actions { gap:.35rem; }
-      #newUpload { padding:0 .6rem; font-size:.75rem; }
-      .header-actions #userMenu { display:none; }
-      main { padding:.85rem .65rem; }
+      .sidebar {
+        width: 58px;
+        padding: .75rem .35rem;
+      }
+
+      .sidebar-brand {
+        justify-content: center;
+        padding: .2rem 0 .9rem;
+      }
+
+      .sidebar-brand .brand,
+      .sidebar-group,
+      .sidebar-account {
+        display: none;
+      }
+
+      .sidebar-brand-mark {
+        flex-basis: 2.1rem;
+        height: 2.1rem;
+      }
+
+      .tabs {
+        align-items: center;
+      }
+
+      .tabs .tablink {
+        width: 2.45rem;
+        min-height: 2.45rem;
+      }
+
+      .tabs .tablink {
+        justify-content: center;
+        padding: .45rem;
+        font-size: 0;
+      }
+
+      .tabs .tablink svg {
+        width: 1.1rem;
+        height: 1.1rem;
+      }
+
+      .tabs .tablink .tab-count {
+        font-size: .62rem;
+        padding: .04rem .28rem;
+      }
+
+      /* Compressed (icon-only) sidebar: reveal the tab's full name on hover. */
+      .tabs .tablink::after {
+        content: attr(aria-label);
+        position: absolute;
+        left: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        margin-left: .45rem;
+        padding: .18rem .45rem;
+        border-radius: 4px;
+        font-size: .72rem;
+        white-space: nowrap;
+        background: var(--color-surface);
+        border: 1px solid var(--color-line);
+        color: var(--color-fg);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, .28);
+        visibility: hidden;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .12s ease, visibility .12s ease;
+        z-index: 31;
+      }
+
+      .tabs .tablink:hover::after {
+        visibility: visible;
+        opacity: 1;
+      }
+
+      .main {
+        margin-left: 58px;
+      }
+
+      .topheader {
+        left: 58px;
+        min-height: 3.8rem;
+        padding: .5rem .65rem;
+      }
+
+      .header-actions {
+        gap: .35rem;
+      }
+
+      #newUpload {
+        padding: 0 .6rem;
+        font-size: .75rem;
+      }
+
+      .header-actions #userMenu {
+        display: none;
+      }
+
+      main {
+        padding: .85rem .65rem;
+      }
     }
-    input[type=checkbox] { accent-color: var(--color-signal); }
+
+    input[type=checkbox] {
+      accent-color: var(--color-signal);
+    }
 
     /* === Channels page cards (guide §13.5): avatar, name, platform, status, quota, actions === */
     .channel-card {
-      display: flex; align-items: center; justify-content: space-between; gap: .75rem;
-      padding: .6rem; border: 1px solid var(--color-line); border-radius: var(--radius-md);
-      background: var(--color-surface); margin-bottom: .5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .75rem;
+      padding: .6rem;
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-md);
+      background: var(--color-surface);
+      margin-bottom: .5rem;
     }
+
     .channel-card.token-expired,
-    .channel-card.needs-reauth { border-color: var(--color-coral); box-shadow: inset 3px 0 0 var(--color-coral); }
-    .cc-left { display: flex; align-items: center; gap: .6rem; }
-    .cc-meta { display: flex; flex-direction: column; }
-    .cc-name { font-weight: 600; font-size: .9rem; }
-    .cc-sub { display: flex; align-items: center; gap: .45rem; font-size: .75rem; color: var(--color-muted); }
-    .cc-platform { background: var(--color-surface-2); color: var(--color-fg); border-radius: 6px; padding: 0 .35rem; font-size: .68rem; }
-    .cc-quota { text-align: right; }
-    .cc-bar { width: 84px; height: 6px; background: var(--color-line); border-radius: 4px; overflow: hidden; }
-    .cc-fill { display: block; height: 100%; background: var(--color-sage); }
-    .cc-q { font-size: .72rem; color: var(--color-muted); }
-    .cc-actions { margin-top: .15rem; display: flex; justify-content: flex-end; gap: .4rem; }
-    .cc-btn { background: none; border: 1px solid var(--color-line); border-radius: 6px; padding: .2rem .4rem; font-size: .72rem; color: var(--color-muted); cursor: pointer; }
-    .cc-btn:hover { background: color-mix(in srgb, var(--color-fg), transparent 82%); color: var(--color-fg); }
-    .cc-btn--ghost { border-color: var(--color-line); }
-    .cc-btn--danger { color: var(--color-coral); }
-    .cc-btn--active { background: color-mix(in srgb, var(--color-sage), transparent 18%); color: var(--color-fg); border-color: var(--color-sage); }
-    .cc-avo { width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; font-size: .8rem; font-weight: 700; color: #fff; }
-    .cc-yt { background: #ff0000; }   /* YouTube */
-    .bulk-upload-page { padding: 0; overflow: hidden; }
-    .bulk-upload-heading { padding: 1.25rem 1.5rem; background: linear-gradient(110deg, #f7eee9, #e9f2fb); color: #24313d; }
-    .bulk-upload-heading h2 { margin: 0 0 .25rem; color: #24313d; font: 650 1.1rem "Outfit", ui-sans-serif, system-ui, sans-serif; }
-    .bulk-upload-heading p { margin: 0; color: #526171; font-size: .85rem; }
-    .bulk-upload-tools { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1rem 1.25rem .75rem; }
-    .bulk-auto-schedule {
-      display:grid; grid-template-columns:minmax(13rem,1.5fr) minmax(8rem,.65fr) auto;
-      align-items:end; gap:.75rem; margin:0 1.25rem 1rem; padding:1rem;
-      border:1px solid color-mix(in srgb,var(--color-signal) 22%,var(--color-line));
-      border-radius:.7rem; background:color-mix(in srgb,var(--color-signal) 5%,var(--color-surface));
+    .channel-card.needs-reauth {
+      border-color: var(--color-coral);
+      box-shadow: inset 3px 0 0 var(--color-coral);
     }
-    .bulk-auto-schedule .field-label { margin:0; }
-    .bulk-auto-schedule .field { margin-top:.35rem; min-width:0; }
-    .bulk-auto-description { grid-column:1 / -1; margin:-.25rem 0 0; color:var(--color-muted); font-size:.76rem; }
-    .bulk-auto-schedule button { min-height:2.65rem; }
-    @media (max-width:720px) {
-      .bulk-auto-schedule { grid-template-columns:1fr 1fr; margin:0 1rem 1rem; }
-      .bulk-auto-schedule button { grid-column:1 / -1; }
+
+    .cc-left {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
     }
-    .bulk-upload-table-wrap { overflow-x: auto; }
-    .bulk-upload-table { width: 100%; min-width: 850px; border-collapse: collapse; background: #fff; color: #293642; }
-    .bulk-upload-table th { padding: .75rem .65rem; border-bottom: 1px solid #d6dde4; text-align: left; font-size: .75rem; font-weight: 600; color: #526171; white-space: nowrap; }
-    .bulk-upload-table td { padding: .75rem .65rem; border-bottom: 1px solid #e5e9ed; vertical-align: middle; }
-    .bulk-upload-table .bulk-check-cell { width: 3rem; text-align: center; }
-    .bulk-upload-table input[type=checkbox] { width: 1.1rem; height: 1.1rem; }
-    .bulk-media-cell { display: flex; align-items: center; gap: .6rem; min-width: 14rem; }
-    .bulk-thumbnail { width: 6.5rem; height: 3.7rem; flex: 0 0 auto; object-fit: cover; border-radius: .4rem; background: #dce3e9; }
-    .bulk-file-name { max-width: 10rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .82rem; font-weight: 600; }
-    .bulk-file-size { margin-top: .2rem; color: #768391; font-size: .72rem; }
-    .bulk-description { min-width: 16rem; min-height: 3.7rem; resize: vertical; color: #293642; background: #fff; border: 1px solid #d5dde5; border-radius: .35rem; padding: .55rem; font: inherit; font-size: .78rem; }
-    .bulk-row-actions { display: flex; align-items: center; gap: .5rem; white-space: nowrap; }
-    .bulk-row-actions .field { width: 10rem; min-width: 10rem; margin: 0; color: #293642; background: #fff; border-color: #d5dde5; }
-    .bulk-more, .bulk-remove, .bulk-add {
-      color: #344454; background: #fff; border: 1px solid #cbd5df; border-radius: .35rem;
-      padding: .55rem .75rem; font: inherit; font-size: .76rem; white-space: nowrap;
+
+    .cc-meta {
+      display: flex;
+      flex-direction: column;
     }
-    .bulk-more:hover, .bulk-remove:hover, .bulk-add:hover { background: #f4f7f9; }
-    .bulk-remove { padding: .55rem .7rem; line-height: 1; }
-    .bulk-edit-row td { padding: .85rem 1rem; background: #f7f9fb; }
-    .bulk-edit-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: .75rem; }
-    .bulk-edit-fields .field { margin: 0; color: #293642; background: #fff; border-color: #d5dde5; }
-    .bulk-upload-footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.25rem; }
-    .bulk-empty { padding: 2rem 1rem; text-align: center; color: var(--color-muted); }
+
+    .cc-name {
+      font-weight: 600;
+      font-size: .9rem;
+    }
+
+    .cc-sub {
+      display: flex;
+      align-items: center;
+      gap: .45rem;
+      font-size: .75rem;
+      color: var(--color-muted);
+    }
+
+    .cc-platform {
+      background: var(--color-surface-2);
+      color: var(--color-fg);
+      border-radius: 6px;
+      padding: 0 .35rem;
+      font-size: .68rem;
+    }
+
+    .cc-quota {
+      text-align: right;
+    }
+
+    .cc-bar {
+      width: 84px;
+      height: 6px;
+      background: var(--color-line);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .cc-fill {
+      display: block;
+      height: 100%;
+      background: var(--color-sage);
+    }
+
+    .cc-q {
+      font-size: .72rem;
+      color: var(--color-muted);
+    }
+
+    .cc-actions {
+      margin-top: .15rem;
+      display: flex;
+      justify-content: flex-end;
+      gap: .4rem;
+    }
+
+    .cc-btn {
+      background: none;
+      border: 1px solid var(--color-line);
+      border-radius: 6px;
+      padding: .2rem .4rem;
+      font-size: .72rem;
+      color: var(--color-muted);
+      cursor: pointer;
+    }
+
+    .cc-btn:hover {
+      background: color-mix(in srgb, var(--color-fg), transparent 82%);
+      color: var(--color-fg);
+    }
+
+    .cc-btn--ghost {
+      border-color: var(--color-line);
+    }
+
+    .cc-btn--danger {
+      color: var(--color-coral);
+    }
+
+    .cc-btn--active {
+      background: color-mix(in srgb, var(--color-sage), transparent 18%);
+      color: var(--color-fg);
+      border-color: var(--color-sage);
+    }
+
+    .cc-avo {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .8rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .cc-yt {
+      background: #ff0000;
+    }
+
+    /* YouTube */
+    .bulk-upload-page {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .bulk-upload-heading {
+      padding: 1.25rem 1.5rem;
+      background: linear-gradient(110deg, #f7eee9, #e9f2fb);
+      color: #24313d;
+    }
+
+    .bulk-upload-heading h2 {
+      margin: 0 0 .25rem;
+      color: #24313d;
+      font: 650 1.1rem "Outfit", ui-sans-serif, system-ui, sans-serif;
+    }
+
+    .bulk-upload-heading p {
+      margin: 0;
+      color: #526171;
+      font-size: .85rem;
+    }
+
+    .bulk-upload-tools {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.25rem .75rem;
+    }
+
+    .bulk-upload-filters {
+      display: grid;
+      grid-template-columns: minmax(14rem, 1.2fr) minmax(13rem, 1fr) minmax(10rem, .7fr) minmax(10rem, .7fr);
+      align-items: end;
+      gap: .75rem;
+      padding: .5rem 1.25rem .75rem;
+    }
+    .bulk-upload-filters .field-label,
+    .bulk-checkbox-menu-label { display: flex; flex-direction: column; gap: .35rem; min-width: 0; font-size: .72rem; color: var(--color-muted); }
+    .bulk-upload-filters .field { min-width: 0; width: 100%; }
+    .bulk-checkbox-menu { position: relative; min-width: 0; }
+    .bulk-checkbox-menu > summary {
+      min-height: 2.4rem;
+      padding: .55rem .7rem;
+      border: 1px solid var(--color-line);
+      border-radius: .4rem;
+      background: var(--color-surface);
+      color: var(--color-fg);
+      cursor: pointer;
+      list-style: none;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .bulk-checkbox-menu > summary::-webkit-details-marker { display: none; }
+    .bulk-checkbox-menu > summary::after { content: "▾"; float: right; color: var(--color-muted); margin-left: .5rem; }
+    .bulk-checkbox-options {
+      position: absolute;
+      z-index: 30;
+      top: calc(100% + .3rem);
+      left: 0;
+      right: 0;
+      max-height: 16rem;
+      overflow-y: auto;
+      padding: .35rem;
+      border: 1px solid var(--color-line);
+      border-radius: .5rem;
+      background: var(--color-surface);
+      box-shadow: 0 10px 24px rgba(25, 35, 50, .16);
+    }
+    .bulk-checkbox-option {
+      display: flex;
+      align-items: center;
+      gap: .55rem;
+      padding: .5rem;
+      border-radius: .3rem;
+      color: var(--color-fg);
+      cursor: pointer;
+      font-size: .8rem;
+    }
+    .bulk-checkbox-option:hover { background: var(--color-surface-2); }
+    .bulk-checkbox-option input { width: 1rem; height: 1rem; margin: 0; }
+    .bulk-filter-help { grid-column: 1 / -1; margin: -.25rem 0 0; font-size: .75rem; }
+
+    .bulk-auto-apply-row {
+      display: flex;
+      justify-content: flex-end;
+      padding: .1rem 1.25rem .75rem;
+    }
+
+    .auto-schedule-settings {
+      margin: 1.5rem 0;
+      padding: 1rem;
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-2);
+    }
+
+    .auto-schedule-settings h3 {
+      margin: 0 0 .35rem;
+      font: 600 .95rem "Outfit", ui-sans-serif, system-ui, sans-serif;
+    }
+
+    .auto-schedule-settings p {
+      margin: 0 0 .85rem;
+    }
+
+    .bulk-upload-table-wrap {
+      overflow-x: auto;
+    }
+
+    .bulk-upload-table {
+      width: 100%;
+      min-width: 850px;
+      border-collapse: collapse;
+      background: #fff;
+      color: #293642;
+    }
+
+    .bulk-upload-table th {
+      padding: .75rem .65rem;
+      border-bottom: 1px solid #d6dde4;
+      text-align: left;
+      font-size: .75rem;
+      font-weight: 600;
+      color: #526171;
+      white-space: nowrap;
+    }
+
+    .bulk-upload-table td {
+      padding: .75rem .65rem;
+      border-bottom: 1px solid #e5e9ed;
+      vertical-align: middle;
+    }
+
+    .bulk-upload-table .bulk-check-cell {
+      width: 3rem;
+      text-align: center;
+    }
+
+    .bulk-upload-table input[type=checkbox] {
+      width: 1.1rem;
+      height: 1.1rem;
+    }
+
+    .bulk-media-cell {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      min-width: 14rem;
+    }
+
+    .bulk-thumbnail {
+      width: 6.5rem;
+      height: 3.7rem;
+      flex: 0 0 auto;
+      object-fit: cover;
+      border-radius: .4rem;
+      background: #dce3e9;
+    }
+
+    .bulk-file-name {
+      max-width: 10rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: .82rem;
+      font-weight: 600;
+    }
+
+    .bulk-file-size {
+      margin-top: .2rem;
+      color: #768391;
+      font-size: .72rem;
+    }
+
+    .bulk-description {
+      min-width: 16rem;
+      min-height: 3.7rem;
+      resize: vertical;
+      color: #293642;
+      background: #fff;
+      border: 1px solid #d5dde5;
+      border-radius: .35rem;
+      padding: .55rem;
+      font: inherit;
+      font-size: .78rem;
+    }
+
+    .bulk-row-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: .5rem;
+      min-width: 0;
+      white-space: nowrap;
+    }
+
+    .bulk-row-actions .bulk-scheduled-label { flex: 0 0 auto; }
+
+    @media (max-width: 950px) {
+      .bulk-upload-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .bulk-filter-help { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 560px) {
+      .bulk-upload-filters { grid-template-columns: 1fr; padding-inline: 1rem; }
+      .bulk-filter-help { grid-column: auto; }
+      .bulk-auto-apply-row { justify-content: stretch; padding-inline: 1rem; }
+      .bulk-auto-apply-row button { width: 100%; }
+      .bulk-row-actions { flex-wrap: wrap; }
+    }
+
+    .bulk-row-actions .field {
+      width: 10rem;
+      min-width: 10rem;
+      margin: 0;
+      color: #293642;
+      background: #fff;
+      border-color: #d5dde5;
+    }
+
+    .bulk-more,
+    .bulk-remove,
+    .bulk-add {
+      color: #344454;
+      background: #fff;
+      border: 1px solid #cbd5df;
+      border-radius: .35rem;
+      padding: .55rem .75rem;
+      font: inherit;
+      font-size: .76rem;
+      white-space: nowrap;
+    }
+
+    .bulk-more:hover,
+    .bulk-remove:hover,
+    .bulk-add:hover {
+      background: #f4f7f9;
+    }
+
+    .bulk-remove {
+      padding: .55rem .7rem;
+      line-height: 1;
+    }
+
+    .bulk-edit-row td {
+      padding: .85rem 1rem;
+      background: #f7f9fb;
+    }
+
+    .bulk-edit-fields {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+      gap: .75rem;
+    }
+
+    .bulk-edit-fields .field {
+      margin: 0;
+      color: #293642;
+      background: #fff;
+      border-color: #d5dde5;
+    }
+
+    .bulk-upload-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem 1.25rem;
+    }
+
+    .bulk-empty {
+      padding: 2rem 1rem;
+      text-align: center;
+      color: var(--color-muted);
+    }
+
     @media (max-width: 720px) {
-      .bulk-upload-tools, .bulk-upload-footer { align-items: stretch; flex-direction: column; }
-      .bulk-upload-heading { padding: 1rem; }
+
+      .bulk-upload-tools,
+      .bulk-upload-footer {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .bulk-upload-heading {
+        padding: 1rem;
+      }
+    }
+
+    /* Shared compact, flat button system. */
+    button,
+    .cc-btn,
+    .bulk-more,
+    .bulk-remove,
+    .bulk-add {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .4rem;
+      box-sizing: border-box;
+      min-height: 2rem;
+      height: auto;
+      width: auto;
+      padding: .4rem .75rem;
+      border: 1px solid var(--color-line);
+      border-radius: .4rem;
+      background: var(--color-surface);
+      color: var(--color-muted);
+      box-shadow: none;
+      font: 500 .82rem/1.2 "Outfit", ui-sans-serif, system-ui, sans-serif;
+      text-align: center;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: background-color .15s, border-color .15s, color .15s, filter .15s;
+    }
+
+    button:hover,
+    .cc-btn:hover,
+    .bulk-more:hover,
+    .bulk-remove:hover,
+    .bulk-add:hover {
+      background: var(--color-surface-2);
+      border-color: color-mix(in srgb, var(--color-line) 65%, var(--color-muted));
+      color: var(--color-fg);
+    }
+
+    button:focus-visible,
+    .cc-btn:focus-visible,
+    .bulk-more:focus-visible,
+    .bulk-remove:focus-visible,
+    .bulk-add:focus-visible {
+      outline: 2px solid color-mix(in srgb, var(--color-signal) 55%, transparent);
+      outline-offset: 2px;
+    }
+
+    button:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    .btn,
+    .btn-primary,
+    #newUpload,
+    .btn-ghost,
+    .cc-btn,
+    .bulk-more,
+    .bulk-remove,
+    .bulk-add {
+      border-radius: .4rem;
+      font-size: .82rem;
+      font-weight: 550;
+      box-shadow: none;
+    }
+
+    .btn {
+      min-height: 2rem;
+      height: auto;
+      padding: .4rem .75rem;
+    }
+
+    .btn-primary,
+    #newUpload {
+      min-height: 2rem;
+      height: auto;
+      padding: .4rem .85rem;
+      border: 1px solid var(--color-signal);
+      background: var(--color-signal);
+      color: #fff;
+    }
+
+    .btn-primary:hover,
+    #newUpload:hover {
+      background: color-mix(in srgb, var(--color-signal) 90%, #000);
+      border-color: var(--color-signal);
+      color: #fff;
+      filter: none;
+    }
+
+    .btn-ghost {
+      min-height: 2rem;
+      height: auto;
+      padding: .4rem .75rem;
+      border: 1px solid var(--color-line);
+      background: var(--color-surface);
+      color: var(--color-muted);
+    }
+
+    .btn-ghost:hover {
+      background: var(--color-surface-2);
+      color: var(--color-fg);
+    }
+
+    .cc-btn--danger {
+      color: var(--color-coral);
+    }
+
+    .cc-btn--active {
+      background: color-mix(in srgb, var(--color-sage) 12%, var(--color-surface));
+      color: var(--color-fg);
+      border-color: var(--color-sage);
+    }
+
+    .bulk-remove {
+      padding: .4rem .65rem;
+      line-height: 1.2;
+    }
+
+    .bulk-auto-apply-row button { min-height: 2rem; }
+
+    #submitBtn {
+      width: 100%;
+      min-height: 2rem;
+      justify-self: stretch;
+    }
+
+    #addFolderForm>button {
+      grid-column: 1 / -1;
+      width: 100%;
     }
   </style>
 </head>
+
 <body>
   <aside class="sidebar" aria-label="Main sidebar">
-    <div class="sidebar-brand"><span class="sidebar-brand-mark" aria-hidden="true">M</span><div class="brand"><span class="logo font-display">Castline</span><span class="subtitle">Creator studio</span></div></div>
+    <div class="sidebar-brand"><span class="sidebar-brand-mark" aria-hidden="true">M</span>
+      <div class="brand"><span class="logo font-display">Castline</span><span class="subtitle">Creator studio</span>
+      </div>
+    </div>
     <div class="sidebar-group">Workspace</div>
     <nav class="tabs" aria-label="Main navigation">
-        <a href="#desk" data-section="Desk" class="tablink active" aria-label="Dashboard">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-          Dashboard
-        </a>
-        <a href="#compose" data-section="Schedule" class="tablink" aria-label="Schedule">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.85 0 1 1 4 4L10 21H6v-4L17 3z"/><circle cx="13" cy="8" r="1"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-          Schedule
-        </a>
-        <a href="#bulk-upload" data-section="Bulk upload" class="tablink" aria-label="Bulk upload">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/><path d="m16 16 2 2 4-4"/></svg>
-          Bulk upload
-        </a>
-        <div class="sidebar-group">Publishing</div>
-        <a href="#queue" data-section="Queue" class="tablink" aria-label="Queue">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6l8 2v10l-8-2z"/><path d="M16 14l-8 2v-2M12 12l8-2v10l-8 2z"/></svg>
-          Queue <span id="queueCount" class="tab-count" aria-live="polite"></span>
-        </a>
-        <a href="#history" data-section="History" class="tablink" aria-label="History">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-          History
-        </a>
-        <a href="#rotation" data-section="Rotation" class="tablink" aria-label="Rotation">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/><path d="m6 10 6 6 6-6"/></svg>
-          Rotation
-        </a>
-        <div class="sidebar-group">Library</div>
-        <a href="#media" data-section="Media" class="tablink" aria-label="Media">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="m21 15-5-5L5 20"/></svg>
-          Media
-        </a>
-        <a href="#channels" data-section="Channels" class="tablink" aria-label="Channels">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3z"/></svg>
-          Channels
-        </a>
-        <div class="sidebar-group">System</div>
-        <a href="#settings" data-section="Settings" class="tablink" aria-label="Settings">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 10v6M4.22 4.22l4.24 4.24m-4.22 7.08 4.24 4.24M20 12h-6m-2 0H7"/></svg>
-          Settings
-        </a>
-        <a href="#explorer" data-section="Explorer" class="tablink" aria-label="Explorer">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v9a2 2 0 002 2z"/></svg>
-          Explorer
-        </a>
+      <a href="#desk" data-section="Desk" class="tablink active" aria-label="Dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7" />
+          <rect x="14" y="3" width="7" height="7" />
+          <rect x="14" y="14" width="7" height="7" />
+          <rect x="3" y="14" width="7" height="7" />
+        </svg>
+        Dashboard
+      </a>
+      <a href="#compose" data-section="Schedule" class="tablink" aria-label="Schedule">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 3a2.85 2.85 0 1 1 4 4L10 21H6v-4L17 3z" />
+          <circle cx="13" cy="8" r="1" />
+          <line x1="7" y1="7" x2="7.01" y2="7" />
+        </svg>
+        New Upload
+      </a>
+      <a href="#bulk-upload" data-section="Bulk upload" class="tablink" aria-label="Bulk upload">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 5h16v14H4z" />
+          <path d="M8 9h8M8 13h5" />
+          <path d="m16 16 2 2 4-4" />
+        </svg>
+        Bulk upload
+      </a>
+      <div class="sidebar-group">Publishing</div>
+      <a href="#queue" data-section="Queue" class="tablink" aria-label="Queue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 6l8 2v10l-8-2z" />
+          <path d="M16 14l-8 2v-2M12 12l8-2v10l-8 2z" />
+        </svg>
+        Queue <span id="queueCount" class="tab-count" aria-live="polite"></span>
+      </a>
+      <a href="#history" data-section="History" class="tablink" aria-label="History">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v5l3 2" />
+        </svg>
+        History
+      </a>
+      <a href="#rotation" data-section="Rotation" class="tablink" aria-label="Rotation">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 5v14M5 12h14" />
+          <path d="m6 10 6 6 6-6" />
+        </svg>
+        Rotation
+      </a>
+      <div class="sidebar-group">Library</div>
+      <a href="#media" data-section="Media" class="tablink" aria-label="Media">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="16" rx="2" />
+          <circle cx="8.5" cy="9" r="1.5" />
+          <path d="m21 15-5-5L5 20" />
+        </svg>
+        Media
+      </a>
+      <a href="#channels" data-section="Channels" class="tablink" aria-label="Channels">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <path d="m10 9 5 3-5 3z" />
+        </svg>
+        Channels
+      </a>
+      <div class="sidebar-group">System</div>
+      <a href="#settings" data-section="Settings" class="tablink" aria-label="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M12 1v6m0 10v6M4.22 4.22l4.24 4.24m-4.22 7.08 4.24 4.24M20 12h-6m-2 0H7" />
+        </svg>
+        Settings
+      </a>
+      <a href="#explorer" data-section="Explorer" class="tablink" aria-label="Explorer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path
+            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v9a2 2 0 002 2z" />
+        </svg>
+        Explorer
+      </a>
     </nav>
     <div class="sidebar-account"><span id="userMenu" class="channel"></span></div>
   </aside>
@@ -490,7 +2031,9 @@
       <div class="header-actions">
         <button id="themeToggle" class="btn-ghost" type="button" aria-label="Toggle theme">☾</button>
         <button id="newUpload" class="btn btn-primary">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
           New upload
         </button>
         <a id="connectLink" class="channel" href="/api/auth/connect">
@@ -499,7 +2042,7 @@
         </a>
       </div>
     </header>
-<main>
+    <main>
       <!-- Desk: overview -->
       <section id="desk" class="card active">
         <div class="section-heading">
@@ -526,30 +2069,40 @@
 
       <!-- Schedule -->
       <section id="compose" class="card">
-        <h2>Schedule an upload</h2>
+        <h2>New Video Upload</h2>
         <form id="scheduleForm">
           <div class="row">
             <div>
               <span class="field-label">Video files</span>
               <label class="upload-dropzone" id="videoDropzone" for="videoInput">
-                <input type="file" id="videoInput" name="video" accept="video/*" multiple required class="upload-file-input" aria-describedby="videoUploadHint" />
+                <input type="file" id="videoInput" name="video" accept="video/*" multiple required
+                  class="upload-file-input" aria-describedby="videoUploadHint" />
                 <span class="upload-drop-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5"/><path d="M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5" />
+                    <path d="M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4" />
+                  </svg>
                 </span>
                 <span class="upload-drop-copy">
-                  <span class="upload-drop-title">Drop your videos here or <span class="upload-browse">browse files</span></span>
-                  <span class="upload-drop-hint" id="videoUploadHint">Select multiple videos to schedule them together · MP4, MOV, WebM</span>
+                  <span class="upload-drop-title">Drop your videos here or <span class="upload-browse">browse
+                      files</span></span>
+                  <span class="upload-drop-hint" id="videoUploadHint">Select multiple videos to schedule them together ·
+                    MP4, MOV, WebM</span>
                 </span>
-                <span class="upload-selection-count" id="videoSelectionCount" aria-live="polite">No files selected</span>
+                <span class="upload-selection-count" id="videoSelectionCount" aria-live="polite">No files
+                  selected</span>
               </label>
             </div>
           </div>
           <div id="fileList" class="muted" style="font-size:.85rem;margin-top:.5rem" aria-live="polite"></div>
           <label class="field-label">Description</label>
-          <textarea id="description" name="description" rows="3" placeholder="Describe your video…" class="field"></textarea>
+          <textarea id="description" name="description" rows="3" placeholder="Describe your video…"
+            class="field"></textarea>
           <div class="row">
-            <div><label class="field-label">Hashtags (space or comma separated)</label><input id="hashtags" type="text" name="hashtags" placeholder="#funny #vlog" class="field" /></div>
-            <div><label class="field-label">Tags (comma separated)</label><input id="tags" type="text" name="tags" placeholder="comedy, vlog" class="field" /></div>
+            <div><label class="field-label">Hashtags (space or comma separated)</label><input id="hashtags" type="text"
+                name="hashtags" placeholder="#funny #vlog" class="field" /></div>
+            <div><label class="field-label">Tags (comma separated)</label><input id="tags" type="text" name="tags"
+                placeholder="comedy, vlog" class="field" /></div>
           </div>
           <div class="row">
             <div><label class="field-label">Privacy</label>
@@ -561,8 +2114,10 @@
             </div>
             <div>
               <label class="field-label" for="scheduleAt">Schedule at (optional)</label>
-              <input id="scheduleAt" type="datetime-local" name="scheduleAt" class="field" aria-describedby="scheduleAtHint" />
-              <span id="scheduleAtHint" class="muted" style="display:block;margin-top:.3rem;font-size:.75rem">Leave blank to add the upload to the queue now.</span>
+              <input id="scheduleAt" type="datetime-local" name="scheduleAt" class="field"
+                aria-describedby="scheduleAtHint" />
+              <span id="scheduleAtHint" class="muted" style="display:block;margin-top:.3rem;font-size:.75rem">Leave
+                blank to add the upload to the queue now.</span>
             </div>
           </div>
           <label class="field-label">Channel (blank = auto-select across your channels)</label>
@@ -587,25 +2142,51 @@
             <button type="button" id="bulkAddVideos" class="bulk-add">＋ Add videos</button>
             <input type="file" id="bulkVideoInput" name="video" accept="video/*" multiple hidden />
           </div>
-          <div class="bulk-auto-schedule" aria-label="Automatically stagger video schedules">
-            <label class="field-label" for="bulkAutoStart">Start date and time
-              <input type="datetime-local" id="bulkAutoStart" class="field" />
+          <div class="bulk-upload-filters" role="group" aria-label="Bulk apply to selected videos">
+            <label class="bulk-checkbox-menu-label">Accounts / channels
+              <details class="bulk-checkbox-menu" id="bulkChannelsMenu">
+                <summary id="bulkChannelsSummary">Choose accounts</summary>
+                <div class="bulk-checkbox-options" id="bulkChannelsOptions" role="group" aria-label="Choose accounts and channels"></div>
+              </details>
             </label>
-            <label class="field-label" for="bulkAutoInterval">Interval (minutes)
-              <input type="number" id="bulkAutoInterval" class="field" min="1" max="10080" step="1" value="30" />
+            <label class="field-label">Publish to
+              <details class="bulk-checkbox-menu" id="bulkPublishMenu">
+                <summary id="bulkPublishSummary">Choose platforms</summary>
+                <div class="bulk-checkbox-options" id="bulkPublishOptions" role="group" aria-label="Choose publishing platforms">
+                  <label class="bulk-checkbox-option"><input type="checkbox" value="youtube:video" checked />YouTube video</label>
+                  <label class="bulk-checkbox-option"><input type="checkbox" value="youtube:short" />YouTube Short</label>
+                  <label class="bulk-checkbox-option"><input type="checkbox" value="instagram:reel" />Instagram Reel</label>
+                </div>
+              </details>
             </label>
-            <button type="button" id="bulkAutoApply" class="btn-primary">Apply auto-schedule</button>
-            <p class="bulk-auto-description">Selected videos will be scheduled in upload-list order, starting at the chosen time and spaced by the interval in minutes.</p>
+            <label class="field-label">YouTube privacy
+              <select id="bulkPrivacySelect" class="field">
+                <option value="private">Private</option>
+                <option value="unlisted">Unlisted</option>
+                <option value="public">Public</option>
+              </select>
+            </label>
+            <p id="bulkChannelsHelp" class="muted bulk-filter-help">Choose one or more destinations. Each selected video is queued once for every compatible destination.</p>
+          </div>
+          <div class="bulk-auto-apply-row">
+            <button type="button" id="bulkAutoApply" class="btn-ghost">Auto-schedule selected</button>
           </div>
           <div class="bulk-upload-table-wrap">
             <table class="bulk-upload-table">
-              <thead><tr>
-                <th class="bulk-check-cell"><input type="checkbox" id="bulkHeaderSelect" checked aria-label="Select all videos" /></th>
-                <th>Video</th>
-                <th>Description / caption</th>
-                <th>Scheduling and options</th>
-              </tr></thead>
-              <tbody id="bulkFileList"><tr><td colspan="4" class="bulk-empty">Add videos to configure them individually.</td></tr></tbody>
+              <thead>
+                <tr>
+                  <th class="bulk-check-cell"><input type="checkbox" id="bulkHeaderSelect" checked
+                      aria-label="Select all videos" /></th>
+                  <th>Video</th>
+                  <th>Description / caption</th>
+                  <th>Scheduling and options</th>
+                </tr>
+              </thead>
+              <tbody id="bulkFileList">
+                <tr>
+                  <td colspan="4" class="bulk-empty">Add videos to configure them individually.</td>
+                </tr>
+              </tbody>
             </table>
           </div>
           <div class="bulk-upload-footer">
@@ -618,7 +2199,9 @@
       <!-- Channels -->
       <section id="channels" class="card">
         <h2>Channels</h2>
-        <div id="channelList"><p class="muted">Loading…</p></div>
+        <div id="channelList">
+          <p class="muted">Loading…</p>
+        </div>
       </section>
 
       <!-- Queue: jobs + edit panel -->
@@ -628,7 +2211,8 @@
           <button type="button" class="btn-ghost" onclick="loadJobs()">Refresh</button>
         </div>
         <div class="toolbar">
-          <input id="queueSearch" class="field" type="search" placeholder="Search queued uploads" aria-label="Search queued uploads" />
+          <input id="queueSearch" class="field" type="search" placeholder="Search queued uploads"
+            aria-label="Search queued uploads" />
           <select id="queueStatus" class="field" aria-label="Filter queue by status">
             <option value="all">All active statuses</option>
             <option value="pending">Pending</option>
@@ -636,15 +2220,22 @@
             <option value="uploading">Uploading</option>
           </select>
         </div>
-        <div id="jobs"><p class="muted">Loading…</p></div>
+        <div id="jobs">
+          <p class="muted">Loading…</p>
+        </div>
       </section>
 
       <section id="history" class="card">
-        <div class="section-heading"><h2>Upload history</h2></div>
-        <div class="toolbar">
-          <input id="historySearch" class="field" type="search" placeholder="Search upload history" aria-label="Search upload history" />
+        <div class="section-heading">
+          <h2>Upload history</h2>
         </div>
-        <div id="historyJobs"><p class="muted">Loading…</p></div>
+        <div class="toolbar">
+          <input id="historySearch" class="field" type="search" placeholder="Search upload history"
+            aria-label="Search upload history" />
+        </div>
+        <div id="historyJobs">
+          <p class="muted">Loading…</p>
+        </div>
       </section>
 
       <section id="media" class="card">
@@ -654,7 +2245,9 @@
             <p class="muted">Preview staged video files attached to your scheduled and completed jobs.</p>
           </div>
         </div>
-        <div id="mediaLibrary" class="media-grid"><p class="muted">Loading…</p></div>
+        <div id="mediaLibrary" class="media-grid">
+          <p class="muted">Loading…</p>
+        </div>
       </section>
 
       <!-- Edit panel (revealed per job) -->
@@ -676,12 +2269,17 @@
         <label class="field-label">Description</label>
         <textarea id="eDescription" rows="3" class="field"></textarea>
         <div class="row">
-          <div><label class="field-label">Hashtags</label><input type="text" id="eHashtags" class="field" placeholder="#funny #vlog" /></div>
-          <div><label class="field-label">Tags</label><input type="text" id="eTags" class="field" placeholder="comedy, vlog" /></div>
+          <div><label class="field-label">Hashtags</label><input type="text" id="eHashtags" class="field"
+              placeholder="#funny #vlog" /></div>
+          <div><label class="field-label">Tags</label><input type="text" id="eTags" class="field"
+              placeholder="comedy, vlog" /></div>
         </div>
         <div class="row">
-          <div><label class="field-label">Schedule at (your local time)</label><input type="datetime-local" id="eScheduleAt" class="field" /></div>
-          <div><label class="field-label">Channel</label><select id="eChannel" class="field"><option value="">Auto-select</option></select></div>
+          <div><label class="field-label">Schedule at (your local time)</label><input type="datetime-local"
+              id="eScheduleAt" class="field" /></div>
+          <div><label class="field-label">Channel</label><select id="eChannel" class="field">
+              <option value="">Auto-select</option>
+            </select></div>
         </div>
         <p id="editMsg" class="muted" style="margin-top:.5rem"></p>
         <button id="saveBtn" class="btn-primary">Save changes</button>
@@ -693,9 +2291,22 @@
         <div id="profile" class="muted" style="margin-bottom:1rem">Loading…</div>
         <div class="row" style="align-items:flex-end">
           <div><label class="field-label">Display name</label><input type="text" id="pName" class="field" /></div>
-          <div><label class="field-label">Sign-in email</label><input type="email" id="pEmail" class="field" autocomplete="email" required /></div>
+          <div><label class="field-label">Sign-in email</label><input type="email" id="pEmail" class="field"
+              autocomplete="email" required /></div>
         </div>
         <button id="saveProfile" class="btn-primary" style="margin-top:1rem">Save profile</button>
+        <div class="auto-schedule-settings">
+          <h3>Bulk upload scheduling</h3>
+          <p class="muted">Choose the default start time and spacing used by Auto-schedule in Bulk upload.</p>
+          <div class="row">
+            <label class="field-label" for="bulkAutoStart">Start date and time
+              <input type="datetime-local" id="bulkAutoStart" class="field" />
+            </label>
+            <label class="field-label" for="bulkAutoInterval">Interval between videos (minutes)
+              <input type="number" id="bulkAutoInterval" class="field" min="1" max="10080" step="1" value="30" />
+            </label>
+          </div>
+        </div>
         <div style="margin-top:1.5rem">
           <button id="logoutBtn" class="btn-ghost">Log out</button>
         </div>
@@ -711,8 +2322,10 @@
         </div>
 
         <form id="addFolderForm" class="row" style="gap:.75rem; align-items:flex-end">
-          <div><label class="field-label">Folder path</label><input id="folderPath" type="path" class="field" placeholder="/absolute/path/to/videos" style="width:22rem" /></div>
-          <div><label class="field-label">Scan interval (s)</label><input id="folderScanInterval" type="number" min="30" class="field" value="300" /></div>
+          <div><label class="field-label">Folder path</label><input id="folderPath" type="path" class="field"
+              placeholder="/absolute/path/to/videos" style="width:22rem" /></div>
+          <div><label class="field-label">Scan interval (s)</label><input id="folderScanInterval" type="number" min="30"
+              class="field" value="300" /></div>
           <button type="submit" class="btn-primary">Add folder</button>
         </form>
         <div id="folders" class="muted" style="margin-top:1rem">Loading…</div>
@@ -726,27 +2339,41 @@
             <input type="hidden" id="ruleId" />
             <input type="hidden" id="ruleFolderId" />
             <div><label class="field-label">Channel</label>
-              <select id="ruleChannel" class="field" style="min-width:16rem"></select></div>
+              <select id="ruleChannel" class="field" style="min-width:16rem"></select>
+            </div>
             <div><label class="field-label">Frequency</label>
               <select id="ruleFreq" class="field">
                 <option value="daily">Daily</option>
                 <option value="every_n_days">Every N days</option>
                 <option value="weekdays">Weekdays</option>
-              </select></div>
-            <div><label class="field-label">Interval N (every_n_days)</label><input id="ruleIntervalN" type="number" min="1" class="field" value="1" /></div>
-            <div><label class="field-label">Weekdays (Mon=0..Sun=6)</label><input id="ruleWeekdays" type="text" class="field" placeholder="1,3,5" /></div>
-            <div><label class="field-label">Time of day (HH:mm)</label><input id="ruleTimeOfDay" type="time" class="field" value="09:00" /></div>
-            <div><label class="field-label">Timezone</label><input id="ruleTimezone" type="text" class="field" value="UTC" placeholder="America/New_York" /></div>
-            <div><label class="field-label">Start date</label><input id="ruleStartDate" type="date" class="field" /></div>
+              </select>
+            </div>
+            <div><label class="field-label">Interval N (every_n_days)</label><input id="ruleIntervalN" type="number"
+                min="1" class="field" value="1" /></div>
+            <div><label class="field-label">Weekdays (Mon=0..Sun=6)</label><input id="ruleWeekdays" type="text"
+                class="field" placeholder="1,3,5" /></div>
+            <div><label class="field-label">Time of day (HH:mm)</label><input id="ruleTimeOfDay" type="time"
+                class="field" value="09:00" /></div>
+            <div><label class="field-label">Timezone</label><input id="ruleTimezone" type="text" class="field"
+                value="UTC" placeholder="America/New_York" /></div>
+            <div><label class="field-label">Start date</label><input id="ruleStartDate" type="date" class="field" />
+            </div>
             <div><label class="field-label">Pool mode</label>
               <select id="rulePool" class="field">
                 <option value="shared">shared (one file → all channels, burns per-channel quota)</option>
                 <option value="dedicated">dedicated (one file → one channel)</option>
-              </select></div>
+              </select>
+            </div>
             <div style="width:100%"><label class="field-label">Caption template</label>
-              <input id="ruleTemplate" type="text" class="field" style="width:100%" placeholder="Drop #{index}: {filename}" /></div>
+              <input id="ruleTemplate" type="text" class="field" style="width:100%"
+                placeholder="Drop #{index}: {filename}" />
+            </div>
             <div><label class="field-label">Active</label>
-              <select id="ruleActive" class="field"><option value="1">yes</option><option value="0">no (paused)</option></select></div>
+              <select id="ruleActive" class="field">
+                <option value="1">yes</option>
+                <option value="0">no (paused)</option>
+              </select>
+            </div>
             <div style="width:100%; margin-top:.5rem; text-align:right">
               <span id="ruleMsg" class="muted"></span>
               <button type="button" id="ruleCancel" class="btn-ghost">Cancel</button>
@@ -761,11 +2388,16 @@
         <div class="section-heading">
           <div>
             <h2>Database Explorer</h2>
-            <p class="muted">Read-only viewer. All tables are listed below; click a table to browse its rows. Writes, DDL, and stacked statements are blocked server-side.</p>
+            <p class="muted">Read-only viewer. All tables are listed below; click a table to browse its rows. Writes,
+              DDL, and stacked statements are blocked server-side.</p>
           </div>
           <button type="button" class="btn-ghost" id="explorerRefresh" onclick="loadExplorerTables()">Refresh</button>
         </div>
-        <div id="explorerTables" class="muted">Loading tables…</div>
+        <div class="explorer-result-heading">
+          <h3>Tables</h3>
+          <span id="explorerTableCount" class="muted">Loading…</span>
+        </div>
+        <div id="explorerTables" class="explorer-tables" aria-label="Database tables">Loading tables…</div>
         <div id="explorerResult" class="muted" style="margin-top:1rem">Select a table to view its rows.</div>
       </section>
     </main>
@@ -823,6 +2455,7 @@
       const res = await api(`${API}/auth/channels`);
       const list = await res.json();
       window._channels = list;
+      renderBulkDestinationOptions();
 
       const link = $("connectLink");
       if (list.length) {
@@ -868,8 +2501,8 @@
         const status = tokenExpired
           ? `<span class="pill failed"><span class="dot"></span> Access token expired</span>`
           : active
-          ? `<span class="pill done"><span class="dot"></span> Active</span>`
-          : `<span class="pill failed"><span class="dot"></span> Reauthorization required</span>`;
+            ? `<span class="pill done"><span class="dot"></span> Active</span>`
+            : `<span class="pill failed"><span class="dot"></span> Reauthorization required</span>`;
         const escapedId = escape(c.id);
         const reauthAction = `<a class="cc-btn cc-btn--ghost" href="${API}/auth/channels/${encodeURIComponent(c.id)}/reauth">${active ? "Reauthenticate" : "Reconnect"}</a>`;
         const deactivateAction = active
@@ -990,6 +2623,7 @@
         timing.setAttribute("aria-label", `Publishing time for ${entry.file.name}`);
         timing.innerHTML = '<option value="now">Publish now</option><option value="scheduled">Schedule</option>';
         timing.value = entry.scheduleMode;
+        timing.hidden = entry.scheduleMode === "scheduled" && entry.autoScheduled;
         const more = document.createElement("button");
         more.type = "button";
         more.className = "bulk-more";
@@ -1011,14 +2645,21 @@
         schedule.type = "datetime-local";
         schedule.className = "field";
         schedule.value = entry.scheduleAt;
-        schedule.hidden = entry.scheduleMode !== "scheduled";
+        schedule.hidden = entry.scheduleMode !== "scheduled" || entry.autoScheduled;
         schedule.setAttribute("aria-label", `Schedule date and time for ${entry.file.name}`);
-        schedule.addEventListener("change", () => { entry.scheduleAt = schedule.value; });
+        schedule.addEventListener("change", () => { entry.scheduleAt = schedule.value; entry.autoScheduled = false; });
         timing.addEventListener("change", () => {
           entry.scheduleMode = timing.value;
           renderBulkRows();
         });
-        actions.append(timing, schedule, more, remove);
+        if (entry.scheduleMode === "scheduled" && entry.autoScheduled) {
+          const scheduledLabel = document.createElement("span");
+          scheduledLabel.className = "muted bulk-scheduled-label";
+          scheduledLabel.textContent = "Scheduled";
+          actions.append(timing, scheduledLabel, more, remove);
+        } else {
+          actions.append(timing, schedule, more, remove);
+        }
         optionsCell.appendChild(actions);
         row.append(checkCell, videoCell, descriptionCell, optionsCell);
         list.appendChild(row);
@@ -1030,75 +2671,75 @@
           editCell.colSpan = 4;
           const fields = document.createElement("div");
           fields.className = "bulk-edit-fields";
-        const platform = document.createElement("select");
-        platform.className = "field";
-        platform.setAttribute("aria-label", `Platform and format for ${entry.file.name}`);
-        platform.innerHTML = '<option value="youtube:video">YouTube video</option><option value="youtube:short">YouTube Short</option><option value="instagram:reel">Instagram Reel</option>';
-        platform.value = entry.platform;
+          const platform = document.createElement("select");
+          platform.className = "field";
+          platform.setAttribute("aria-label", `Platform and format for ${entry.file.name}`);
+          platform.innerHTML = '<option value="youtube:video">YouTube video</option><option value="youtube:short">YouTube Short</option><option value="instagram:reel">Instagram Reel</option>';
+          platform.value = entry.platform;
 
-        const title = document.createElement("input");
-        title.type = "text";
-        title.className = "field";
-        title.maxLength = 2200;
-        title.value = entry.title;
-        title.placeholder = "YouTube title (or Reel caption)";
-        title.setAttribute("aria-label", `Title or caption for ${entry.file.name}`);
-        const titleLabel = document.createElement("label");
-        titleLabel.className = "field-label";
-        titleLabel.textContent = "Title";
-        titleLabel.appendChild(title);
+          const title = document.createElement("input");
+          title.type = "text";
+          title.className = "field";
+          title.maxLength = 2200;
+          title.value = entry.title;
+          title.placeholder = "YouTube title (or Reel caption)";
+          title.setAttribute("aria-label", `Title or caption for ${entry.file.name}`);
+          const titleLabel = document.createElement("label");
+          titleLabel.className = "field-label";
+          titleLabel.textContent = "Title";
+          titleLabel.appendChild(title);
 
-        const channel = document.createElement("select");
-        channel.className = "field";
-        channel.setAttribute("aria-label", `YouTube channel for ${entry.file.name}`);
-        channel.innerHTML = '<option value="">YouTube channel (auto-select)</option>';
-        channels.forEach((item) => {
-          const option = document.createElement("option");
-          option.value = item.id;
-          option.textContent = item.name;
-          channel.appendChild(option);
-        });
-        channel.value = entry.channelId;
-        const channelLabel = document.createElement("label");
-        channelLabel.className = "field-label";
-        channelLabel.textContent = "YouTube channel";
-        channelLabel.appendChild(channel);
+          const channel = document.createElement("select");
+          channel.className = "field";
+          channel.setAttribute("aria-label", `YouTube channel for ${entry.file.name}`);
+          channel.innerHTML = '<option value="">YouTube channel (auto-select)</option>';
+          channels.forEach((item) => {
+            const option = document.createElement("option");
+            option.value = item.id;
+            option.textContent = item.name;
+            channel.appendChild(option);
+          });
+          channel.value = entry.channelId;
+          const channelLabel = document.createElement("label");
+          channelLabel.className = "field-label";
+          channelLabel.textContent = "YouTube channel";
+          channelLabel.appendChild(channel);
 
-        const account = document.createElement("select");
-        account.className = "field";
-        account.setAttribute("aria-label", `Instagram account for ${entry.file.name}`);
-        account.innerHTML = '<option value="">Select Instagram account</option>';
-        accounts.forEach((item) => {
-          const option = document.createElement("option");
-          option.value = item.id;
-          option.textContent = `@${item.username}`;
-          account.appendChild(option);
-        });
-        account.value = entry.instagramAccountId;
-        const accountLabel = document.createElement("label");
-        accountLabel.className = "field-label";
-        accountLabel.textContent = "Instagram account";
-        accountLabel.appendChild(account);
-        const privacy = document.createElement("select");
-        privacy.className = "field";
-        privacy.innerHTML = '<option value="private">Private</option><option value="unlisted">Unlisted</option><option value="public">Public</option>';
-        privacy.value = entry.privacy;
-        privacy.setAttribute("aria-label", `YouTube privacy for ${entry.file.name}`);
-        const privacyLabel = document.createElement("label");
-        privacyLabel.className = "field-label";
-        privacyLabel.textContent = "YouTube privacy";
-        privacyLabel.appendChild(privacy);
+          const account = document.createElement("select");
+          account.className = "field";
+          account.setAttribute("aria-label", `Instagram account for ${entry.file.name}`);
+          account.innerHTML = '<option value="">Select Instagram account</option>';
+          accounts.forEach((item) => {
+            const option = document.createElement("option");
+            option.value = item.id;
+            option.textContent = `@${item.username}`;
+            account.appendChild(option);
+          });
+          account.value = entry.instagramAccountId;
+          const accountLabel = document.createElement("label");
+          accountLabel.className = "field-label";
+          accountLabel.textContent = "Instagram account";
+          accountLabel.appendChild(account);
+          const privacy = document.createElement("select");
+          privacy.className = "field";
+          privacy.innerHTML = '<option value="private">Private</option><option value="unlisted">Unlisted</option><option value="public">Public</option>';
+          privacy.value = entry.privacy;
+          privacy.setAttribute("aria-label", `YouTube privacy for ${entry.file.name}`);
+          const privacyLabel = document.createElement("label");
+          privacyLabel.className = "field-label";
+          privacyLabel.textContent = "YouTube privacy";
+          privacyLabel.appendChild(privacy);
 
-        platform.addEventListener("change", () => { entry.platform = platform.value; renderBulkRows(); });
-        title.addEventListener("input", () => { entry.title = title.value; });
-        channel.addEventListener("change", () => { entry.channelId = channel.value; });
-        account.addEventListener("change", () => { entry.instagramAccountId = account.value; });
-        privacy.addEventListener("change", () => { entry.privacy = privacy.value; });
-        const platformLabel = document.createElement("label");
-        platformLabel.className = "field-label";
-        platformLabel.textContent = "Publish to";
-        platformLabel.appendChild(platform);
-        fields.append(platformLabel, titleLabel, channelLabel, accountLabel, privacyLabel);
+          platform.addEventListener("change", () => { entry.platform = platform.value; renderBulkRows(); });
+          title.addEventListener("input", () => { entry.title = title.value; });
+          channel.addEventListener("change", () => { entry.channelId = channel.value; });
+          account.addEventListener("change", () => { entry.instagramAccountId = account.value; });
+          privacy.addEventListener("change", () => { entry.privacy = privacy.value; });
+          const platformLabel = document.createElement("label");
+          platformLabel.className = "field-label";
+          platformLabel.textContent = "Publish to";
+          platformLabel.appendChild(platform);
+          fields.append(platformLabel, titleLabel, channelLabel, accountLabel, privacyLabel);
           editCell.appendChild(fields);
           editRow.appendChild(editCell);
           list.appendChild(editRow);
@@ -1127,9 +2768,21 @@
       return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
     }
 
+    const AUTO_SCHEDULE_SETTINGS_KEY = "castline-bulk-schedule-settings";
+    const savedAutoSettings = (() => {
+      try { return JSON.parse(localStorage.getItem(AUTO_SCHEDULE_SETTINGS_KEY) || "{}"); }
+      catch { return {}; }
+    })();
     const autoScheduleStart = new Date();
     autoScheduleStart.setMinutes(autoScheduleStart.getMinutes() + 30, 0, 0);
-    $("bulkAutoStart").value = toLocalDateTimeValue(autoScheduleStart);
+    $("bulkAutoStart").value = savedAutoSettings.start || toLocalDateTimeValue(autoScheduleStart);
+    $("bulkAutoInterval").value = savedAutoSettings.interval || "30";
+    const persistAutoScheduleSettings = () => localStorage.setItem(AUTO_SCHEDULE_SETTINGS_KEY, JSON.stringify({
+      start: $("bulkAutoStart").value,
+      interval: $("bulkAutoInterval").value,
+    }));
+    $("bulkAutoStart").addEventListener("change", persistAutoScheduleSettings);
+    $("bulkAutoInterval").addEventListener("change", persistAutoScheduleSettings);
 
     $("bulkAutoApply")?.addEventListener("click", () => {
       const selected = bulkFileRows.filter((entry) => entry.selected);
@@ -1159,9 +2812,10 @@
       selected.forEach((entry, index) => {
         entry.scheduleMode = "scheduled";
         entry.scheduleAt = toLocalDateTimeValue(new Date(scheduleTimes[index]));
+        entry.autoScheduled = true;
       });
       renderBulkRows();
-      message.textContent = `Auto-scheduled ${selected.length} video${selected.length === 1 ? "" : "s"} every ${intervalMinutes} minute${intervalMinutes === 1 ? "" : "s"}, starting ${startTime.toLocaleString()}.`;
+      message.textContent = "";
     });
 
     $("bulkVideoInput")?.addEventListener("change", () => {
@@ -1171,14 +2825,15 @@
         file,
         previewUrl: URL.createObjectURL(file),
         selected: true,
-        platform: "youtube:video",
+        platform: (window.bulkDefaults?.platform) || "youtube:video",
         title: file.name,
         description: "",
         channelId: "",
         instagramAccountId: "",
-        privacy: "private",
+        privacy: (window.bulkDefaults?.privacy) || "private",
         scheduleMode: "now",
         scheduleAt: "",
+        autoScheduled: false,
         showOptions: false,
       }));
       $("bulkVideoInput").value = "";
@@ -1186,6 +2841,64 @@
     });
 
     $("bulkAddVideos")?.addEventListener("click", () => $("bulkVideoInput").click());
+
+    // Destination selections can fan each selected file out to multiple jobs.
+    window.bulkDefaults = { platform: "youtube:video", privacy: "private" };
+    window.bulkTargetPlatforms = null;
+    window.bulkTargetIds = new Set();
+    function renderBulkDestinationOptions() {
+      const accountsBox = $("bulkChannelsOptions");
+      if (!accountsBox) return;
+      const channels = (window._channels || []).filter((item) => item.active);
+      const instagramAccounts = (window._instagramAccounts || []).filter((item) => item.active);
+      const entries = [
+        ...channels.map((item) => ({ id: `youtube:${item.id}`, text: `${item.name} · ${Number(item.quota_used || 0).toLocaleString()} used` })),
+        ...instagramAccounts.map((item) => ({ id: `instagram:${item.id}`, text: `@${item.username}` })),
+      ];
+      accountsBox.replaceChildren();
+      entries.forEach((entry) => {
+        const label = document.createElement("label");
+        label.className = "bulk-checkbox-option";
+        const input = document.createElement("input");
+        input.type = "checkbox";
+        input.value = entry.id;
+        input.checked = window.bulkTargetIds.has(entry.id);
+        input.addEventListener("change", () => {
+          if (input.checked) window.bulkTargetIds.add(entry.id);
+          else window.bulkTargetIds.delete(entry.id);
+          updateBulkDestinationSummaries();
+        });
+        label.append(input, document.createTextNode(entry.text));
+        accountsBox.appendChild(label);
+      });
+      if (!entries.length) accountsBox.innerHTML = '<span class="muted" style="display:block;padding:.5rem">No connected destinations</span>';
+      updateBulkDestinationSummaries();
+    }
+    function updateBulkDestinationSummaries() {
+      const selectedIds = [...window.bulkTargetIds];
+      $("bulkChannelsSummary").textContent = selectedIds.length ? `${selectedIds.length} account${selectedIds.length === 1 ? "" : "s"} selected` : "Choose accounts";
+      const platforms = window.bulkTargetPlatforms;
+      $("bulkPublishSummary").textContent = platforms?.length
+        ? `${platforms.length} destination${platforms.length === 1 ? "" : "s"} selected`
+        : "Choose platforms";
+    }
+    $("bulkPublishOptions")?.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+      input.addEventListener("change", () => {
+        window.bulkTargetPlatforms = Array.from($("bulkPublishOptions").querySelectorAll('input:checked')).map((item) => item.value);
+        updateBulkDestinationSummaries();
+      });
+    });
+    $("bulkPrivacySelect")?.addEventListener("change", () => {
+      window.bulkDefaults.privacy = $("bulkPrivacySelect").value;
+      applyGlobalToSelected("privacy");
+    });
+    function applyGlobalToSelected(what) {
+      const rows = bulkFileRows.filter(e => e.selected);
+      rows.forEach(e => {
+        if (what === "privacy") e.privacy = window.bulkDefaults.privacy;
+      });
+      renderBulkRows();
+    }
     $("bulkHeaderSelect")?.addEventListener("change", () => {
       bulkFileRows.forEach((entry) => { entry.selected = $("bulkHeaderSelect").checked; });
       renderBulkRows();
@@ -1274,8 +2987,8 @@
       const recent = [...list].sort((a, b) => (b.updated_at || b.created_at || 0) - (a.updated_at || a.created_at || 0)).slice(0, 5);
       $("recentActivity").innerHTML = recent.length
         ? `<div class="table-wrap"><table><thead><tr><th>Video</th><th>Status</th><th>Updated</th></tr></thead><tbody>${recent.map(j =>
-            `<tr><td>${escape(j.title)}</td><td><span class="pill ${statusPillClass(j.status)}"><span class="dot"></span>${statusLabel(j.status)}</span></td><td class="muted">${j.updated_at ? new Date(j.updated_at * 1000).toLocaleString() : "—"}</td></tr>`
-          ).join("")}</tbody></table></div>`
+          `<tr><td>${escape(j.title)}</td><td><span class="pill ${statusPillClass(j.status)}"><span class="dot"></span>${statusLabel(j.status)}</span></td><td class="muted">${j.updated_at ? new Date(j.updated_at * 1000).toLocaleString() : "—"}</td></tr>`
+        ).join("")}</tbody></table></div>`
         : `<p class="muted">No uploads yet. <a class="inline-link" href="#compose">Schedule your first video.</a></p>`;
     }
 
@@ -1298,7 +3011,7 @@
       const assets = list.filter(j => j.filename);
       $("mediaLibrary").innerHTML = assets.length
         ? assets.map(j => `<article class="media-card">
-            <video controls preload="none" src="/media/${encodeURIComponent(j.filename)}" aria-label="Preview ${escape(j.title)}"></video>
+            <video controls preload="none" src="${API}/media/${encodeURIComponent(j.filename)}" aria-label="Preview ${escape(j.title)}"></video>
             <h3>${escape(j.title)}</h3>
             <p><span class="pill ${statusPillClass(j.status)}"><span class="dot"></span>${statusLabel(j.status)}</span></p>
             <p>File: ${escape(j.filename)}</p>
@@ -1395,7 +3108,7 @@
     });
     $("cancelEdit").addEventListener("click", cancelEdit);
 
-    function escape(s) { return String(s||"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+    function escape(s) { return String(s || "").replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
 
     /* ---- Folder rotation editor (Phase 2) ---- */
     function freqLabel(r) {
@@ -1435,7 +3148,7 @@
         <div class="table-wrap" style="margin-top:.6rem">
           <table style="font-size:.8rem">
             <thead><tr><th>File</th><th>Size</th><th>Hash</th><th>State</th></tr></thead><tbody>
-            ${it.map(i => `<tr><td>${escape(i.filename)}</td><td class="muted">${formatBytes(i.sizeBytes)}</td><td class="muted">${escape(i.sha256).slice(0,12)}…</td><td>${i.status}</td></tr>`).join("")}
+            ${it.map(i => `<tr><td>${escape(i.filename)}</td><td class="muted">${formatBytes(i.sizeBytes)}</td><td class="muted">${escape(i.sha256).slice(0, 12)}…</td><td>${i.status}</td></tr>`).join("")}
             </tbody></table>
         </div>
         <div style="margin-top:.75rem">
@@ -1553,20 +3266,19 @@
 
     // ---- DB Explorer (read-only) ----
     // Read-only table viewer.
-    // Layout: the full table list (tabs) stays on TOP at all times; the row
-    // viewer renders BELOW it — selecting a table highlights its tab but never
-    // hides the list. No raw SELECT * input: the user picks a table to view.
+    // The table catalog stays visible above the selected table's row viewer.
     window.__explorerTables = [];      // [{ name, rowCount }]
     window.__explorerTable = null;     // currently-viewed table name
 
     function renderTableTabs() {
       const box = $("explorerTables");
       const tables = window.__explorerTables || [];
-      if (!tables.length) { box.innerHTML = '<span class="muted">No tables found.</span>'; return; }
+      $("explorerTableCount").textContent = `${tables.length} ${tables.length === 1 ? "table" : "tables"}`;
+      if (!tables.length) { box.innerHTML = '<div class="explorer-empty">No tables found.</div>'; return; }
       box.innerHTML = tables.map((t) => {
-        const cnt = t.rowCount != null ? ` (${t.rowCount})` : "";
-        return `<button type="button" class="cc-btn ${t.name === window.__explorerTable ? "cc-btn--active" : ""}" onclick="loadExplorerTable('${t.name}')">${escape(t.name)}${cnt}</button>`;
-      }).join("") + `<div class="muted" style="margin-top:.5rem">${tables.length} table(s)</div>`;
+        const count = t.rowCount != null ? Number(t.rowCount).toLocaleString() : "—";
+        return `<button type="button" class="cc-btn explorer-table-button ${t.name === window.__explorerTable ? "cc-btn--active" : ""}" aria-pressed="${t.name === window.__explorerTable}" onclick="loadExplorerTable('${escape(t.name)}')"><span>${escape(t.name)}</span><span class="explorer-count">${count}</span></button>`;
+      }).join("");
     }
 
     window.loadExplorerTables = async function () {
@@ -1604,18 +3316,18 @@
     function renderExplorerResults(j) {
       const box = $("explorerResult");
       if (!j.columns || !j.columns.length) {
-        box.innerHTML = `<span class="pill done"><span class="dot"></span> ✓ ${j.rowCount} row(s)</span>`;
+        box.innerHTML = '<div class="explorer-empty">This table has no columns to display.</div>';
         return;
       }
       const rows = j.rows || [];
-      let html = "<table class='explorer-table'><thead><tr>" +
+      let html = `<div class="explorer-result-heading"><h3>${escape(window.__explorerTable || "Table")}</h3><span class="muted">${Number(j.rowCount || 0).toLocaleString()} rows${j.truncated ? " · first 100 shown" : ""}</span></div><div class="explorer-grid-wrap"><table class='explorer-table'><thead><tr>` +
         j.columns.map((c) => `<th>${escape(c)}</th>`).join("") + "</tr></thead><tbody>";
-      if (!rows.length) { html += "<tr><td colspan='" + j.columns.length + "' class='muted'>no rows</td></tr>"; }
+      if (!rows.length) { html += "<tr><td colspan='" + j.columns.length + "' class='explorer-null'>No rows in this table yet.</td></tr>"; }
       else {
-        html += rows.map((r) => "<tr>" + j.columns.map((c) => `<td>${escape(r[c])}</td>`).join("") + "</tr>").join("");
+        html += rows.map((r) => "<tr>" + j.columns.map((c) => `<td>${r[c] == null ? '<span class="explorer-null">NULL</span>' : escape(r[c])}</td>`).join("") + "</tr>").join("");
       }
-      html += "</tbody></table>";
-      box.innerHTML = html + `<div class="muted" style="margin-top:.4rem">rows: ${j.rowCount}${j.truncated ? " (truncated)" : ""}</div>`;
+      html += "</tbody></table></div>";
+      box.innerHTML = html;
     }
 
     // ---- Auth: profile + logout ----
@@ -1821,19 +3533,51 @@
         message.textContent = "Choose a connected Instagram account for each Reel.";
         return;
       }
+      // If the global "Channels (multi)" select has targets, fan out one item per
+      // (video x channel) so each selected video is queued for every selected
+      // channel. The file is re-appended once per expanded item to keep
+      // items.length === files.length (backend invariant).
+      const channelSelect = $("bulkChannelsSelect");
+      const targetChannels = channelSelect ? Array.from(channelSelect.selectedOptions).map(o => o.value) : [];
+      let itemsForSubmit = items;
+      const filesForSubmit = selectedRows.map(e => e.file);
+      if (targetChannels.length > 0) {
+        const nextItems = [];
+        const nextFiles = [];
+        items.forEach((item, i) => {
+          const file = selectedRows[i].file;
+          if (item.platform === "youtube") {
+            targetChannels.forEach((ch) => {
+              nextItems.push(Object.assign({}, item, { channelId: ch }));
+              nextFiles.push(file);
+            });
+          } else {
+            nextItems.push(item);
+            nextFiles.push(file);
+          }
+        });
+        itemsForSubmit = nextItems;
+        filesForSubmit.length = 0;
+        Array.prototype.push.apply(filesForSubmit, nextFiles);
+      }
       const data = new FormData();
       const metadata = {
-        items,
+        items: itemsForSubmit,
       };
       data.append("metadata", JSON.stringify(metadata));
-      selectedRows.forEach((entry) => data.append("video", entry.file));
+      filesForSubmit.forEach((file) => data.append("video", file));
       button.disabled = true;
       button.textContent = "Scheduling…";
       try {
         const response = await api(`${API}/videos`, { method: "POST", body: data });
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || "Could not queue uploads");
-        message.textContent = `${result.message} (${result.created.map((item) => `${item.title}: ${new Date(item.scheduledAt * 1000).toLocaleString()}`).join("; ")})`;
+        const scheduledCount = result.created.filter((item) => item.scheduledAt > Math.floor(Date.now() / 1000)).length;
+        const immediateCount = result.created.length - scheduledCount;
+        const parts = [];
+        if (scheduledCount) parts.push(`${scheduledCount} scheduled`);
+        if (immediateCount) parts.push(`${immediateCount} added to queue`);
+        message.textContent = `${result.message}${parts.length ? ` (${parts.join(", ")}). View the Queue to check upload times.` : ""}`;
         const selectedFiles = new Set(selectedRows.map((entry) => entry.file));
         for (let index = bulkFileRows.length - 1; index >= 0; index--) {
           const entry = bulkFileRows[index];
@@ -1888,4 +3632,5 @@
     });
   </script>
 </body>
+
 </html>
