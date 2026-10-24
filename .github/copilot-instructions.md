@@ -20,6 +20,7 @@
 
 ## Repository conventions
 
+- During active feature development, do not create or modify test cases unless the user explicitly asks for tests; focus on implementing the requested change.
 - Database access is asynchronous at call sites for both drivers. Define reusable statements in `initDb()` in `src/db.js`, use named `@parameter` placeholders, and account for the PostgreSQL adapter's SQL translation when writing queries.
 - Store application timestamps as Unix epoch seconds. Keep schema and queries portable between SQLite and PostgreSQL.
 - Keep YouTube channel OAuth separate from app sign-in: channel connection uses `/api/auth/connect` and `/auth/callback`; app sessions use `/api/auth/*`. OAuth callbacks validate the single-use `state` cookie.
