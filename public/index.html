@@ -741,6 +741,39 @@
       margin-bottom: .75rem;
     }
 
+    /* Give every top-level tab the same clear, theme-aware page title band. */
+    .page-heading,
+    .bulk-upload-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.25rem 1.5rem;
+      background: linear-gradient(110deg,
+        color-mix(in srgb, var(--color-signal) 10%, var(--color-surface)),
+        color-mix(in srgb, var(--color-surface-2) 88%, var(--color-signal)));
+      color: var(--color-fg);
+    }
+
+    .page-heading {
+      margin: -1.25rem -1.25rem 1.25rem;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+
+    .page-heading h2,
+    .bulk-upload-heading h2 {
+      margin: 0 0 .25rem;
+      color: var(--color-fg);
+      font: 650 1.1rem "Outfit", ui-sans-serif, system-ui, sans-serif;
+    }
+
+    .page-heading p,
+    .bulk-upload-heading p {
+      margin: 0;
+      color: var(--color-muted);
+      font-size: .85rem;
+    }
+
     .toolbar {
       display: flex;
       gap: .75rem;
@@ -1565,30 +1598,98 @@
       background: #ff0000;
     }
 
+    .channel-connect-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+      gap: .75rem;
+      margin: 1rem 0 1.25rem;
+    }
+
+    .channel-connect-card {
+      display: flex;
+      align-items: center;
+      gap: .85rem;
+      min-width: 0;
+      padding: 1rem;
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-2);
+    }
+
+    .channel-connect-logo {
+      display: grid;
+      flex: 0 0 2.75rem;
+      width: 2.75rem;
+      height: 2.75rem;
+      place-items: center;
+      border-radius: .8rem;
+      color: #fff;
+    }
+
+    .channel-connect-logo svg {
+      display: block;
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+
+    .channel-connect-logo.youtube { background: #ff0033; }
+    .channel-connect-logo.instagram { background: linear-gradient(135deg, #7c3aed, #db2777 55%, #f97316); }
+    .channel-connect-logo.facebook { background: #1877f2; }
+
+    .channel-connect-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .channel-connect-info strong {
+      display: block;
+      color: var(--color-fg);
+      font-size: .9rem;
+    }
+
+    .channel-connect-info span {
+      display: block;
+      margin-top: .15rem;
+      color: var(--color-muted);
+      font-size: .74rem;
+    }
+
+    .channel-connect-action {
+      display: inline-flex;
+      flex: 0 0 auto;
+      align-items: center;
+      justify-content: center;
+      min-height: 2.3rem;
+      padding: .45rem .7rem;
+      border: 1px solid var(--color-line);
+      border-radius: .5rem;
+      color: var(--color-fg);
+      background: var(--color-surface);
+      font-size: .76rem;
+      font-weight: 600;
+    }
+
+    .channel-connect-action:hover:not([aria-disabled="true"]) {
+      color: var(--color-signal);
+      border-color: var(--color-signal);
+    }
+
+    .channel-connect-action[aria-disabled="true"] {
+      color: var(--color-faint);
+      cursor: not-allowed;
+    }
+
+    .channel-connect-list-heading {
+      margin: .25rem 0 .65rem;
+      color: var(--color-muted);
+      font-size: .8rem;
+      font-weight: 600;
+    }
+
     /* YouTube */
     .bulk-upload-page {
       padding: 0;
       overflow: hidden;
-    }
-
-    .bulk-upload-heading {
-      padding: 1.25rem 1.5rem;
-      background: linear-gradient(110deg,
-        color-mix(in srgb, var(--color-signal) 10%, var(--color-surface)),
-        color-mix(in srgb, var(--color-surface-2) 88%, var(--color-signal)));
-      color: var(--color-fg);
-    }
-
-    .bulk-upload-heading h2 {
-      margin: 0 0 .25rem;
-      color: var(--color-fg);
-      font: 650 1.1rem "Outfit", ui-sans-serif, system-ui, sans-serif;
-    }
-
-    .bulk-upload-heading p {
-      margin: 0;
-      color: var(--color-muted);
-      font-size: .85rem;
     }
 
     .bulk-upload-tools {
@@ -1872,6 +1973,13 @@
       .bulk-upload-heading {
         padding: 1rem;
       }
+
+      .page-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 1rem;
+        margin: -1.25rem -1.25rem 1rem;
+      }
     }
 
     /* Shared compact, flat button system. */
@@ -2122,7 +2230,7 @@
     <main>
       <!-- Desk: overview -->
       <section id="desk" class="card active">
-        <div class="section-heading">
+        <div class="page-heading">
           <div>
             <h2>Studio desk</h2>
             <p class="muted">A live view of your scheduled YouTube uploads.</p>
@@ -2146,7 +2254,12 @@
 
       <!-- Schedule -->
       <section id="compose" class="card">
-        <h2>New Video Upload</h2>
+        <div class="page-heading">
+          <div>
+            <h2>New video upload</h2>
+            <p>Choose videos, add publishing details, and schedule them across your channels.</p>
+          </div>
+        </div>
         <form id="scheduleForm">
           <div class="row">
             <div>
@@ -2234,6 +2347,7 @@
                   <label class="bulk-checkbox-option"><input type="checkbox" value="youtube:video" checked />YouTube video</label>
                   <label class="bulk-checkbox-option"><input type="checkbox" value="youtube:short" />YouTube Short</label>
                   <label class="bulk-checkbox-option"><input type="checkbox" value="instagram:reel" />Instagram Reel</label>
+                  <label class="bulk-checkbox-option"><input type="checkbox" value="facebook:video" />Facebook video</label>
                 </div>
               </details>
             </label>
@@ -2273,16 +2387,47 @@
 
       <!-- Channels -->
       <section id="channels" class="card">
-        <h2>Channels</h2>
+        <div class="page-heading">
+          <div>
+            <h2>Channels</h2>
+            <p class="muted" style="margin:.25rem 0 0">Connect the platforms you publish to.</p>
+          </div>
+        </div>
+        <div id="channelConnectGrid" class="channel-connect-grid" aria-label="Connect publishing platforms">
+          <article class="channel-connect-card">
+            <span class="channel-connect-logo youtube" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.2 3.6-6.2 3.6Z"/></svg>
+            </span>
+            <div class="channel-connect-info"><strong>YouTube</strong><span>Connect or add another channel</span></div>
+            <a class="channel-connect-action" href="/api/auth/connect">＋ Add channel</a>
+          </article>
+          <article class="channel-connect-card">
+            <span class="channel-connect-logo instagram" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></svg>
+            </span>
+            <div class="channel-connect-info"><strong>Instagram</strong><span>Connect or add another account</span></div>
+            <a class="channel-connect-action" href="/api/instagram/connect">＋ Connect</a>
+          </article>
+          <article class="channel-connect-card">
+            <span class="channel-connect-logo facebook" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.4 21v-8h2.7l.4-3.1h-3.1v-2c0-.9.3-1.5 1.6-1.5h1.7V3.6c-.3 0-1.3-.1-2.4-.1-2.4 0-4 1.5-4 4.2v2.3H7.6V13h2.7v8h3.1Z"/></svg>
+            </span>
+            <div class="channel-connect-info"><strong>Facebook Pages</strong><span>Connect or add a Page</span></div>
+            <a class="channel-connect-action" href="/api/facebook/connect">＋ Connect Facebook</a>
+          </article>
+        </div>
+        <h3 class="channel-connect-list-heading">Connected accounts</h3>
         <div id="channelList">
           <p class="muted">Loading…</p>
         </div>
+        <h3 class="channel-connect-list-heading">Facebook Pages</h3>
+        <div id="facebookPageList"><p class="muted">Loading Facebook Pages…</p></div>
       </section>
 
       <!-- Queue: jobs + edit panel -->
       <section id="queue" class="card">
-        <div class="section-heading">
-          <h2>Queue</h2>
+        <div class="page-heading">
+          <div><h2>Queue</h2><p class="muted">Review and manage uploads waiting to publish.</p></div>
           <button type="button" class="btn-ghost" onclick="loadJobs()">Refresh</button>
         </div>
         <div class="toolbar">
@@ -2301,8 +2446,8 @@
       </section>
 
       <section id="history" class="card">
-        <div class="section-heading">
-          <h2>Upload history</h2>
+        <div class="page-heading">
+          <div><h2>Upload history</h2><p class="muted">Browse completed and past upload attempts.</p></div>
         </div>
         <div class="toolbar">
           <input id="historySearch" class="field" type="search" placeholder="Search upload history"
@@ -2314,7 +2459,7 @@
       </section>
 
       <section id="insights" class="card">
-        <div class="section-heading">
+        <div class="page-heading">
           <div>
             <h2>Insights</h2>
             <p class="muted">Views, comments, and channel performance from connected platforms.</p>
@@ -2371,7 +2516,7 @@
       </section>
 
       <section id="media" class="card">
-        <div class="section-heading">
+        <div class="page-heading">
           <div>
             <h2>Video library</h2>
             <p class="muted">Preview staged video files attached to your scheduled and completed jobs.</p>
@@ -2419,7 +2564,10 @@
 
       <!-- Settings: profile (name) + logout -->
       <section id="settings" class="card">
-        <h2>Profile</h2>
+        <div class="page-heading">
+          <div><h2>Settings</h2><p class="muted">Manage your profile and scheduling preferences.</p></div>
+        </div>
+        <h3>Profile</h3>
         <div id="profile" class="muted" style="margin-bottom:1rem">Loading…</div>
         <div class="row" style="align-items:flex-end">
           <div><label class="field-label">Display name</label><input type="text" id="pName" class="field" /></div>
@@ -2455,7 +2603,7 @@
       </section>
       <!-- Rotation: watched folders + per-channel schedules (Phase 2) -->
       <section id="rotation" class="card">
-        <div class="section-heading">
+        <div class="page-heading">
           <div>
             <h2>Folder rotation</h2>
             <p class="muted">Watch a folder, then schedule one video per post per channel over its own calendar.</p>
@@ -2527,7 +2675,7 @@
 
       <!-- DB Explorer: read-only SQL on the configured database (auth-gated) -->
       <section id="explorer" class="card">
-        <div class="section-heading">
+        <div class="page-heading">
           <div>
             <h2>Database Explorer</h2>
             <p class="muted">Read-only viewer. All tables are listed below; click a table to browse its rows. Writes,
@@ -2688,10 +2836,14 @@
 
     // ---- Channel connect + header toggle ----
     async function loadChannels() {
-      const res = await api(`${API}/auth/channels`);
-      const list = await res.json();
-      window._channels = list;
-      renderBulkDestinationOptions();
+      try {
+        const res = await api(`${API}/auth/channels`);
+        const list = await res.json();
+        if (!res.ok || !Array.isArray(list)) throw new Error(list.error || "Could not load YouTube channels");
+        window._channels = list;
+        renderBulkDestinationOptions();
+        renderChannelConnectCards();
+        if (location.hash === "#insights") setTimeout(() => window.loadInsights?.(), 0);
 
       const link = $("connectLink");
       if (list.length) {
@@ -2721,14 +2873,14 @@
         sel.appendChild(opt);
       });
 
-      const box = $("channelList");
-      if (!list.length) {
-        box.innerHTML = '<p class="muted">No channels connected. Click "Connect Channel" in the header.</p>';
-        return;
-      }
+        const box = $("channelList");
+        if (!list.length) {
+          box.innerHTML = '<p class="muted">No YouTube channels connected yet. Use Add channel above to connect one.</p>';
+          return;
+        }
       // Card layout (guide §13.5): avatar, name, platform, status badge, quota, connect/disconnect.
       const qmax = 10000;
-      box.innerHTML = list.map(c => {
+        box.innerHTML = list.map(c => {
         const qu = c.quota_used || 0;
         const w = qmax ? Math.max(2, Math.min(90, Math.round(qu / qmax * 100))) : 0;
         const active = !!c.active;
@@ -2761,7 +2913,11 @@
             ${action}
           </div>
         </div>`;
-      }).join("");
+        }).join("");
+      } catch (error) {
+        console.error("Could not load YouTube channels:", error.message);
+        $("channelList").innerHTML = `<p class="pill failed"><span class="dot"></span>Could not load connected accounts: ${escape(error.message)}</p>`;
+      }
     }
 
     // Disconnect (deactivate) a channel from its card; refreshes the list.
@@ -2910,7 +3066,7 @@
           const platform = document.createElement("select");
           platform.className = "field";
           platform.setAttribute("aria-label", `Platform and format for ${entry.file.name}`);
-          platform.innerHTML = '<option value="">Use global selection</option><option value="youtube:video">YouTube video</option><option value="youtube:short">YouTube Short</option><option value="instagram:reel">Instagram Reel</option>';
+          platform.innerHTML = '<option value="">Use global selection</option><option value="youtube:video">YouTube video</option><option value="youtube:short">YouTube Short</option><option value="instagram:reel">Instagram Reel</option><option value="facebook:video">Facebook video</option>';
           platform.value = entry.platformOverride ? entry.platform : "";
 
           const title = document.createElement("input");
@@ -2956,6 +3112,21 @@
           accountLabel.className = "field-label";
           accountLabel.textContent = "Instagram account";
           accountLabel.appendChild(account);
+          const facebookPage = document.createElement("select");
+          facebookPage.className = "field";
+          facebookPage.setAttribute("aria-label", `Facebook Page for ${entry.file.name}`);
+          facebookPage.innerHTML = '<option value="">Use global Page selection</option>';
+          (window._facebookPages || []).filter((item) => item.active).forEach((item) => {
+            const option = document.createElement("option");
+            option.value = item.id;
+            option.textContent = item.name;
+            facebookPage.appendChild(option);
+          });
+          facebookPage.value = entry.facebookPageOverride ? entry.facebookPageId : "";
+          const facebookPageLabel = document.createElement("label");
+          facebookPageLabel.className = "field-label";
+          facebookPageLabel.textContent = "Facebook Page";
+          facebookPageLabel.appendChild(facebookPage);
           const privacy = document.createElement("select");
           privacy.className = "field";
           privacy.innerHTML = '<option value="">Use global privacy</option><option value="private">Private</option><option value="unlisted">Unlisted</option><option value="public">Public</option>';
@@ -2974,12 +3145,13 @@
           title.addEventListener("input", () => { entry.title = title.value; });
           channel.addEventListener("change", () => { entry.channelOverride = Boolean(channel.value); entry.channelId = channel.value; });
           account.addEventListener("change", () => { entry.accountOverride = Boolean(account.value); entry.instagramAccountId = account.value; });
+          facebookPage.addEventListener("change", () => { entry.facebookPageOverride = Boolean(facebookPage.value); entry.facebookPageId = facebookPage.value; });
           privacy.addEventListener("change", () => { entry.privacyOverride = Boolean(privacy.value); if (privacy.value) entry.privacy = privacy.value; });
           const platformLabel = document.createElement("label");
           platformLabel.className = "field-label";
           platformLabel.textContent = "Publish to";
           platformLabel.appendChild(platform);
-          fields.append(platformLabel, titleLabel, channelLabel, accountLabel, privacyLabel);
+          fields.append(platformLabel, titleLabel, channelLabel, accountLabel, facebookPageLabel, privacyLabel);
           editCell.appendChild(fields);
           editRow.appendChild(editCell);
           list.appendChild(editRow);
@@ -2988,9 +3160,11 @@
             : (window.bulkTargetPlatforms?.length ? window.bulkTargetPlatforms : [entry.platform]);
           const hasYouTube = effectivePlatforms.some((value) => value.startsWith("youtube:"));
           const hasInstagram = effectivePlatforms.some((value) => value.startsWith("instagram:"));
+          const hasFacebook = effectivePlatforms.some((value) => value.startsWith("facebook:"));
           channelLabel.hidden = !hasYouTube;
           accountLabel.hidden = !hasInstagram;
-          titleLabel.hidden = !hasYouTube;
+          facebookPageLabel.hidden = !hasFacebook;
+          titleLabel.hidden = !(hasYouTube || hasFacebook);
           privacyLabel.hidden = !hasYouTube;
         }
       });
@@ -3076,6 +3250,8 @@
         channelOverride: false,
         instagramAccountId: "",
         accountOverride: false,
+        facebookPageId: "",
+        facebookPageOverride: false,
         privacy: "",
         privacyOverride: false,
         scheduleMode: "now",
@@ -3093,14 +3269,17 @@
     window.bulkDefaults = { platform: "youtube:video", privacy: $("bulkPrivacySelect").value };
     window.bulkTargetPlatforms = ["youtube:video"];
     window.bulkTargetIds = new Set();
+    window._facebookPages = [];
     function renderBulkDestinationOptions() {
       const accountsBox = $("bulkChannelsOptions");
       if (!accountsBox) return;
       const channels = (window._channels || []).filter((item) => item.active);
       const instagramAccounts = (window._instagramAccounts || []).filter((item) => item.active);
+      const facebookPages = (window._facebookPages || []).filter((item) => item.active);
       const entries = [
         ...channels.map((item) => ({ id: `youtube:${item.id}`, text: `${item.name} · ${Number(item.quota_used || 0).toLocaleString()} used` })),
         ...instagramAccounts.map((item) => ({ id: `instagram:${item.id}`, text: `@${item.username}` })),
+        ...facebookPages.map((item) => ({ id: `facebook:${item.id}`, text: `Facebook · ${item.name}` })),
       ];
       accountsBox.replaceChildren();
       entries.forEach((entry) => {
@@ -3154,13 +3333,130 @@
         const status = await response.json();
         if (!response.ok) throw new Error(status.error || "Could not load Instagram accounts");
         window._instagramAccounts = status.accounts || [];
+        window._instagramConnectionStatus = status;
+        renderChannelConnectCards();
         renderBulkDestinationOptions();
         renderBulkRows();
       } catch (error) {
         console.error("Could not load Instagram accounts:", error.message);
         window._instagramAccounts = [];
+        window._instagramConnectionStatus = { unavailable: true };
+        renderChannelConnectCards();
         renderBulkDestinationOptions();
       }
+    }
+
+    async function loadFacebookPages() {
+      try {
+        const response = await api(`${API}/facebook/status`);
+        const status = await response.json();
+        if (!response.ok) throw new Error(status.error || "Could not load Facebook Pages");
+        window._facebookPages = status.pages || [];
+        window._facebookConnectionStatus = status;
+        renderChannelConnectCards();
+        renderFacebookPageList();
+        renderBulkDestinationOptions();
+        renderBulkRows();
+      } catch (error) {
+        console.error("Could not load Facebook Pages:", error.message);
+        window._facebookPages = [];
+        window._facebookConnectionStatus = { unavailable: true };
+        renderChannelConnectCards();
+        renderFacebookPageList(error.message);
+        renderBulkDestinationOptions();
+      }
+    }
+
+    function renderFacebookPageList(errorMessage = "") {
+      const list = $("facebookPageList");
+      if (!list) return;
+      const pages = window._facebookPages || [];
+      if (errorMessage) {
+        list.innerHTML = `<p class="pill failed"><span class="dot"></span>Could not load Facebook Pages: ${escape(errorMessage)}</p>`;
+        return;
+      }
+      if (!pages.length) {
+        list.innerHTML = '<p class="muted">No Facebook Pages connected yet. Use Connect Facebook above to authorize a Page.</p>';
+        return;
+      }
+      list.innerHTML = pages.map((page) => {
+        const active = Boolean(page.active);
+        const expired = Number(page.token_expires_at) > 0 && Number(page.token_expires_at) <= Math.floor(Date.now() / 1000);
+        const status = active && !expired
+          ? '<span class="pill done"><span class="dot"></span>Active</span>'
+          : '<span class="pill failed"><span class="dot"></span>Reauthorization required</span>';
+        const action = active && !expired
+          ? `<button type="button" class="cc-btn cc-btn--danger" onclick="disconnectFacebookPage('${escape(page.id)}')">Disconnect</button>`
+          : `<a class="cc-btn cc-btn--ghost" href="${API}/facebook/connect">Reconnect</a>`;
+        return `<article class="channel-card${expired || !active ? " needs-reauth" : ""}">
+          <div class="cc-left"><span class="cc-avo" style="background:#1877f2;color:white" aria-hidden="true">f</span>
+            <div class="cc-meta"><div class="cc-name">${escape(page.name)}</div>
+              <div class="cc-sub"><span class="cc-platform">Facebook Page</span> ${status}</div>
+              <div class="cc-sub"><span class="muted">${escape(page.id)}</span></div>
+            </div>
+          </div><div class="cc-actions">${action}</div>
+        </article>`;
+      }).join("");
+    }
+
+    window.disconnectFacebookPage = async function (id) {
+      if (!confirm("Disconnect this Facebook Page?")) return;
+      try {
+        const response = await api(`${API}/facebook/pages/${encodeURIComponent(id)}/disconnect`, { method: "POST" });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Could not disconnect Facebook Page");
+        await loadFacebookPages();
+      } catch (error) {
+        alert(error.message);
+      }
+    };
+
+    function renderChannelConnectCards() {
+      const grid = $("channelConnectGrid");
+      if (!grid) return;
+      const youtubeCount = (window._channels || []).filter((channel) => channel.active).length;
+      const instagramStatus = window._instagramConnectionStatus;
+      const instagramCount = (window._instagramAccounts || []).filter((account) => account.active).length;
+      const instagramReady = Boolean(instagramStatus?.configured);
+      const facebookStatus = window._facebookConnectionStatus;
+      const facebookCount = (window._facebookPages || []).filter((page) => page.active).length;
+      const facebookReady = Boolean(facebookStatus?.configured);
+      const instagramNote = instagramReady
+        ? `${instagramCount} connected account${instagramCount === 1 ? "" : "s"}`
+        : instagramStatus?.unavailable
+          ? "Could not check Instagram setup"
+          : "Set up Meta app credentials to connect";
+      const facebookNote = facebookReady
+        ? `${facebookCount} connected Page${facebookCount === 1 ? "" : "s"}${facebookStatus.publicUrlHttps ? "" : " · Public HTTPS APP_PUBLIC_URL required for uploads"}`
+        : facebookStatus?.unavailable
+          ? "Could not check Facebook setup"
+          : "Set up Facebook app credentials to connect";
+      grid.innerHTML = `
+        <article class="channel-connect-card">
+          <span class="channel-connect-logo youtube" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.2 3.6-6.2 3.6Z"/></svg>
+          </span>
+          <div class="channel-connect-info"><strong>YouTube</strong><span>${youtubeCount} active channel${youtubeCount === 1 ? "" : "s"}</span></div>
+          <a class="channel-connect-action" href="${API}/auth/connect">${youtubeCount ? "＋ Add another channel" : "＋ Connect YouTube"}</a>
+        </article>
+        <article class="channel-connect-card">
+          <span class="channel-connect-logo instagram" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></svg>
+          </span>
+          <div class="channel-connect-info"><strong>Instagram</strong><span>${escape(instagramNote)}</span></div>
+          ${instagramReady
+            ? `<a class="channel-connect-action" href="${API}/instagram/connect">${instagramCount ? "＋ Add another account" : "＋ Connect Instagram"}</a>`
+            : `<span class="channel-connect-action" aria-disabled="true" title="Configure INSTAGRAM_APP_ID and INSTAGRAM_APP_SECRET">＋ Connect Instagram</span>`}
+        </article>
+        <article class="channel-connect-card">
+          <span class="channel-connect-logo facebook" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.4 21v-8h2.7l.4-3.1h-3.1v-2c0-.9.3-1.5 1.6-1.5h1.7V3.6c-.3 0-1.3-.1-2.4-.1-2.4 0-4 1.5-4 4.2v2.3H7.6V13h2.7v8h3.1Z"/></svg>
+          </span>
+          <div class="channel-connect-info"><strong>Facebook Pages</strong><span>${escape(facebookNote)}</span></div>
+          ${facebookReady
+            ? `<a class="channel-connect-action" href="${API}/facebook/connect">${facebookCount ? "＋ Add another Page" : "＋ Connect Facebook"}</a>`
+            : `<span class="channel-connect-action" aria-disabled="true" title="Configure FACEBOOK_APP_ID and FACEBOOK_APP_SECRET">＋ Connect Facebook</span>`}
+        </article>`;
     }
 
     async function loadHealth() {
@@ -3194,12 +3490,12 @@
       const rows = list.map(j => {
         const ts = j.scheduled_at ? new Date(j.scheduled_at * 1000).toLocaleString() : "—";
         const cls = statusPillClass(j.status);
-        const publishLink = j.youtube_url
-          ? `<a href="${escape(j.youtube_url)}" target="_blank" rel="noopener noreferrer">View on YouTube</a>`
+        const publishLink = j.published_url
+          ? `<a href="${escape(j.published_url)}" target="_blank" rel="noopener noreferrer">View on ${j.platform === "facebook" ? "Facebook" : j.platform === "instagram" ? "Instagram" : "YouTube"}</a>`
           : "—";
         const actions = showHistory
           ? publishLink
-          : `${j.status === "pending" ? `<button type="button" class="btn-ghost" onclick="openEdit('${escape(j.id)}')">Edit</button>
+          : `${j.status === "pending" ? `${j.platform === "youtube" ? `<button type="button" class="btn-ghost" onclick="openEdit('${escape(j.id)}')">Edit</button>` : ""}
               <button type="button" class="btn-ghost" onclick="cancelJob('${escape(j.id)}')">Cancel</button>` : "—"}`;
         return `<tr>
           <td>${escape(j.title)}${j.source === "rotation" ? '<span class="tag rotation">rotation</span>' : ""}</td>
@@ -3759,6 +4055,7 @@
           caption: platform === "instagram" ? entry.description : undefined,
           channelId: entry.channelId || null,
           instagramAccountId: entry.instagramAccountId || null,
+          facebookPageId: entry.facebookPageId || null,
           privacy: entry.privacy,
         };
         if (entry.scheduleMode === "scheduled") {
@@ -3789,14 +4086,21 @@
             const channels = selectedAccounts.filter((id) => id.startsWith("youtube:")).map((id) => id.slice("youtube:".length));
             const destinations = entry.channelOverride ? [entry.channelId] : channels.length ? channels : [entry.channelId || null];
             destinations.forEach((channelId) => {
-              itemsForSubmit.push({ ...item, platform, format, title: entry.title.trim() || entry.file.name, description: entry.description, caption: undefined, privacy: entry.privacyOverride ? entry.privacy : window.bulkDefaults.privacy, channelId, instagramAccountId: null });
+              itemsForSubmit.push({ ...item, platform, format, title: entry.title.trim() || entry.file.name, description: entry.description, caption: undefined, privacy: entry.privacyOverride ? entry.privacy : window.bulkDefaults.privacy, channelId, instagramAccountId: null, facebookPageId: null });
               filesForSubmit.push(entry.file);
             });
           } else if (platform === "instagram") {
             const accounts = selectedAccounts.filter((id) => id.startsWith("instagram:")).map((id) => id.slice("instagram:".length));
             const destinations = entry.accountOverride ? [entry.instagramAccountId] : accounts.length ? accounts : [entry.instagramAccountId || null];
             destinations.forEach((instagramAccountId) => {
-              itemsForSubmit.push({ ...item, platform, format, title: entry.title.trim() || entry.file.name, description: "", caption: entry.description, privacy: entry.privacyOverride ? entry.privacy : window.bulkDefaults.privacy, channelId: null, instagramAccountId });
+              itemsForSubmit.push({ ...item, platform, format, title: entry.title.trim() || entry.file.name, description: "", caption: entry.description, privacy: entry.privacyOverride ? entry.privacy : window.bulkDefaults.privacy, channelId: null, instagramAccountId, facebookPageId: null });
+              filesForSubmit.push(entry.file);
+            });
+          } else if (platform === "facebook") {
+            const pages = selectedAccounts.filter((id) => id.startsWith("facebook:")).map((id) => id.slice("facebook:".length));
+            const destinations = entry.facebookPageOverride ? [entry.facebookPageId] : pages.length ? pages : [entry.facebookPageId || null];
+            destinations.forEach((facebookPageId) => {
+              itemsForSubmit.push({ ...item, platform, format, title: entry.title.trim() || entry.file.name, description: entry.description, caption: undefined, privacy: entry.privacyOverride ? entry.privacy : window.bulkDefaults.privacy, channelId: null, instagramAccountId: null, facebookPageId });
               filesForSubmit.push(entry.file);
             });
           }
@@ -3804,6 +4108,10 @@
       });
       if (itemsForSubmit.some((item) => item.platform === "instagram" && !item.instagramAccountId)) {
         message.textContent = "Select at least one Instagram account for Reel uploads.";
+        return;
+      }
+      if (itemsForSubmit.some((item) => item.platform === "facebook" && !item.facebookPageId)) {
+        message.textContent = "Select at least one Facebook Page for video uploads.";
         return;
       }
       if (!itemsForSubmit.length) {
@@ -3858,7 +4166,7 @@
     });
 
     loadProfile();
-    loadChannels().then(() => { renderBulkRows(); loadInstagramAccounts(); });
+    loadChannels().then(() => { renderBulkRows(); loadInstagramAccounts(); loadFacebookPages(); });
     loadHealth();
     loadJobs();
     loadFolders();

@@ -10,6 +10,7 @@ import { config } from "../config.js";
 import { queries, nowSec, getDb } from "../db.js";
 import { uploadJob } from "./youtube-upload.js";
 import { publishReel } from "./instagram.js";
+import { publishFacebookVideo } from "./facebook.js";
 import { RateLimitError, AuthError, FatalUploadError, SchedulerError } from "./errors.js";
 
 const state = {
@@ -53,6 +54,12 @@ async function resolveChannel(job) {
     if (inFlight(`instagram:${account.id}`) >= config.worker.perChannelMaxConcurrent) return null;
     return account;
   }
+  if (job.platform === "facebook") {
+    const page = await queries.findFacebookPage.get({ id: job.facebook_page_id });
+    if (!page?.active) return null;
+    if (inFlight(`facebook:${page.id}`) >= config.worker.perChannelMaxConcurrent) return null;
+    return page;
+  }
   const channels = await queries.listActiveChannels.all();
   for (const ch of channels) {
     if (job.channel_id && ch.id !== job.channel_id) continue;
@@ -75,7 +82,8 @@ async function dispatch(job, channel) {
   const claimed = await queries.claimJob.get({ id: job.id });
   if (!claimed) return { skipped: true }; // lost the race to another tick/worker
 
-  const key = job.platform === "instagram" ? `instagram:${channel.id}` : channel.id;
+  const key = job.platform === "instagram" ? `instagram:${channel.id}`
+    : job.platform === "facebook" ? `facebook:${channel.id}` : channel.id;
   const entry = { id: claimed.id, channelKey: key, promise: null };
   state.active.add(entry);
   state.byChannel.set(key, inFlight(key) + 1);
@@ -105,6 +113,19 @@ async function runUpload(job, channel) {
       });
       await queries.markDone.run({ id: job.id, retryCount: job.retry_count, updatedAt: now });
       console.log(`[ready] Instagram Reel "${job.title}" published for @${channel.username}`);
+      return;
+    }
+    if (job.platform === "facebook") {
+      const result = await publishFacebookVideo(job, channel);
+      await queries.insertFacebookUpload.run({
+        id: crypto.randomUUID(),
+        jobId: job.id,
+        videoId: result.videoId,
+        permalink: result.permalink,
+        created: now,
+      });
+      await queries.markDone.run({ id: job.id, retryCount: job.retry_count, updatedAt: now });
+      console.log(`[ready] Facebook video "${job.title}" published for ${channel.name}`);
       return;
     }
 
@@ -139,6 +160,15 @@ async function handleFailure(job, channel, err) {
     if (job.platform === "instagram") {
       console.warn(`[auth] disabling Instagram account ${channel.id} (@${channel.username}): ${err.message}`);
       await queries.deactivateInstagramAccount.run({ id: channel.id, updatedAt: now });
+      await queries.setJobStatus.run({
+        id: job.id, status: "failed", retryCount: job.retry_count,
+        nextRetryAt: null, lastError: err.message, updatedAt: now,
+      });
+      return;
+    }
+    if (job.platform === "facebook") {
+      console.warn(`[auth] disabling Facebook Page ${channel.id} (${channel.name}): ${err.message}`);
+      await queries.deactivateFacebookPage.run({ id: channel.id, updatedAt: now });
       await queries.setJobStatus.run({
         id: job.id, status: "failed", retryCount: job.retry_count,
         nextRetryAt: null, lastError: err.message, updatedAt: now,
@@ -211,6 +241,16 @@ export async function runTick() {
           await queries.setJobStatus.run({
             id: job.id, status: "failed", retryCount: job.retry_count,
             nextRetryAt: null, lastError: "Instagram account is disconnected or inactive", updatedAt: now,
+          });
+        } else {
+          stalled++;
+        }
+      } else if (job.platform === "facebook") {
+        const page = await queries.findFacebookPage.get({ id: job.facebook_page_id });
+        if (!page?.active) {
+          await queries.setJobStatus.run({
+            id: job.id, status: "failed", retryCount: job.retry_count,
+            nextRetryAt: null, lastError: "Facebook Page is disconnected or inactive", updatedAt: now,
           });
         } else {
           stalled++;

@@ -62,6 +62,17 @@ export const config = {
     callbackUrl: process.env.INSTAGRAM_CALLBACK_URL || `http://localhost:${process.env.PORT || 3001}/api/instagram/callback`,
     publicAppUrl: (process.env.APP_PUBLIC_URL || "").replace(/\/+$/, ""),
   },
+  facebook: {
+    appId: process.env.FACEBOOK_APP_ID || "",
+    appSecret: process.env.FACEBOOK_APP_SECRET || "",
+    callbackUrl: process.env.FACEBOOK_CALLBACK_URL || `http://localhost:${process.env.PORT || 3001}/api/facebook/callback`,
+    graphVersion: process.env.FACEBOOK_GRAPH_VERSION || "v22.0",
+    publicAppUrl: (process.env.APP_PUBLIC_URL || "").replace(/\/+$/, ""),
+  },
+  mediaSigningSecret: process.env.MEDIA_SIGNING_SECRET
+    || process.env.INSTAGRAM_APP_SECRET
+    || process.env.FACEBOOK_APP_SECRET
+    || "",
 
   worker: {
     tickMs: parseInt(process.env.WORKER_TICK_MS || "2000", 10),

@@ -37,7 +37,7 @@ This project handles all of that:
 
 ```
                  ┌──────────────────┐
-   browser ----> │   API (server)   │  POST /api/videos  (YouTube + Instagram batch jobs)
+   browser ----> │   API (server)   │  POST /api/videos  (YouTube + Instagram + Facebook batch jobs)
                  └────────┬─────────┘
                           │ writes rows to
                  ┌────────▼─────────┐        ┌─────────────────┐
@@ -48,6 +48,7 @@ This project handles all of that:
                  │  Worker          │  node src/worker.js
                  │  (own process)   │  ▸ dispatches by platform
                  │  ▸ YouTube API   │  ▸ Instagram Graph API
+                 │                 │  ▸ Facebook Graph API
                  └────────┬─────────┘  ▸ backs off on 429/5xx
                           │
                  ┌────────▼─────────┐
@@ -185,6 +186,43 @@ Poll `GET http://localhost:3001/api/videos` — you'll see the job flip
 > The OAuth callback is `GET /auth/callback` (public, not `/api`-prefixed)
 > because Google requires an **exact** URI match with what you registered.
 
+## Facebook Pages video publishing
+
+Facebook publishing sends standard videos to Pages that the signed-in Meta user
+manages. It does not publish Facebook Reels. Meta must be able to fetch each
+staged video from the app, so `APP_PUBLIC_URL` must be a publicly reachable
+HTTPS origin (localhost alone will not work).
+
+1. Create a Meta app, add Facebook Login, and configure its OAuth redirect URI
+   to exactly match `FACEBOOK_CALLBACK_URL` (default:
+   `http://localhost:3001/api/facebook/callback`). For local development, use
+   an HTTPS tunnel if Meta does not accept a local callback.
+2. Set `FACEBOOK_APP_ID` and `FACEBOOK_APP_SECRET` in `.env`. The app requests
+   `pages_show_list`, `pages_read_engagement`, and `pages_manage_posts`. The
+   Meta user must grant access to the Page and have permission to create Page
+   content. For users outside the app's developer/tester roles, configure the
+   Meta app's review and access requirements for those permissions.
+3. Set `APP_PUBLIC_URL` to the HTTPS origin served by this API. A stable
+   `MEDIA_SIGNING_SECRET` is recommended in production; if unset, the app uses
+   the configured Instagram or Facebook app secret to sign staged-media URLs.
+4. Start the API and worker, then connect Facebook from **Channels**. The app
+   stores the returned Page access tokens locally, lists the Pages, and lets
+   you disconnect or reauthorize them. The token itself is never returned by
+   the status API.
+5. In Bulk Upload, select **Facebook video** and one or more Facebook Pages.
+   Each selected file is queued separately per Page and published using the
+   worker. Only MP4, MOV, and M4V files are accepted for Facebook.
+
+Facebook API routes:
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/facebook/status` | Facebook app setup and Page status (requires app login) |
+| GET | `/api/facebook/connect` | Begin Facebook OAuth |
+| GET | `/api/facebook/callback` | OAuth callback (register this exact URI in Meta) |
+| GET | `/api/facebook/pages` | List connected Pages (requires app login) |
+| POST | `/api/facebook/pages/:id/disconnect` | Deactivate a connected Page |
+
 
 ## Scheduling API
 
@@ -204,6 +242,11 @@ Poll `GET http://localhost:3001/api/videos` — you'll see the job flip
 | GET    | `/api/instagram/connect` | Begin Instagram Business Login |
 | GET    | `/api/instagram/callback` | Instagram OAuth callback (register this exact URI in Meta) |
 | POST   | `/api/instagram/accounts/:id/disconnect` | Deactivate an Instagram account |
+| GET    | `/api/facebook/status` | Facebook app configuration and connected Pages (requires app login) |
+| GET    | `/api/facebook/connect` | Begin Facebook OAuth |
+| GET    | `/api/facebook/callback` | Facebook OAuth callback (register this exact URI in Meta) |
+| GET    | `/api/facebook/pages` | List connected Facebook Pages (requires app login) |
+| POST   | `/api/facebook/pages/:id/disconnect` | Deactivate a Facebook Page |
 
 `POST /api/videos` accepts **multiple files**: the field `video` is repeatable, and
 one job is created per file (each `pending`; the worker dispatches due ones next
@@ -219,9 +262,10 @@ tick, concurrently up to `MAX_CONCURRENT_UPLOADS`). Metadata can be sent two way
 file's own name. The same blob is sent for a single upload.
 
 For mixed-platform batches, provide an `items` array (same order and length as
-the uploaded `video` fields). Each item accepts `platform` (`youtube` or
-`instagram`), `format` (`video`, `short`, or `reel`), `title` (caption for
-Instagram), `channelId` (YouTube), `instagramAccountId` (Instagram), and
+the uploaded `video` fields). Each item accepts `platform` (`youtube`,
+`instagram`, or `facebook`), `format` (`video`, `short`, or `reel`), `title`
+(caption for Instagram), `channelId` (YouTube), `instagramAccountId` (Instagram),
+`facebookPageId` (Facebook), and
 `scheduleAt` (an ISO timestamp for that individual file). Each item can have a
 different schedule; if omitted, that upload is queued immediately. Example:
 ```json

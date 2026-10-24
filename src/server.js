@@ -12,6 +12,7 @@ import explorerRouter from "./routes/explorer.js";
 import analyticsRouter from "./routes/analytics.js";
 import { foldersRouter, rulesRouter, rotationRouter } from "./routes/folders.js";
 import instagramRouter from "./routes/instagram.js";
+import facebookRouter from "./routes/facebook.js";
 import { requireAuth } from "./middleware/auth.js";
 import { currentUser, seedDefaultUser } from "./services/auth.js";
 import { verifySignedMediaUrl } from "./services/media-url.js";
@@ -77,6 +78,7 @@ app.use("/api/auth", sessionRouter);   // /register /login /logout /profile (pro
 app.use("/api/auth", authRouter);      // /connect /callback /channels (channels gated)
 app.use("/api/videos", config.auth.require ? [requireAuth, jobsRouter] : jobsRouter);
 app.use("/api/instagram", instagramRouter);
+app.use("/api/facebook", facebookRouter);
 app.use("/api/folders", foldersRouter); // Phase 1: folder scan + rotation rules (self-gated)
 app.use("/api/rules", rulesRouter);     // Phase 1: PATCH/DELETE/assignments for rotation rules
 app.use("/api/rotation", rotationRouter); // Phase 2 core: POST /plan (assignment planner)

@@ -76,12 +76,14 @@ router.post("/", stageUpload.array("video", config.upload.maxFiles), async (req,
       const title = String(item.caption ?? item.title ?? perTitles[i] ?? sharedTitle ?? "").trim() || file.originalname;
       const channelId = item.channelId ?? meta.channelId ?? (hasMeta ? null : req.body.channelId || null);
       const instagramAccountId = item.instagramAccountId ?? meta.instagramAccountId ?? null;
+      const facebookPageId = item.facebookPageId ?? meta.facebookPageId ?? null;
       if (!title) throw Object.assign(new Error(`title or caption is required (${file.originalname})`), { statusCode: 400 });
-      if (!["youtube", "instagram"].includes(platform)) {
+      if (!["youtube", "instagram", "facebook"].includes(platform)) {
         throw Object.assign(new Error(`unsupported platform for ${file.originalname}`), { statusCode: 400 });
       }
       if ((platform === "youtube" && !["video", "short"].includes(format)) ||
-          (platform === "instagram" && format !== "reel")) {
+          (platform === "instagram" && format !== "reel") ||
+          (platform === "facebook" && format !== "video")) {
         throw Object.assign(new Error(`invalid format for ${platform} upload (${file.originalname})`), { statusCode: 400 });
       }
       if (platform === "instagram") {
@@ -98,8 +100,19 @@ router.post("/", stageUpload.array("video", config.upload.maxFiles), async (req,
           throw Object.assign(new Error(`Instagram captions must be 2,200 characters or fewer (${file.originalname})`), { statusCode: 400 });
         }
       }
+      if (platform === "facebook") {
+        if (!facebookPageId) {
+          throw Object.assign(new Error(`choose a connected Facebook Page for ${file.originalname}`), { statusCode: 400 });
+        }
+        if (!config.facebook.publicAppUrl || new URL(config.facebook.publicAppUrl).protocol !== "https:") {
+          throw Object.assign(new Error("Facebook videos require APP_PUBLIC_URL to be a public HTTPS URL"), { statusCode: 400 });
+        }
+        if (!/\.(mp4|mov|m4v)$/i.test(file.originalname)) {
+          throw Object.assign(new Error(`Facebook videos require an MP4, MOV, or M4V file (${file.originalname})`), { statusCode: 400 });
+        }
+      }
       return {
-        file, item, platform, format, title, channelId, instagramAccountId,
+        file, item, platform, format, title, channelId, instagramAccountId, facebookPageId,
         scheduledAt: Math.floor(itemWhen / 1000),
       };
     });
@@ -111,11 +124,17 @@ router.post("/", stageUpload.array("video", config.upload.maxFiles), async (req,
           return res.status(400).json({ error: `Instagram account is not connected or active (${job.file.originalname})` });
         }
       }
+      if (job.platform === "facebook") {
+        const page = await queries.findFacebookPage.get({ id: job.facebookPageId });
+        if (!page || !page.active) {
+          return res.status(400).json({ error: `Facebook Page is not connected or active (${job.file.originalname})` });
+        }
+      }
     }
 
     const created = [];
     for (let i = 0; i < files.length; i++) {
-      const { file: f, item, platform, format, title, channelId, instagramAccountId, scheduledAt: itemScheduledAt } = jobs[i];
+      const { file: f, item, platform, format, title, channelId, instagramAccountId, facebookPageId, scheduledAt: itemScheduledAt } = jobs[i];
 
       const id = crypto.randomUUID();
       await queries.insertPlatformJob.run({
@@ -124,9 +143,11 @@ router.post("/", stageUpload.array("video", config.upload.maxFiles), async (req,
         platform,
         format,
         instagramAccountId: platform === "instagram" ? instagramAccountId : null,
+        facebookPageId: platform === "facebook" ? facebookPageId : null,
         filename: f.filename,
         title,
-        description: platform === "youtube" ? (item.description ?? (hasMeta ? meta.description : req.body.description) ?? "") : "",
+        description: ["youtube", "facebook"].includes(platform)
+          ? (item.description ?? (hasMeta ? meta.description : req.body.description) ?? "") : "",
         hashtags: platform === "youtube" ? normalizeHashtags(item.hashtags ?? (hasMeta ? meta.hashtags : req.body.hashtags) ?? "") : "",
         tags: platform === "youtube" ? String(item.tags ?? (hasMeta ? meta.tags : req.body.tags) ?? "").trim() : "",
         category: hasMeta ? (meta.category || null) : (req.body.category || null),
