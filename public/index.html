@@ -322,6 +322,58 @@
       font-style: italic;
     }
 
+    .insights-toolbar,
+    .insights-provider-tabs,
+    .insights-legend {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+
+    .insights-toolbar { justify-content: space-between; gap: 1rem; margin: 1rem 0; }
+    .insights-toolbar .field { width: auto; min-width: 10rem; }
+    .insights-provider-tabs { border-bottom: 1px solid var(--color-line); padding-bottom: .75rem; }
+    .insights-provider-tabs button[aria-selected="true"] { color: var(--color-signal); border-color: var(--color-signal); }
+    .insights-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8rem; margin: 1rem 0; }
+    .insights-kpi,
+    .insights-panel {
+      min-width: 0;
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-md);
+      background: var(--color-surface);
+    }
+    .insights-kpi { padding: 1rem; }
+    .insights-kpi span { display: block; color: var(--color-muted); font-size: .78rem; }
+    .insights-kpi strong { display: block; margin-top: .35rem; color: var(--color-fg); font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+    .insights-panel { padding: 1rem; margin-top: 1rem; }
+    .insights-panel h3 { margin: 0 0 .25rem; font: 600 .95rem "Outfit", ui-sans-serif, system-ui, sans-serif; }
+    .insights-chart { display: block; width: 100%; height: 15rem; margin-top: .75rem; overflow: visible; }
+    .insights-chart line { stroke: var(--color-line); stroke-width: 1; }
+    .insights-chart polyline { fill: none; stroke: var(--color-signal); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+    .insights-chart circle { fill: var(--color-signal); }
+    .insights-chart .comments-line { stroke: var(--color-sage); }
+    .insights-chart .comments-point { fill: var(--color-sage); }
+    .insights-legend { justify-content: flex-end; color: var(--color-muted); font-size: .75rem; }
+    .insights-legend span { display: inline-flex; align-items: center; gap: .3rem; }
+    .insights-legend i { width: .55rem; height: .55rem; border-radius: 50%; background: var(--color-signal); }
+    .insights-legend .legend-comments { background: var(--color-sage); }
+    .insights-channel-table { width: 100%; border-collapse: collapse; }
+    .insights-channel-table th,
+    .insights-channel-table td { padding: .7rem; border-bottom: 1px solid var(--color-line); text-align: right; }
+    .insights-channel-table th:first-child,
+    .insights-channel-table td:first-child { text-align: left; }
+    .insights-channel-table th { color: var(--color-muted); font-size: .72rem; font-weight: 600; }
+    .insights-facebook-state { display: grid; place-items: center; min-height: 16rem; text-align: center; }
+    .insights-facebook-state p { max-width: 34rem; color: var(--color-muted); }
+    .insights-facebook-state .insights-facebook-icon { display: grid; place-items: center; width: 3rem; height: 3rem; border-radius: 50%; background: color-mix(in srgb, #1877f2 15%, var(--color-surface)); color: #1877f2; font-size: 1.4rem; font-weight: 700; }
+
+    @media (max-width: 760px) {
+      .insights-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .insights-toolbar { align-items: stretch; flex-direction: column; }
+      .insights-toolbar .field { width: 100%; }
+      .insights-panel { overflow-x: auto; }
+    }
+
     .pill.error {
       color: var(--color-coral);
       border-color: var(--color-coral);
@@ -800,6 +852,7 @@
       --color-signal-ink: #fff;
       --color-sage: #16a34a;
       --color-coral: #dc2626;
+      --color-muted-bg: #f1f5f9;
       color-scheme: light;
     }
 
@@ -813,6 +866,7 @@
       --color-line: #263653;
       --color-signal: #818cf8;
       --color-signal-ink: #111827;
+      --color-muted-bg: #17243b;
       color-scheme: dark;
     }
 
@@ -865,7 +919,7 @@
       flex: 0 0 2.15rem;
       height: 2.15rem;
       border-radius: .65rem;
-      color: #fff;
+      color: var(--color-signal-ink);
       background: var(--color-signal);
       font-size: .9rem;
     }
@@ -1026,7 +1080,7 @@
     #newUpload {
       background: var(--color-signal);
       border-color: var(--color-signal);
-      color: #fff;
+      color: var(--color-signal-ink);
       padding: 0 .95rem;
     }
 
@@ -1504,7 +1558,7 @@
       justify-content: center;
       font-size: .8rem;
       font-weight: 700;
-      color: #fff;
+      color: var(--color-signal-ink);
     }
 
     .cc-yt {
@@ -1519,28 +1573,44 @@
 
     .bulk-upload-heading {
       padding: 1.25rem 1.5rem;
-      background: linear-gradient(110deg, #f7eee9, #e9f2fb);
-      color: #24313d;
+      background: linear-gradient(110deg,
+        color-mix(in srgb, var(--color-signal) 10%, var(--color-surface)),
+        color-mix(in srgb, var(--color-surface-2) 88%, var(--color-signal)));
+      color: var(--color-fg);
     }
 
     .bulk-upload-heading h2 {
       margin: 0 0 .25rem;
-      color: #24313d;
+      color: var(--color-fg);
       font: 650 1.1rem "Outfit", ui-sans-serif, system-ui, sans-serif;
     }
 
     .bulk-upload-heading p {
       margin: 0;
-      color: #526171;
+      color: var(--color-muted);
       font-size: .85rem;
     }
 
     .bulk-upload-tools {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-start;
       align-items: center;
       gap: 1rem;
       padding: 1rem 1.25rem .75rem;
+    }
+
+    #bulkAutoApply {
+      min-height: 2rem;
+      padding: .4rem .85rem;
+      border: 1px solid var(--color-signal);
+      background: var(--color-signal);
+      color: var(--color-signal-ink);
+    }
+
+    #bulkAutoApply:hover {
+      background: color-mix(in srgb, var(--color-signal) 90%, #000);
+      border-color: var(--color-signal);
+      color: var(--color-signal-ink);
     }
 
     .bulk-upload-filters {
@@ -1628,23 +1698,24 @@
       width: 100%;
       min-width: 850px;
       border-collapse: collapse;
-      background: #fff;
-      color: #293642;
+      background: var(--color-surface);
+      color: var(--color-fg);
     }
 
     .bulk-upload-table th {
       padding: .75rem .65rem;
-      border-bottom: 1px solid #d6dde4;
+      border-bottom: 1px solid var(--color-line);
+      background: var(--color-muted-bg);
       text-align: left;
       font-size: .75rem;
       font-weight: 600;
-      color: #526171;
+      color: var(--color-muted);
       white-space: nowrap;
     }
 
     .bulk-upload-table td {
       padding: .75rem .65rem;
-      border-bottom: 1px solid #e5e9ed;
+      border-bottom: 1px solid var(--color-line);
       vertical-align: middle;
     }
 
@@ -1671,7 +1742,7 @@
       flex: 0 0 auto;
       object-fit: cover;
       border-radius: .4rem;
-      background: #dce3e9;
+      background: var(--color-surface-2);
     }
 
     .bulk-file-name {
@@ -1685,7 +1756,7 @@
 
     .bulk-file-size {
       margin-top: .2rem;
-      color: #768391;
+      color: var(--color-faint);
       font-size: .72rem;
     }
 
@@ -1693,9 +1764,9 @@
       min-width: 16rem;
       min-height: 3.7rem;
       resize: vertical;
-      color: #293642;
-      background: #fff;
-      border: 1px solid #d5dde5;
+      color: var(--color-fg);
+      background: var(--color-canvas);
+      border: 1px solid var(--color-line);
       border-radius: .35rem;
       padding: .55rem;
       font: inherit;
@@ -1730,17 +1801,17 @@
       width: 10rem;
       min-width: 10rem;
       margin: 0;
-      color: #293642;
-      background: #fff;
-      border-color: #d5dde5;
+      color: var(--color-fg);
+      background: var(--color-surface);
+      border-color: var(--color-line);
     }
 
     .bulk-more,
     .bulk-remove,
     .bulk-add {
-      color: #344454;
-      background: #fff;
-      border: 1px solid #cbd5df;
+      color: var(--color-muted);
+      background: var(--color-surface);
+      border: 1px solid var(--color-line);
       border-radius: .35rem;
       padding: .55rem .75rem;
       font: inherit;
@@ -1751,7 +1822,7 @@
     .bulk-more:hover,
     .bulk-remove:hover,
     .bulk-add:hover {
-      background: #f4f7f9;
+      background: var(--color-surface-2);
     }
 
     .bulk-remove {
@@ -1761,7 +1832,7 @@
 
     .bulk-edit-row td {
       padding: .85rem 1rem;
-      background: #f7f9fb;
+      background: var(--color-surface-2);
     }
 
     .bulk-edit-fields {
@@ -1772,9 +1843,9 @@
 
     .bulk-edit-fields .field {
       margin: 0;
-      color: #293642;
-      background: #fff;
-      border-color: #d5dde5;
+      color: var(--color-fg);
+      background: var(--color-canvas);
+      border-color: var(--color-line);
     }
 
     .bulk-upload-footer {
@@ -1793,7 +1864,6 @@
 
     @media (max-width: 720px) {
 
-      .bulk-upload-tools,
       .bulk-upload-footer {
         align-items: stretch;
         flex-direction: column;
@@ -1882,14 +1952,14 @@
       padding: .4rem .85rem;
       border: 1px solid var(--color-signal);
       background: var(--color-signal);
-      color: #fff;
+      color: var(--color-signal-ink);
     }
 
     .btn-primary:hover,
     #newUpload:hover {
       background: color-mix(in srgb, var(--color-signal) 90%, #000);
       border-color: var(--color-signal);
-      color: #fff;
+      color: var(--color-signal-ink);
       filter: none;
     }
 
@@ -1984,6 +2054,13 @@
           <path d="M12 7v5l3 2" />
         </svg>
         History
+      </a>
+      <a href="#insights" data-section="Insights" class="tablink" aria-label="Insights">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 19V5M4 19h17" />
+          <path d="m7 15 4-4 3 2 6-7" />
+        </svg>
+        Insights
       </a>
       <a href="#rotation" data-section="Rotation" class="tablink" aria-label="Rotation">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -2140,6 +2217,7 @@
         <form id="bulkUploadForm">
           <div class="bulk-upload-tools">
             <button type="button" id="bulkAddVideos" class="bulk-add">＋ Add videos</button>
+            <button type="button" id="bulkAutoApply" class="btn-primary">Auto-schedule selected</button>
             <input type="file" id="bulkVideoInput" name="video" accept="video/*" multiple hidden />
           </div>
           <div class="bulk-upload-filters" role="group" aria-label="Bulk apply to selected videos">
@@ -2167,9 +2245,6 @@
               </select>
             </label>
             <p id="bulkChannelsHelp" class="muted bulk-filter-help">Choose one or more destinations. Each selected video is queued once for every compatible destination.</p>
-          </div>
-          <div class="bulk-auto-apply-row">
-            <button type="button" id="bulkAutoApply" class="btn-ghost">Auto-schedule selected</button>
           </div>
           <div class="bulk-upload-table-wrap">
             <table class="bulk-upload-table">
@@ -2235,6 +2310,63 @@
         </div>
         <div id="historyJobs">
           <p class="muted">Loading…</p>
+        </div>
+      </section>
+
+      <section id="insights" class="card">
+        <div class="section-heading">
+          <div>
+            <h2>Insights</h2>
+            <p class="muted">Views, comments, and channel performance from connected platforms.</p>
+          </div>
+          <button type="button" class="btn-ghost" onclick="loadInsights()">Refresh</button>
+        </div>
+        <div class="insights-provider-tabs" role="tablist" aria-label="Analytics platform">
+          <button type="button" class="btn-ghost" role="tab" aria-selected="true" data-insights-provider="youtube">YouTube</button>
+          <button type="button" class="btn-ghost" role="tab" aria-selected="false" data-insights-provider="facebook">Facebook</button>
+        </div>
+        <div id="youtubeInsights" role="tabpanel">
+          <div class="insights-toolbar">
+            <span id="insightsDateRange" class="muted">Last 28 days</span>
+            <div class="row" style="grid-template-columns:minmax(10rem,1fr) minmax(10rem,1fr);gap:.6rem;max-width:30rem">
+              <select id="insightsDays" class="field" aria-label="Analytics date range">
+                <option value="7">Last 7 days</option>
+                <option value="28" selected>Last 28 days</option>
+                <option value="90">Last 90 days</option>
+              </select>
+              <select id="insightsChannel" class="field" aria-label="Filter by YouTube channel">
+                <option value="">All channels</option>
+              </select>
+            </div>
+          </div>
+          <div id="insightsStatus" class="muted" aria-live="polite"></div>
+          <div id="insightsData">
+            <div class="insights-kpis">
+              <div class="insights-kpi"><span>Views</span><strong id="insightViews">—</strong></div>
+              <div class="insights-kpi"><span>Comments</span><strong id="insightComments">—</strong></div>
+              <div class="insights-kpi"><span>Likes</span><strong id="insightLikes">—</strong></div>
+              <div class="insights-kpi"><span>Watch time</span><strong id="insightWatchTime">—</strong></div>
+            </div>
+            <article class="insights-panel">
+              <div class="section-heading"><div><h3>Views and comments over time</h3><p id="insightsChartRange" class="muted">Daily channel totals</p></div></div>
+              <div class="insights-legend"><span><i></i>Views</span><span><i class="legend-comments"></i>Comments</span></div>
+              <div id="insightsChart"></div>
+            </article>
+            <article class="insights-panel">
+              <div class="section-heading"><div><h3>Channel breakdown</h3><p class="muted">Performance for each connected YouTube channel</p></div></div>
+              <div id="insightsChannels"></div>
+            </article>
+          </div>
+        </div>
+        <div id="facebookInsights" class="insights-panel" role="tabpanel" hidden>
+          <div class="insights-facebook-state">
+            <div>
+              <span class="insights-facebook-icon" aria-hidden="true">f</span>
+              <h3>Facebook Page insights</h3>
+              <p>Facebook Page analytics aren’t connected in this workspace yet. Connect a Meta app and Page with Insights permissions to show views, comments, reach, and engagement here.</p>
+              <span class="pill"><span class="dot"></span>Not connected</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -2306,6 +2438,16 @@
               <input type="number" id="bulkAutoInterval" class="field" min="1" max="10080" step="1" value="30" />
             </label>
           </div>
+        </div>
+        <div class="auto-schedule-settings">
+          <h3>Folder status refresh</h3>
+          <label class="field-label" style="display:flex;align-items:flex-start;gap:.6rem">
+            <input type="checkbox" id="folderAutoRefresh" />
+            <span>
+              Automatically refresh watched folders every 5 seconds
+              <span class="muted" style="display:block;margin-top:.2rem;font-size:.78rem">Disable this to stop the browser from polling /api/folders. Manual refresh and background folder watching will continue to work.</span>
+            </span>
+          </label>
         </div>
         <div style="margin-top:1.5rem">
           <button id="logoutBtn" class="btn-ghost">Log out</button>
@@ -2446,9 +2588,103 @@
         s.classList.toggle("active", "#" + s.id === hash);
       });
       if (hash === "#media") loadJobs({ refreshMedia: true });
+      if (hash === "#insights") setTimeout(() => window.loadInsights?.(), 0);
     }
     window.addEventListener("hashchange", setActiveNav);
     setActiveNav();
+
+    function formatMetric(value) {
+      return Number(value || 0).toLocaleString();
+    }
+
+    function insightsLine(values, width, height, padding, colorClass = "") {
+      if (!values.length) return "";
+      const max = Math.max(1, ...values);
+      const usableWidth = width - padding * 2;
+      const usableHeight = height - padding * 2;
+      const points = values.map((value, index) => {
+        const x = padding + (values.length === 1 ? usableWidth / 2 : index * usableWidth / (values.length - 1));
+        const y = height - padding - (value / max) * usableHeight;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      }).join(" ");
+      return `<polyline class="${colorClass}" points="${points}" />`;
+    }
+
+    function renderInsightsChart(daily) {
+      const box = $("insightsChart");
+      if (!daily.length) {
+        box.innerHTML = '<div class="explorer-empty">No YouTube analytics data is available for this range.</div>';
+        return;
+      }
+      const width = 800, height = 220, padding = 18;
+      const views = daily.map((row) => row.views);
+      const comments = daily.map((row) => row.comments);
+      const grid = [0, 1, 2, 3].map((index) => {
+        const y = padding + index * (height - padding * 2) / 3;
+        return `<line x1="${padding}" y1="${y}" x2="${width - padding}" y2="${y}" />`;
+      }).join("");
+      box.innerHTML = `<svg class="insights-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="Daily views and comments line chart">${grid}${insightsLine(views, width, height, padding)}${insightsLine(comments, width, height, padding, "comments-line")}</svg><div class="muted" style="display:flex;justify-content:space-between;font-size:.72rem"><span>${escape(daily[0].date)}</span><span>${escape(daily[daily.length - 1].date)}</span></div>`;
+    }
+
+    function renderInsights(data) {
+      const { totals, channels, daily } = data;
+      const hasData = data.availableChannelCount > 0;
+      $("insightViews").textContent = hasData ? formatMetric(totals.views) : "—";
+      $("insightComments").textContent = hasData ? formatMetric(totals.comments) : "—";
+      $("insightLikes").textContent = hasData ? formatMetric(totals.likes) : "—";
+      $("insightWatchTime").textContent = hasData ? `${(totals.watchMinutes / 60).toLocaleString(undefined, { maximumFractionDigits: 1 })} hrs` : "—";
+      $("insightsDateRange").textContent = `${data.startDate} – ${data.endDate}`;
+      $("insightsChartRange").textContent = `Daily totals · ${data.days} days`;
+      renderInsightsChart(daily);
+
+      const usable = channels.filter((channel) => channel.available);
+      const unavailable = channels.filter((channel) => !channel.available);
+      const channelRows = usable.map((channel) => `<tr><td>${escape(channel.name)}</td><td>${formatMetric(channel.totals.views)}</td><td>${formatMetric(channel.totals.comments)}</td><td>${formatMetric(channel.totals.likes)}</td><td>${formatMetric(channel.totals.subscribers)}</td><td>${(channel.totals.watchMinutes / 60).toLocaleString(undefined, { maximumFractionDigits: 1 })} hrs</td></tr>`).join("");
+      const errors = unavailable.map((channel) => `<div class="rule-row"><div><strong>${escape(channel.name)}</strong><p class="muted" style="margin:.2rem 0">${escape(channel.error)}</p></div><a class="cc-btn" href="/api/auth/channels/${encodeURIComponent(channel.id)}/reauth">Reconnect</a></div>`).join("");
+      $("insightsChannels").innerHTML = usable.length
+        ? `<div class="table-wrap"><table class="insights-channel-table"><thead><tr><th>Channel</th><th>Views</th><th>Comments</th><th>Likes</th><th>Subscribers gained</th><th>Watch time</th></tr></thead><tbody>${channelRows}</tbody></table></div>${errors}`
+        : channels.length
+          ? `<div class="explorer-empty">Analytics permission is missing for these channels. Reconnect each channel to grant access.</div>${errors}`
+          : '<div class="explorer-empty">No active YouTube channels are connected. <a class="inline-link" href="/api/auth/connect">Connect a channel</a> to load insights.</div>';
+      $("insightsStatus").textContent = unavailable.length && usable.length
+        ? `${unavailable.length} channel${unavailable.length === 1 ? " is" : "s are"} unavailable; totals include connected channels only.`
+        : "YouTube Analytics data can be delayed by up to a few days. The report ends on the last complete day.";
+    }
+
+    window.loadInsights = async function () {
+      const status = $("insightsStatus");
+      if (!status) return;
+      status.textContent = "Loading channel analytics…";
+      const channelSelect = $("insightsChannel");
+      const selectedChannel = channelSelect.value;
+      const channels = (window._channels || []).filter((channel) => channel.active);
+      channelSelect.innerHTML = '<option value="">All channels</option>' + channels.map((channel) => `<option value="${escape(channel.id)}">${escape(channel.name)}</option>`).join("");
+      if (channels.some((channel) => channel.id === selectedChannel)) channelSelect.value = selectedChannel;
+      const query = new URLSearchParams({ days: $("insightsDays").value });
+      if (channelSelect.value) query.set("channelId", channelSelect.value);
+      try {
+        const response = await api(`${API}/analytics/youtube?${query}`);
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Could not load insights");
+        renderInsights(data);
+      } catch (error) {
+        status.textContent = error.message;
+        $("insightsChannels").innerHTML = `<div class="pill error"><span class="dot"></span>${escape(error.message)}</div>`;
+        $("insightsChart").innerHTML = '<div class="explorer-empty">Analytics report unavailable.</div>';
+        ["insightViews", "insightComments", "insightLikes", "insightWatchTime"].forEach((id) => { $(id).textContent = "—"; });
+      }
+    };
+
+    $("insightsDays")?.addEventListener("change", loadInsights);
+    $("insightsChannel")?.addEventListener("change", loadInsights);
+    document.querySelectorAll("[data-insights-provider]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const facebook = button.dataset.insightsProvider === "facebook";
+        document.querySelectorAll("[data-insights-provider]").forEach((tab) => tab.setAttribute("aria-selected", String(tab === button)));
+        $("youtubeInsights").hidden = facebook;
+        $("facebookInsights").hidden = !facebook;
+      });
+    });
 
     // ---- Channel connect + header toggle ----
     async function loadChannels() {
@@ -2674,15 +2910,15 @@
           const platform = document.createElement("select");
           platform.className = "field";
           platform.setAttribute("aria-label", `Platform and format for ${entry.file.name}`);
-          platform.innerHTML = '<option value="youtube:video">YouTube video</option><option value="youtube:short">YouTube Short</option><option value="instagram:reel">Instagram Reel</option>';
-          platform.value = entry.platform;
+          platform.innerHTML = '<option value="">Use global selection</option><option value="youtube:video">YouTube video</option><option value="youtube:short">YouTube Short</option><option value="instagram:reel">Instagram Reel</option>';
+          platform.value = entry.platformOverride ? entry.platform : "";
 
           const title = document.createElement("input");
           title.type = "text";
           title.className = "field";
           title.maxLength = 2200;
           title.value = entry.title;
-          title.placeholder = "YouTube title (or Reel caption)";
+          title.placeholder = `Use file name: ${entry.file.name}`;
           title.setAttribute("aria-label", `Title or caption for ${entry.file.name}`);
           const titleLabel = document.createElement("label");
           titleLabel.className = "field-label";
@@ -2692,14 +2928,14 @@
           const channel = document.createElement("select");
           channel.className = "field";
           channel.setAttribute("aria-label", `YouTube channel for ${entry.file.name}`);
-          channel.innerHTML = '<option value="">YouTube channel (auto-select)</option>';
+          channel.innerHTML = '<option value="">Use global channel selection</option>';
           channels.forEach((item) => {
             const option = document.createElement("option");
             option.value = item.id;
             option.textContent = item.name;
             channel.appendChild(option);
           });
-          channel.value = entry.channelId;
+          channel.value = entry.channelOverride ? entry.channelId : "";
           const channelLabel = document.createElement("label");
           channelLabel.className = "field-label";
           channelLabel.textContent = "YouTube channel";
@@ -2708,33 +2944,37 @@
           const account = document.createElement("select");
           account.className = "field";
           account.setAttribute("aria-label", `Instagram account for ${entry.file.name}`);
-          account.innerHTML = '<option value="">Select Instagram account</option>';
+          account.innerHTML = '<option value="">Use global account selection</option>';
           accounts.forEach((item) => {
             const option = document.createElement("option");
             option.value = item.id;
             option.textContent = `@${item.username}`;
             account.appendChild(option);
           });
-          account.value = entry.instagramAccountId;
+          account.value = entry.accountOverride ? entry.instagramAccountId : "";
           const accountLabel = document.createElement("label");
           accountLabel.className = "field-label";
           accountLabel.textContent = "Instagram account";
           accountLabel.appendChild(account);
           const privacy = document.createElement("select");
           privacy.className = "field";
-          privacy.innerHTML = '<option value="private">Private</option><option value="unlisted">Unlisted</option><option value="public">Public</option>';
-          privacy.value = entry.privacy;
+          privacy.innerHTML = '<option value="">Use global privacy</option><option value="private">Private</option><option value="unlisted">Unlisted</option><option value="public">Public</option>';
+          privacy.value = entry.privacyOverride ? entry.privacy : "";
           privacy.setAttribute("aria-label", `YouTube privacy for ${entry.file.name}`);
           const privacyLabel = document.createElement("label");
           privacyLabel.className = "field-label";
           privacyLabel.textContent = "YouTube privacy";
           privacyLabel.appendChild(privacy);
 
-          platform.addEventListener("change", () => { entry.platform = platform.value; renderBulkRows(); });
+          platform.addEventListener("change", () => {
+            entry.platformOverride = Boolean(platform.value);
+            if (entry.platformOverride) entry.platform = platform.value;
+            renderBulkRows();
+          });
           title.addEventListener("input", () => { entry.title = title.value; });
-          channel.addEventListener("change", () => { entry.channelId = channel.value; });
-          account.addEventListener("change", () => { entry.instagramAccountId = account.value; });
-          privacy.addEventListener("change", () => { entry.privacy = privacy.value; });
+          channel.addEventListener("change", () => { entry.channelOverride = Boolean(channel.value); entry.channelId = channel.value; });
+          account.addEventListener("change", () => { entry.accountOverride = Boolean(account.value); entry.instagramAccountId = account.value; });
+          privacy.addEventListener("change", () => { entry.privacyOverride = Boolean(privacy.value); if (privacy.value) entry.privacy = privacy.value; });
           const platformLabel = document.createElement("label");
           platformLabel.className = "field-label";
           platformLabel.textContent = "Publish to";
@@ -2743,12 +2983,15 @@
           editCell.appendChild(fields);
           editRow.appendChild(editCell);
           list.appendChild(editRow);
-          channel.hidden = entry.platform.startsWith("instagram:");
-          account.hidden = !entry.platform.startsWith("instagram:");
-          channelLabel.hidden = entry.platform.startsWith("instagram:");
-          accountLabel.hidden = !entry.platform.startsWith("instagram:");
-          titleLabel.hidden = entry.platform.startsWith("instagram:");
-          privacyLabel.hidden = entry.platform.startsWith("instagram:");
+          const effectivePlatforms = entry.platformOverride
+            ? [entry.platform]
+            : (window.bulkTargetPlatforms?.length ? window.bulkTargetPlatforms : [entry.platform]);
+          const hasYouTube = effectivePlatforms.some((value) => value.startsWith("youtube:"));
+          const hasInstagram = effectivePlatforms.some((value) => value.startsWith("instagram:"));
+          channelLabel.hidden = !hasYouTube;
+          accountLabel.hidden = !hasInstagram;
+          titleLabel.hidden = !hasYouTube;
+          privacyLabel.hidden = !hasYouTube;
         }
       });
       const selectedCount = bulkFileRows.filter((entry) => entry.selected).length;
@@ -2825,12 +3068,16 @@
         file,
         previewUrl: URL.createObjectURL(file),
         selected: true,
-        platform: (window.bulkDefaults?.platform) || "youtube:video",
+        platform: "youtube:video",
+        platformOverride: false,
         title: file.name,
         description: "",
         channelId: "",
+        channelOverride: false,
         instagramAccountId: "",
-        privacy: (window.bulkDefaults?.privacy) || "private",
+        accountOverride: false,
+        privacy: "",
+        privacyOverride: false,
         scheduleMode: "now",
         scheduleAt: "",
         autoScheduled: false,
@@ -2843,8 +3090,8 @@
     $("bulkAddVideos")?.addEventListener("click", () => $("bulkVideoInput").click());
 
     // Destination selections can fan each selected file out to multiple jobs.
-    window.bulkDefaults = { platform: "youtube:video", privacy: "private" };
-    window.bulkTargetPlatforms = null;
+    window.bulkDefaults = { platform: "youtube:video", privacy: $("bulkPrivacySelect").value };
+    window.bulkTargetPlatforms = ["youtube:video"];
     window.bulkTargetIds = new Set();
     function renderBulkDestinationOptions() {
       const accountsBox = $("bulkChannelsOptions");
@@ -2886,18 +3133,16 @@
       input.addEventListener("change", () => {
         window.bulkTargetPlatforms = Array.from($("bulkPublishOptions").querySelectorAll('input:checked')).map((item) => item.value);
         updateBulkDestinationSummaries();
+        renderBulkRows();
       });
     });
+    updateBulkDestinationSummaries();
     $("bulkPrivacySelect")?.addEventListener("change", () => {
       window.bulkDefaults.privacy = $("bulkPrivacySelect").value;
-      applyGlobalToSelected("privacy");
+      renderBulkRows();
     });
     function applyGlobalToSelected(what) {
-      const rows = bulkFileRows.filter(e => e.selected);
-      rows.forEach(e => {
-        if (what === "privacy") e.privacy = window.bulkDefaults.privacy;
-      });
-      renderBulkRows();
+      if (what === "privacy") renderBulkRows();
     }
     $("bulkHeaderSelect")?.addEventListener("change", () => {
       bulkFileRows.forEach((entry) => { entry.selected = $("bulkHeaderSelect").checked; });
@@ -2909,10 +3154,12 @@
         const status = await response.json();
         if (!response.ok) throw new Error(status.error || "Could not load Instagram accounts");
         window._instagramAccounts = status.accounts || [];
+        renderBulkDestinationOptions();
         renderBulkRows();
       } catch (error) {
         console.error("Could not load Instagram accounts:", error.message);
         window._instagramAccounts = [];
+        renderBulkDestinationOptions();
       }
     }
 
@@ -3507,7 +3754,7 @@
         const item = {
           platform,
           format,
-          title: entry.title.trim(),
+          title: entry.title.trim() || entry.file.name,
           description: platform === "youtube" ? entry.description : "",
           caption: platform === "instagram" ? entry.description : undefined,
           channelId: entry.channelId || null,
@@ -3525,40 +3772,43 @@
         message.textContent = "One or more selected videos have an invalid schedule time.";
         return;
       }
-      if (items.some((item) => !item.title)) {
-        message.textContent = "Every selected video needs a title or caption.";
-        return;
-      }
-      if (items.some((item) => item.platform === "instagram" && !item.instagramAccountId)) {
-        message.textContent = "Choose a connected Instagram account for each Reel.";
-        return;
-      }
-      // If the global "Channels (multi)" select has targets, fan out one item per
-      // (video x channel) so each selected video is queued for every selected
-      // channel. The file is re-appended once per expanded item to keep
-      // items.length === files.length (backend invariant).
-      const channelSelect = $("bulkChannelsSelect");
-      const targetChannels = channelSelect ? Array.from(channelSelect.selectedOptions).map(o => o.value) : [];
-      let itemsForSubmit = items;
-      const filesForSubmit = selectedRows.map(e => e.file);
-      if (targetChannels.length > 0) {
-        const nextItems = [];
-        const nextFiles = [];
-        items.forEach((item, i) => {
-          const file = selectedRows[i].file;
-          if (item.platform === "youtube") {
-            targetChannels.forEach((ch) => {
-              nextItems.push(Object.assign({}, item, { channelId: ch }));
-              nextFiles.push(file);
+      // Expand selected platform × compatible account combinations into jobs.
+      // Pair every generated metadata item with its own file as required by API.
+      const selectedAccounts = [...window.bulkTargetIds];
+      const selectedPlatforms = window.bulkTargetPlatforms;
+      const itemsForSubmit = [];
+      const filesForSubmit = [];
+      items.forEach((item, index) => {
+        const entry = selectedRows[index];
+        const platforms = entry.platformOverride
+          ? [entry.platform]
+          : (selectedPlatforms?.length ? selectedPlatforms : [`${item.platform}:${item.format}`]);
+        platforms.forEach((target) => {
+          const [platform, format] = target.split(":");
+          if (platform === "youtube") {
+            const channels = selectedAccounts.filter((id) => id.startsWith("youtube:")).map((id) => id.slice("youtube:".length));
+            const destinations = entry.channelOverride ? [entry.channelId] : channels.length ? channels : [entry.channelId || null];
+            destinations.forEach((channelId) => {
+              itemsForSubmit.push({ ...item, platform, format, title: entry.title.trim() || entry.file.name, description: entry.description, caption: undefined, privacy: entry.privacyOverride ? entry.privacy : window.bulkDefaults.privacy, channelId, instagramAccountId: null });
+              filesForSubmit.push(entry.file);
             });
-          } else {
-            nextItems.push(item);
-            nextFiles.push(file);
+          } else if (platform === "instagram") {
+            const accounts = selectedAccounts.filter((id) => id.startsWith("instagram:")).map((id) => id.slice("instagram:".length));
+            const destinations = entry.accountOverride ? [entry.instagramAccountId] : accounts.length ? accounts : [entry.instagramAccountId || null];
+            destinations.forEach((instagramAccountId) => {
+              itemsForSubmit.push({ ...item, platform, format, title: entry.title.trim() || entry.file.name, description: "", caption: entry.description, privacy: entry.privacyOverride ? entry.privacy : window.bulkDefaults.privacy, channelId: null, instagramAccountId });
+              filesForSubmit.push(entry.file);
+            });
           }
         });
-        itemsForSubmit = nextItems;
-        filesForSubmit.length = 0;
-        Array.prototype.push.apply(filesForSubmit, nextFiles);
+      });
+      if (itemsForSubmit.some((item) => item.platform === "instagram" && !item.instagramAccountId)) {
+        message.textContent = "Select at least one Instagram account for Reel uploads.";
+        return;
+      }
+      if (!itemsForSubmit.length) {
+        message.textContent = "Choose at least one publishing destination.";
+        return;
       }
       const data = new FormData();
       const metadata = {
@@ -3577,7 +3827,7 @@
         const parts = [];
         if (scheduledCount) parts.push(`${scheduledCount} scheduled`);
         if (immediateCount) parts.push(`${immediateCount} added to queue`);
-        message.textContent = `${result.message}${parts.length ? ` (${parts.join(", ")}). View the Queue to check upload times.` : ""}`;
+        message.textContent = `Added ${result.created.length} upload${result.created.length === 1 ? "" : "s"} to the queue${parts.length ? ` · ${parts.join(", ")}` : ""}. View the Queue to check upload times.`;
         const selectedFiles = new Set(selectedRows.map((entry) => entry.file));
         for (let index = bulkFileRows.length - 1; index >= 0; index--) {
           const entry = bulkFileRows[index];
@@ -3612,7 +3862,24 @@
     loadHealth();
     loadJobs();
     loadFolders();
-    setInterval(loadFolders, 5000); // Rotation editor: refresh folder status/items (DB-only, safe)
+    const FOLDER_AUTO_REFRESH_KEY = "castline-folder-auto-refresh";
+    const folderAutoRefresh = $("folderAutoRefresh");
+    folderAutoRefresh.checked = localStorage.getItem(FOLDER_AUTO_REFRESH_KEY) !== "disabled";
+    let folderRefreshTimer = null;
+    const syncFolderAutoRefresh = () => {
+      if (folderRefreshTimer) {
+        clearInterval(folderRefreshTimer);
+        folderRefreshTimer = null;
+      }
+      if (folderAutoRefresh.checked) {
+        folderRefreshTimer = setInterval(loadFolders, 5000);
+        localStorage.setItem(FOLDER_AUTO_REFRESH_KEY, "enabled");
+      } else {
+        localStorage.setItem(FOLDER_AUTO_REFRESH_KEY, "disabled");
+      }
+    };
+    folderAutoRefresh.addEventListener("change", syncFolderAutoRefresh);
+    syncFolderAutoRefresh();
     // Jobs are refreshed manually via the Desk/Queue "Refresh" buttons. We do NOT
     // auto-poll GET /api/videos on a 4s timer: the worker is what talks to the
     // YouTube Data API (quota-burning) and a short /videos timer only re-reads

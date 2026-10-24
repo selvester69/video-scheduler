@@ -100,7 +100,7 @@ export async function handleCallback(code, { expectedChannelId } = {}) {
  * The OAuth2Client transparently refreshes access tokens using the stored
  * refresh_token when they expire.
  */
-export function youtubeForChannel(channel) {
+export function oauthClientForChannel(channel) {
   const client = makeOauthClient();
   client.setCredentials({
     access_token: channel.access_token,
@@ -121,5 +121,10 @@ export function youtubeForChannel(channel) {
       expiresAt: tokens.expiry_date ? Math.floor(tokens.expiry_date / 1000) : nowSec() + 3600,
     });
   });
+  return client;
+}
+
+export function youtubeForChannel(channel) {
+  const client = oauthClientForChannel(channel);
   return google.youtube({ version: "v3", auth: client });
 }

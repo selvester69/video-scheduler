@@ -9,6 +9,7 @@ import authRouter from "./routes/auth.js";
 import jobsRouter from "./routes/jobs.js";
 import sessionRouter from "./routes/session.js";
 import explorerRouter from "./routes/explorer.js";
+import analyticsRouter from "./routes/analytics.js";
 import { foldersRouter, rulesRouter, rotationRouter } from "./routes/folders.js";
 import instagramRouter from "./routes/instagram.js";
 import { requireAuth } from "./middleware/auth.js";
@@ -47,6 +48,19 @@ app.get("/media/:filename", (req, res, next) => {
   });
 });
 
+// The Studio media library is for signed-in users; keep it separate from the
+// short-lived signed URL above, which is used by Instagram's remote fetcher.
+app.get("/api/media/:filename", requireAuth, (req, res, next) => {
+  const filename = req.params.filename;
+  if (filename !== path.basename(filename) || filename.includes("\\")) return res.sendStatus(404);
+  res.sendFile(filename, { root: config.storageRoot, acceptRanges: true }, (error) => {
+    if (error && !res.headersSent) {
+      if (error.status === 404) return res.sendStatus(404);
+      next(error);
+    }
+  });
+});
+
 // API
 app.get("/api/health", async (_req, res) => {
   const row = await db.prepare("SELECT COUNT(*) AS n FROM channels").get();
@@ -67,6 +81,7 @@ app.use("/api/folders", foldersRouter); // Phase 1: folder scan + rotation rules
 app.use("/api/rules", rulesRouter);     // Phase 1: PATCH/DELETE/assignments for rotation rules
 app.use("/api/rotation", rotationRouter); // Phase 2 core: POST /plan (assignment planner)
 app.use("/api/explorer", requireAuth, explorerRouter); // admin read-only DB query UI
+app.use("/api/analytics", requireAuth, analyticsRouter);
 
 // OAuth callback is a public GET (Google redirects here with a query string)
 app.use("/auth", authRouter);
