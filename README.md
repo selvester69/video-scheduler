@@ -37,7 +37,7 @@ This project handles all of that:
 
 ```
                  ┌──────────────────┐
-   browser ----> │   API (server)   │  POST /api/videos  (multipart: video, title, hashtags…)
+   browser ----> │   API (server)   │  POST /api/videos  (YouTube + Instagram batch jobs)
                  └────────┬─────────┘
                           │ writes rows to
                  ┌────────▼─────────┐        ┌─────────────────┐
@@ -46,8 +46,8 @@ This project handles all of that:
                           │ claims due jobs
                  ┌────────▼─────────┐
                  │  Worker          │  node src/worker.js
-                 │  (own process)   │  ▸ picks channel (rotation + budget)
-                 │  ▸ videos.insert │  ▸ respects concurrency caps
+                 │  (own process)   │  ▸ dispatches by platform
+                 │  ▸ YouTube API   │  ▸ Instagram Graph API
                  └────────┬─────────┘  ▸ backs off on 429/5xx
                           │
                  ┌────────▼─────────┐
@@ -200,6 +200,10 @@ Poll `GET http://localhost:3001/api/videos` — you'll see the job flip
 | GET    | `/api/videos/:id` | Get a job |
 | DELETE | `/api/videos/:id` | Soft-delete a scheduled (`pending`) job |
 | PATCH  | `/api/videos/:id` | Edit a `pending` job's title/description/hashtags/tags/category/privacy/channelId/priority/scheduleAt (the video file itself is not changed — re-schedule a new upload to replace it) |
+| GET    | `/api/instagram/status` | Instagram configuration and connected-account status (requires app login) |
+| GET    | `/api/instagram/connect` | Begin Instagram Business Login |
+| GET    | `/api/instagram/callback` | Instagram OAuth callback (register this exact URI in Meta) |
+| POST   | `/api/instagram/accounts/:id/disconnect` | Deactivate an Instagram account |
 
 `POST /api/videos` accepts **multiple files**: the field `video` is repeatable, and
 one job is created per file (each `pending`; the worker dispatches due ones next
@@ -213,6 +217,21 @@ tick, concurrently up to `MAX_CONCURRENT_UPLOADS`). Metadata can be sent two way
 ```
 `titles` is an ordered array, one entry per file; a blank entry falls back to the
 file's own name. The same blob is sent for a single upload.
+
+For mixed-platform batches, provide an `items` array (same order and length as
+the uploaded `video` fields). Each item accepts `platform` (`youtube` or
+`instagram`), `format` (`video`, `short`, or `reel`), `title` (caption for
+Instagram), `channelId` (YouTube), and `instagramAccountId` (Instagram). Example:
+```json
+{ "items": [
+    { "platform": "youtube", "format": "short", "title": "A Short" },
+    { "platform": "instagram", "format": "reel", "title": "A Reel caption",
+      "instagramAccountId": "instagram-account-id" }
+  ],
+  "description": "Shared YouTube description",
+  "privacy": "private",
+  "scheduleAt": "2030-12-31T23:59:00.000Z" }
+```
 
 **Legacy — flat form/text fields** (one file): `description`, `hashtags`, `tags`,
 `category`, `privacy`, `channelId`, `priority`, `scheduleAt`, and either `title`
@@ -234,6 +253,35 @@ Response (always batch-shaped): `{ created:[{id,title,scheduledAt}], count, mess
 | `category` | | YouTube category id (default `22` = People & Blogs) |
 | `channelId` | | a connected channel id, or leave blank for auto-rotation |
 | `scheduleAt` | | ISO timestamp; omit/`now` = upload ASAP |
+
+### Bulk publishing to YouTube and Instagram
+
+The **Bulk upload** tab creates one queued job per selected file. Each file can
+target a YouTube video, a YouTube Short, or an Instagram Reel; all jobs share a
+schedule time. A YouTube Short uses the normal YouTube upload API—YouTube
+determines Shorts classification from the media's length and aspect ratio.
+Instagram publishing is a real integration and requires an Instagram
+professional account, a configured Meta app, and public HTTPS access to each
+staged video.
+
+Set `INSTAGRAM_APP_ID` and `INSTAGRAM_APP_SECRET` from the Meta developer app.
+Set `INSTAGRAM_CALLBACK_URL` to the exact redirect URI registered in the
+Instagram Login settings (default: `http://localhost:3001/api/instagram/callback`).
+The app requests `instagram_business_basic` and
+`instagram_business_content_publish`; enable the Instagram API with Instagram
+Login product and grant those permissions to the app. Development-mode apps
+can only authorize Instagram app-role/tester accounts; public access may require
+Meta App Review and the appropriate access level.
+
+For publishing, set `APP_PUBLIC_URL` to the public HTTPS origin serving the
+application, for example `https://scheduler.example.com`. Instagram fetches
+the staged file from that origin using a signed `/media/<file>` URL that expires
+after 24 hours; direct file paths are denied. Localhost, private networks, and
+non-HTTPS URLs cannot be used. In Docker, keep the API and worker on the shared
+`storage` volume (already configured by `docker-compose.yml`).
+Instagram jobs do not spend YouTube quota. Their publish/container-status calls
+are made only when the worker processes a due Reel; the UI does not poll either
+platform for publishing status.
 
 ## Quota (the real constraint)
 

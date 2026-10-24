@@ -9,6 +9,7 @@
 import { config } from "../config.js";
 import { queries, nowSec, getDb } from "../db.js";
 import { uploadJob } from "./youtube-upload.js";
+import { publishReel } from "./instagram.js";
 import { RateLimitError, AuthError, FatalUploadError, SchedulerError } from "./errors.js";
 
 const state = {
@@ -46,6 +47,12 @@ export async function refreshBudgets() {
 
 /** Pick a channel with budget AND a free per-channel slot. Returns null if none. */
 async function resolveChannel(job) {
+  if (job.platform === "instagram") {
+    const account = await queries.findInstagramAccount.get({ id: job.instagram_account_id });
+    if (!account?.active) return null;
+    if (inFlight(`instagram:${account.id}`) >= config.worker.perChannelMaxConcurrent) return null;
+    return account;
+  }
   const channels = await queries.listActiveChannels.all();
   for (const ch of channels) {
     if (job.channel_id && ch.id !== job.channel_id) continue;
@@ -68,15 +75,16 @@ async function dispatch(job, channel) {
   const claimed = await queries.claimJob.get({ id: job.id });
   if (!claimed) return { skipped: true }; // lost the race to another tick/worker
 
-  const entry = { id: claimed.id, channelId: channel.id, promise: null };
+  const key = job.platform === "instagram" ? `instagram:${channel.id}` : channel.id;
+  const entry = { id: claimed.id, channelKey: key, promise: null };
   state.active.add(entry);
-  state.byChannel.set(channel.id, inFlight(channel.id) + 1);
+  state.byChannel.set(key, inFlight(key) + 1);
 
   const cleanup = () => {
     state.active.delete(entry);
-    const remaining = inFlight(channel.id) - 1;
-    if (remaining <= 0) state.byChannel.delete(channel.id);
-    else state.byChannel.set(channel.id, remaining);
+    const remaining = inFlight(key) - 1;
+    if (remaining <= 0) state.byChannel.delete(key);
+    else state.byChannel.set(key, remaining);
   };
 
   entry.promise = runUpload(claimed, channel).finally(cleanup);
@@ -86,6 +94,20 @@ async function dispatch(job, channel) {
 async function runUpload(job, channel) {
   const now = nowSec();
   try {
+    if (job.platform === "instagram") {
+      const result = await publishReel(job, channel);
+      await queries.insertInstagramUpload.run({
+        id: crypto.randomUUID(),
+        jobId: job.id,
+        mediaId: result.mediaId,
+        permalink: result.permalink,
+        created: now,
+      });
+      await queries.markDone.run({ id: job.id, retryCount: job.retry_count, updatedAt: now });
+      console.log(`[ready] Instagram Reel "${job.title}" published for @${channel.username}`);
+      return;
+    }
+
     const result = await uploadJob(job, channel);
     await getDb().prepare(
       `INSERT INTO uploads (id, job_id, channel_id, youtube_id, youtube_url, etag, quota_cost, created_at)
@@ -114,6 +136,15 @@ async function handleFailure(job, channel, err) {
   const kind = err instanceof SchedulerError ? err.kind : "transient";
 
   if (kind === "auth") {
+    if (job.platform === "instagram") {
+      console.warn(`[auth] disabling Instagram account ${channel.id} (@${channel.username}): ${err.message}`);
+      await queries.deactivateInstagramAccount.run({ id: channel.id, updatedAt: now });
+      await queries.setJobStatus.run({
+        id: job.id, status: "failed", retryCount: job.retry_count,
+        nextRetryAt: null, lastError: err.message, updatedAt: now,
+      });
+      return;
+    }
     console.warn(`[auth] disabling channel ${channel.id} (${channel.name}): ${err.message}`);
     await queries.deactivateChannel.run({ id: channel.id });
     // Re-queue on ANY channel so a revoked token doesn't block the job.
@@ -173,7 +204,22 @@ export async function runTick() {
   for (const job of due) {
     if (!canRunAnother()) break;
     const resolved = await resolveChannel(job);
-    if (!resolved) { stalled++; continue; }
+    if (!resolved) {
+      if (job.platform === "instagram") {
+        const account = await queries.findInstagramAccount.get({ id: job.instagram_account_id });
+        if (!account?.active) {
+          await queries.setJobStatus.run({
+            id: job.id, status: "failed", retryCount: job.retry_count,
+            nextRetryAt: null, lastError: "Instagram account is disconnected or inactive", updatedAt: now,
+          });
+        } else {
+          stalled++;
+        }
+      } else {
+        stalled++;
+      }
+      continue;
+    }
     // eslint-disable-next-line no-await-in-loop
     const r = await dispatch(job, resolved);
     if (r.dispatched) dispatched++;

@@ -13,8 +13,9 @@ const router = Router();
  *
  *   Text/metadata is sent in ONE of two ways:
  *     1. `metadata` — a JSON string blob (preferred, used by the web UI) with:
- *        { titles:[...], description, hashtags, tags, category, privacy,
- *          channelId, priority, scheduleAt }
+ *        { titles:[...], items:[{platform,format,title,channelId,
+ *          instagramAccountId}], description, hashtags, tags, category,
+ *          privacy, channelId, priority, scheduleAt }
  *        - titles[] is an ordered array, one per file (blank → use file name).
  *     2. Flat text fields: `description,hashtags,tags,category,privacy,
  *        channelId,priority,scheduleAt` (legacy single-upload clients). A single
@@ -36,8 +37,15 @@ router.post("/", stageUpload.array("video", config.upload.maxFiles), async (req,
     // multiple uploads; it carries per-file titles + shared fields). Fall back
     // to flat text fields for legacy single-upload clients.
     let meta = {};
-    if (req.body.metadata) { try { meta = JSON.parse(req.body.metadata); } catch { /* ignore bad JSON */ } }
+    if (req.body.metadata) {
+      try { meta = JSON.parse(req.body.metadata); }
+      catch { return res.status(400).json({ error: "invalid metadata JSON" }); }
+    }
     const hasMeta = Boolean(req.body.metadata);
+    const items = Array.isArray(meta.items) ? meta.items : [];
+    if (items.length && items.length !== files.length) {
+      return res.status(400).json({ error: "metadata items must match the number of uploaded files" });
+    }
 
     // Per-file titles (ordered, one per file).
     let perTitles = [];
@@ -54,26 +62,65 @@ router.post("/", stageUpload.array("video", config.upload.maxFiles), async (req,
     const scheduledAt = Math.floor(when / 1000);
     const now = nowSec();
 
+    const jobs = files.map((file, i) => {
+      const item = items[i] || {};
+      const platform = item.platform || meta.platform || "youtube";
+      const format = item.format || meta.format || "video";
+      const title = String(item.caption ?? item.title ?? perTitles[i] ?? sharedTitle ?? "").trim() || file.originalname;
+      const channelId = item.channelId ?? meta.channelId ?? (hasMeta ? null : req.body.channelId || null);
+      const instagramAccountId = item.instagramAccountId ?? meta.instagramAccountId ?? null;
+      if (!title) throw Object.assign(new Error(`title or caption is required (${file.originalname})`), { statusCode: 400 });
+      if (!["youtube", "instagram"].includes(platform)) {
+        throw Object.assign(new Error(`unsupported platform for ${file.originalname}`), { statusCode: 400 });
+      }
+      if ((platform === "youtube" && !["video", "short"].includes(format)) ||
+          (platform === "instagram" && format !== "reel")) {
+        throw Object.assign(new Error(`invalid format for ${platform} upload (${file.originalname})`), { statusCode: 400 });
+      }
+      if (platform === "instagram") {
+        if (!instagramAccountId) {
+          throw Object.assign(new Error(`choose a connected Instagram account for ${file.originalname}`), { statusCode: 400 });
+        }
+        if (!config.instagram.publicAppUrl || new URL(config.instagram.publicAppUrl).protocol !== "https:") {
+          throw Object.assign(new Error("Instagram Reels require APP_PUBLIC_URL to be a public HTTPS URL"), { statusCode: 400 });
+        }
+        if (!/\.(mp4|mov)$/i.test(file.originalname)) {
+          throw Object.assign(new Error(`Instagram Reels require an MP4 or MOV file (${file.originalname})`), { statusCode: 400 });
+        }
+        if (title.length > 2200) {
+          throw Object.assign(new Error(`Instagram captions must be 2,200 characters or fewer (${file.originalname})`), { statusCode: 400 });
+        }
+      }
+      return { file, item, platform, format, title, channelId, instagramAccountId };
+    });
+
+    for (const job of jobs) {
+      if (job.platform === "instagram") {
+        const account = await queries.findInstagramAccount.get({ id: job.instagramAccountId });
+        if (!account || !account.active) {
+          return res.status(400).json({ error: `Instagram account is not connected or active (${job.file.originalname})` });
+        }
+      }
+    }
+
     const created = [];
     for (let i = 0; i < files.length; i++) {
-      const f = files[i];
-      const title =
-        (perTitles[i] && String(perTitles[i]).trim()) ||
-        (files.length === 1 && sharedTitle) ||
-        f.originalname;
-      if (!title) return res.status(400).json({ error: `title is required (${f.originalname})` });
+      const { file: f, item, platform, format, title, channelId, instagramAccountId } = jobs[i];
 
       const id = crypto.randomUUID();
-      await queries.insertJob.run({
+      await queries.insertPlatformJob.run({
         id,
-        channelId: hasMeta ? (meta.channelId || null) : (req.body.channelId || null),
+        channelId: platform === "youtube" ? channelId : null,
+        platform,
+        format,
+        instagramAccountId: platform === "instagram" ? instagramAccountId : null,
         filename: f.filename,
         title,
-        description: hasMeta ? (meta.description || "") : (req.body.description || ""),
-        hashtags: hasMeta ? normalizeHashtags(meta.hashtags || "") : normalizeHashtags(req.body.hashtags || ""),
-        tags: hasMeta ? (meta.tags || "").trim() : (req.body.tags || "").trim(),
+        description: platform === "youtube" ? (item.description ?? (hasMeta ? meta.description : req.body.description) ?? "") : "",
+        hashtags: platform === "youtube" ? normalizeHashtags(item.hashtags ?? (hasMeta ? meta.hashtags : req.body.hashtags) ?? "") : "",
+        tags: platform === "youtube" ? String(item.tags ?? (hasMeta ? meta.tags : req.body.tags) ?? "").trim() : "",
         category: hasMeta ? (meta.category || null) : (req.body.category || null),
-        privacy: normalizePrivacy(hasMeta ? (meta.privacy || "private") : req.body.privacy),
+        privacy: normalizePrivacy(item.privacy || (hasMeta ? (meta.privacy || "private") : req.body.privacy)),
         scheduledAt,
         priority: parseInt(hasMeta ? (meta.priority || "0") : (req.body.priority || "0"), 10),
         nextRetryAt: scheduledAt,

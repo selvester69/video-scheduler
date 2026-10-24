@@ -524,16 +524,15 @@
 
       <!-- DB Explorer: read-only SQL on the configured database (auth-gated) -->
       <section id="explorer" class="card">
-        <h2>Database Explorer</h2>
-        <p class="muted">Run read-only SQL against the configured database. Only
-          <code>SELECT</code>/<code>WITH</code>/<code>SHOW</code>/<code>EXPLAIN</code>/<code>VALUES</code>
-          are allowed; writes, DDL, and stacked statements are rejected server-side.</p>
-        <form id="explorerForm" class="row" style="gap:.75rem; align-items:flex-end">
-          <textarea id="explorerSql" class="field mono" rows="4" placeholder="SELECT * FROM channels LIMIT 20"
-            style="width:100%; font-family:ui-monospace,monospace; font-size:.8rem">SELECT id, email, name, google_sub IS NOT NULL AS has_google FROM users ORDER BY created_at DESC LIMIT 50</textarea>
-          <button type="submit" class="btn-primary">Run query</button>
-        </form>
-        <div id="explorerResult" class="muted" style="margin-top:1rem">Press “Run query” to execute.</div>
+        <div class="section-heading">
+          <div>
+            <h2>Database Explorer</h2>
+            <p class="muted">Read-only viewer. All tables are listed below; click a table to browse its rows. Writes, DDL, and stacked statements are blocked server-side.</p>
+          </div>
+          <button type="button" class="btn-ghost" id="explorerRefresh" onclick="loadExplorerTables()">Refresh</button>
+        </div>
+        <div id="explorerTables" class="muted">Loading tables…</div>
+        <div id="explorerResult" class="muted" style="margin-top:1rem">Select a table to view its rows.</div>
       </section>
     </main>
   </div>
@@ -1008,19 +1007,43 @@
     };
 
     // ---- DB Explorer (read-only) ----
-    async function runExplorerQuery() {
-      const sql = $("explorerSql").value;
-      const box = $("explorerResult");
-      box.innerHTML = '<span class="muted">Running…</span>';
+    // Read-only table viewer: list all tables, then browse a table's rows.
+    // (No raw SELECT * text input — the user picks a table to view.)
+    window.loadExplorerTables = async function () {
+      const box = $("explorerTables");
+      const resBox = $("explorerResult");
+      box.innerHTML = '<span class="muted">Loading…</span>';
+      resBox.innerHTML = '<span class="muted">Select a table to view its rows.</span>';
       try {
-        const res = await api(`${API}/explorer/query`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sql }) });
+        const res = await api(`${API}/explorer/tables`);
         const j = await res.json();
-        if (!res.ok) { box.innerHTML = `<span class="pill error"><span class="dot"></span> ✗ ${escape(j.error)}</span>`; return; }
-        renderExplorerResults(j);
+        if (!res.ok) throw new Error(j.error || "failed to list tables");
+        const tables = j.tables || [];
+        if (!tables.length) { box.innerHTML = '<span class="muted">No tables found.</span>'; return; }
+        box.innerHTML = tables.map((t) =>
+          `<button type="button" class="cc-btn" onclick="loadExplorerTable('${t}')">${escape(t)}</button>`
+        ).join("") + `<div class="muted" style="margin-top:.5rem">${tables.length} table(s)</div>`;
       } catch (e) {
         box.innerHTML = `<span class="pill error"><span class="dot"></span> ✗ ${escape(e.message)}</span>`;
       }
-    }
+    };
+
+    // Browse rows of a single table (read-only; server-side row cap).
+    window.loadExplorerTable = async function (name) {
+      const box = $("explorerTables");
+      box.innerHTML = `<span class="muted">Tables › ${escape(name)}</span>`;
+      const resBox = $("explorerResult");
+      resBox.innerHTML = '<span class="muted">Loading…</span>';
+      try {
+        const res = await api(`${API}/explorer/table/${encodeURIComponent(name)}`);
+        const j = await res.json();
+        if (!res.ok) throw new Error(j.error || "failed");
+        renderExplorerResults(j);
+      } catch (e) {
+        resBox.innerHTML = `<span class="pill error"><span class="dot"></span> ✗ ${escape(e.message)}</span>`;
+      }
+    };
+
     function renderExplorerResults(j) {
       const box = $("explorerResult");
       if (!j.columns || !j.columns.length) {
@@ -1037,8 +1060,6 @@
       html += "</tbody></table>";
       box.innerHTML = html + `<div class="muted" style="margin-top:.4rem">rows: ${j.rowCount}${j.truncated ? " (truncated)" : ""}</div>`;
     }
-    $("explorerForm")?.addEventListener("submit", async (e) => { e.preventDefault(); runExplorerQuery(); });
-    window.runExplorerQuery = runExplorerQuery; // for quick manual calls from console
 
     // ---- Auth: profile + logout ----
     async function loadProfile() {
@@ -1231,10 +1252,10 @@
     window.addEventListener("focus", refreshOnFocus);
     document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshOnFocus(); });
     if (location.hash === "#rotation") loadFolders();
-    if (location.hash === "#explorer") runExplorerQuery();
+    if (location.hash === "#explorer") loadExplorerTables();
     window.addEventListener("hashchange", () => {
       if (location.hash === "#rotation") loadFolders();
-      if (location.hash === "#explorer") runExplorerQuery();
+      if (location.hash === "#explorer") loadExplorerTables();
     });
   </script>
 </body>

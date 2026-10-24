@@ -53,6 +53,12 @@ export const config = {
     ssoScopes: (process.env.GOOGLE_SSO_SCOPES || "openid,email,profile").split(",").map((s) => s.trim()),
     scopes: (process.env.YOUTUBE_SCOPES || "https://www.googleapis.com/auth/youtube.upload,https://www.googleapis.com/auth/youtube.readonly").split(",").map((s) => s.trim()),
   },
+  instagram: {
+    appId: process.env.INSTAGRAM_APP_ID || "",
+    appSecret: process.env.INSTAGRAM_APP_SECRET || "",
+    callbackUrl: process.env.INSTAGRAM_CALLBACK_URL || `http://localhost:${process.env.PORT || 3001}/api/instagram/callback`,
+    publicAppUrl: (process.env.APP_PUBLIC_URL || "").replace(/\/+$/, ""),
+  },
 
   worker: {
     tickMs: parseInt(process.env.WORKER_TICK_MS || "2000", 10),

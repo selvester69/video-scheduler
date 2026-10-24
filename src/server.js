@@ -10,8 +10,10 @@ import jobsRouter from "./routes/jobs.js";
 import sessionRouter from "./routes/session.js";
 import explorerRouter from "./routes/explorer.js";
 import { foldersRouter, rulesRouter, rotationRouter } from "./routes/folders.js";
+import instagramRouter from "./routes/instagram.js";
 import { requireAuth } from "./middleware/auth.js";
 import { currentUser, seedDefaultUser } from "./services/auth.js";
+import { verifySignedMediaUrl } from "./services/media-url.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -31,16 +33,19 @@ app.use("/", express.static(path.join(__dirname, "..", "public")));
 // Login / register page (served when no auth cookie).
 app.get("/login", (_req, res) => res.sendFile(path.join(__dirname, "..", "public", "login.html")));
 app.get("/register", (_req, res) => res.sendFile(path.join(__dirname, "..", "public", "login.html")));
-// Staged video files (served to the worker on the same host; in a real deploy
-// these live on S3 and the worker streams directly).
-app.use(
-  "/media",
-  express.static(config.storageRoot, {
-    range: true,
-    maxAge: "1y",
-    headers: { "Accept-Ranges": "bytes" },
-  })
-);
+// Instagram fetches staged media using a short-lived, signed URL. Direct file
+// paths are not public, even though the media must be reachable by Instagram.
+app.get("/media/:filename", (req, res, next) => {
+  const filename = req.params.filename;
+  if (filename !== path.basename(filename) || filename.includes("\\")) return res.sendStatus(404);
+  if (!verifySignedMediaUrl(filename, req.query.expires, req.query.signature)) return res.sendStatus(403);
+  res.sendFile(filename, { root: config.storageRoot, acceptRanges: true, maxAge: "1h" }, (error) => {
+    if (error && !res.headersSent) {
+      if (error.status === 404) return res.sendStatus(404);
+      next(error);
+    }
+  });
+});
 
 // API
 app.get("/api/health", async (_req, res) => {
@@ -57,6 +62,7 @@ app.get("/api/health", async (_req, res) => {
 app.use("/api/auth", sessionRouter);   // /register /login /logout /profile (profile gated internally)
 app.use("/api/auth", authRouter);      // /connect /callback /channels (channels gated)
 app.use("/api/videos", config.auth.require ? [requireAuth, jobsRouter] : jobsRouter);
+app.use("/api/instagram", instagramRouter);
 app.use("/api/folders", foldersRouter); // Phase 1: folder scan + rotation rules (self-gated)
 app.use("/api/rules", rulesRouter);     // Phase 1: PATCH/DELETE/assignments for rotation rules
 app.use("/api/rotation", rotationRouter); // Phase 2 core: POST /plan (assignment planner)

@@ -59,6 +59,9 @@ CREATE TABLE IF NOT EXISTS jobs (
   tags          TEXT NOT NULL DEFAULT '',
   category      TEXT,
   privacy       TEXT NOT NULL DEFAULT 'private',
+  platform      TEXT NOT NULL DEFAULT 'youtube',
+  format        TEXT NOT NULL DEFAULT 'video',
+  instagram_account_id TEXT,
   scheduled_at  BIGINT NOT NULL,
   status        TEXT NOT NULL DEFAULT 'pending',
   priority      INTEGER NOT NULL DEFAULT 0,
@@ -78,6 +81,24 @@ CREATE TABLE IF NOT EXISTS uploads (
   etag          TEXT,
   quota_cost    INTEGER NOT NULL,
   created_at    BIGINT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS instagram_accounts (
+  id                TEXT PRIMARY KEY,
+  username          TEXT NOT NULL,
+  access_token      TEXT NOT NULL,
+  token_expires_at  BIGINT NOT NULL,
+  active            INTEGER NOT NULL DEFAULT 1,
+  created_at        BIGINT NOT NULL,
+  updated_at        BIGINT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS instagram_uploads (
+  id                TEXT PRIMARY KEY,
+  job_id            TEXT NOT NULL UNIQUE REFERENCES jobs(id),
+  instagram_media_id TEXT NOT NULL,
+  permalink         TEXT,
+  created_at        BIGINT NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_jobs_pending
@@ -315,6 +336,9 @@ export async function initDb() {
     // and optionally point a job at a reused media_asset row (shared pool, Phase 2).
     `ALTER TABLE jobs ADD COLUMN source TEXT NOT NULL DEFAULT 'manual'`,
     `ALTER TABLE jobs ADD COLUMN media_asset_id TEXT`,
+    `ALTER TABLE jobs ADD COLUMN platform TEXT NOT NULL DEFAULT 'youtube'`,
+    `ALTER TABLE jobs ADD COLUMN format TEXT NOT NULL DEFAULT 'video'`,
+    `ALTER TABLE jobs ADD COLUMN instagram_account_id TEXT`,
     // Folder watcher: track whether a watched path is currently reachable.
     `ALTER TABLE source_folders ADD COLUMN status TEXT NOT NULL DEFAULT 'reachable'`,
   ];
@@ -344,15 +368,25 @@ export async function initDb() {
   queries.userCount = S(`SELECT COUNT(*) AS n FROM users`);
 
   queries.insertJob = S(`INSERT INTO jobs (id, channel_id, filename, title, description, hashtags, tags, category, privacy, scheduled_at, priority, next_retry_at, status, created_at, updated_at) VALUES (@id, @channelId, @filename, @title, @description, @hashtags, @tags, @category, @privacy, @scheduledAt, @priority, @nextRetryAt, @status, @created, @updated)`);
+  queries.insertPlatformJob = S(`INSERT INTO jobs (id, channel_id, filename, title, description, hashtags, tags, category, privacy, platform, format, instagram_account_id, scheduled_at, priority, next_retry_at, status, created_at, updated_at) VALUES (@id, @channelId, @filename, @title, @description, @hashtags, @tags, @category, @privacy, @platform, @format, @instagramAccountId, @scheduledAt, @priority, @nextRetryAt, @status, @created, @updated)`);
   queries.claimJob = S(`UPDATE jobs SET status = 'uploading' WHERE id = @id AND status = 'pending' RETURNING *`);
   queries.dueJobs = S(`SELECT * FROM jobs WHERE status = 'pending' AND scheduled_at <= @now AND (next_retry_at IS NULL OR next_retry_at <= @now) ORDER BY priority ASC, scheduled_at ASC, created_at ASC`);
   queries.setJobStatus = S(`UPDATE jobs SET status = @status, retry_count = @retryCount, next_retry_at = @nextRetryAt, last_error = @lastError, updated_at = @updatedAt WHERE id = @id`);
   queries.requeueJob = S(`UPDATE jobs SET status = 'pending', retry_count = retry_count + 1, next_retry_at = @nextRetryAt, channel_id = @channelId, last_error = @lastError, updated_at = @updatedAt WHERE id = @id`);
   queries.markDone = S(`UPDATE jobs SET status = 'done', retry_count = @retryCount, last_error = NULL, updated_at = @updatedAt WHERE id = @id`);
   queries.findJob = S(`SELECT * FROM jobs WHERE id = @id`);
-  queries.listJobs = S(`SELECT jobs.*, uploads.youtube_url
+  queries.findInstagramAccount = S(`SELECT * FROM instagram_accounts WHERE id = @id`);
+  queries.listInstagramAccounts = S(`SELECT id, username, token_expires_at, active FROM instagram_accounts ORDER BY username`);
+  queries.deactivateInstagramAccount = S(`UPDATE instagram_accounts SET active = 0, updated_at = @updatedAt WHERE id = @id`);
+  queries.saveInstagramToken = S(`UPDATE instagram_accounts SET access_token = @accessToken, token_expires_at = @expiresAt, updated_at = @updatedAt WHERE id = @id`);
+  queries.insertInstagramUpload = S(`INSERT INTO instagram_uploads (id, job_id, instagram_media_id, permalink, created_at) VALUES (@id, @jobId, @mediaId, @permalink, @created)`);
+  queries.listJobs = S(`SELECT jobs.*, uploads.youtube_url AS youtube_url,
+      COALESCE(uploads.youtube_url, instagram_uploads.permalink) AS published_url,
+      instagram_accounts.username AS instagram_username
     FROM jobs
     LEFT JOIN uploads ON uploads.job_id = jobs.id
+    LEFT JOIN instagram_uploads ON instagram_uploads.job_id = jobs.id
+    LEFT JOIN instagram_accounts ON instagram_accounts.id = jobs.instagram_account_id
     ORDER BY jobs.priority ASC, jobs.scheduled_at ASC, jobs.created_at DESC`);
   queries.insertUpload = S(`INSERT INTO uploads (id, job_id, channel_id, youtube_id, youtube_url, etag, quota_cost, created_at) VALUES (@id, @jobId, @channelId, @youtubeId, @youtubeUrl, @etag, @quotaCost, @created)`);
 

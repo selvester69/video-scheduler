@@ -17,9 +17,51 @@
 import express from "express";
 import { requireAuth } from "../middleware/auth.js";
 import { rawQuery } from "../db.js";
+import { config } from "../config.js";
 
 const router = express.Router();
 const MAX_ROWS = 1000;
+const TABLE_ROW_LIMIT = 100;
+
+// List user tables for the configured driver (read-only inventory).
+function listTablesSql() {
+  if (config.dbDriver === "pg") {
+    return "SELECT tablename AS name FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename";
+  }
+  return "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name";
+}
+
+// GET /api/explorer/tables — every table in the database (read-only).
+router.get("/tables", requireAuth, async (_req, res) => {
+  try {
+    const result = await rawQuery(listTablesSql());
+    const tables = (result.rows || []).map((r) => r.name);
+    res.json({ tables, count: tables.length });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+// GET /api/explorer/table/:name — read-only row viewer for a single table.
+// The name is whitelisted against the live table list (no raw identifier ever
+// reaches the driver) and rows are capped at TABLE_ROW_LIMIT.
+router.get("/table/:name", requireAuth, async (req, res) => {
+  const { name } = req.params;
+  try {
+    const listed = await rawQuery(listTablesSql());
+    const tables = (listed.rows || []).map((r) => r.name);
+    if (!tables.includes(name)) return res.status(400).json({ error: `unknown table: ${name}` });
+    const result = await rawQuery(`SELECT * FROM ${name} LIMIT ${TABLE_ROW_LIMIT}`);
+    res.json({
+      columns: result.columns,
+      rows: (result.rows || []).slice(0, TABLE_ROW_LIMIT),
+      rowCount: result.rowCount,
+      truncated: result.rowCount > TABLE_ROW_LIMIT,
+    });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
 
 // First token must be a read-only keyword. We deliberately do NOT allow
 // `;` (which would permit stacking a follow-up destructive statement).
