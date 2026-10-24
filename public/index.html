@@ -367,6 +367,28 @@
       #bufferSidebar { display: none; }
       .main { margin-left: 0; }
     }
+
+    /* === Channels page: guide §13.5 card layout (avatar, name, platform,
+       status badge, quota, connect/disconnect). Reuses sidebar avatar/tokens. === */
+    .channel-card {
+      display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+      padding: .6rem; border: 1px solid var(--color-line); border-radius: var(--radius-md);
+      background: var(--color-surface); margin-bottom: .5rem;
+    }
+    .cc-left { display: flex; align-items: center; gap: .6rem; }
+    .cc-meta { display: flex; flex-direction: column; }
+    .cc-name { font-weight: 600; font-size: .9rem; }
+    .cc-sub { display: flex; align-items: center; gap: .45rem; font-size: .75rem; color: var(--color-muted); }
+    .cc-platform { background: var(--color-surface-2); color: var(--color-fg); border-radius: 6px; padding: 0 .35rem; font-size: .7rem; }
+    .cc-quota { text-align: right; }
+    .cc-bar { width: 84px; height: 6px; background: var(--color-line); border-radius: 4px; overflow: hidden; }
+    .cc-fill { display: block; height: 100%; background: var(--sb-green); }
+    .cc-q { font-size: .72rem; color: var(--color-muted); }
+    .cc-actions { margin-top: .15rem; display: flex; gap: .25rem; justify-content: flex-end; }
+    .cc-btn { background: none; border: none; cursor: pointer; padding: .2rem .4rem; border-radius: 6px; font-size: .72rem; color: var(--color-muted); }
+    .cc-btn:hover { background: color-mix(in srgb, var(--color-fg), transparent 82%); color: var(--color-fg); }
+    .cc-btn--ghost { border: 1px solid var(--color-line); }
+    .cc-btn--danger { color: #ff6b6b; }
   </style>
 </head>
 <body>
@@ -819,14 +841,51 @@
       });
 
       const box = $("channelList");
-      if (!list.length) { box.innerHTML = '<p class="muted">No channels connected. Click "Connect Channel" in the header.</p>'; return; }
-      box.innerHTML = `<table><tr><th>Channel</th><th>Status</th><th>Quota used</th><th>Last used</th></tr>` +
-        list.map(c => `<tr>
-          <td>${escape(c.name)}</td>
-          <td>${c.active?'active':'inactive'}</td>
-          <td>${c.quota_used}</td>
-          <td class="muted">${c.last_used_at ? new Date(c.last_used_at*1000).toLocaleString() : '—'}</td>
-        </tr>`).join("") + `</table>`;
+      if (!list.length) {
+        box.innerHTML = '<p class="muted">No channels connected. Click "Connect Channel" in the header.</p>';
+        return;
+      }
+      // Card layout (guide §13.5): avatar, name, platform, status badge, quota, connect/disconnect.
+      const qmax = 10000; // default daily quota; server exposes quota_used
+      box.innerHTML = list.map(c => {
+        const qu = c.quota_used || 0;
+        const w = qmax ? Math.max(2, Math.min(90, Math.round(qu / qmax * 100))) : 0;
+        const last = c.last_used_at ? new Date(c.last_used_at * 1000).toLocaleString() : '—';
+        const active = !!c.active;
+        const status = active
+          ? `<span class="pill done"><span class="dot"></span> Active</span>`
+          : `<span class="pill failed"><span class="dot"></span> Reconnect</span>`;
+        const action = active
+          ? `<button class="cc-btn cc-btn--danger" type="button" onclick="deactivateChannel('${c.id}')" title="Disconnect">Deactivate</button>`
+          : `<a class="cc-btn cc-btn--ghost" href="/api/auth/connect">Reconnect</a>`;
+        return `<div class="channel-card">
+          <div class="cc-left">
+            <span class="sb-avo sb-yt" aria-hidden="true">YT</span>
+            <div class="cc-meta">
+              <div class="cc-name">${escape(c.name)}</div>
+              <div class="cc-sub"><span class="cc-platform">YouTube</span> ${status}</div>
+              <div class="cc-sub" style="margin-top:.15rem"><span class="muted">${escape(c.id)}</span>${c.last_used_at ? ` · <span class="muted">last: ${last}</span>` : ''}</div>
+            </div>
+          </div>
+          <div class="cc-quota">
+            <div class="cc-bar"><span class="cc-fill" style="width:${w}%"></span></div>
+            <div class="cc-q muted">${qu} / ${qmax} used</div>
+            <div class="cc-actions">${action}</div>
+          </div>
+        </div>`;
+      }).join("");
+    }
+
+    // Disconnect (deactivate) a channel from the card; refreshes the list.
+    window.deactivateChannel = async function (id) {
+      if (!confirm(`Disconnect this YouTube channel?`)) return;
+      try {
+        const res = await fetch(`${API}/auth/channels/${encodeURIComponent(id)}/deactivate`, { method: "POST" });
+        const j = await res.json();
+        if (!res.ok || !j.ok) throw new Error(j.error || "deactivate failed");
+        loadChannels();
+      } catch (e) { alert(e.message); }
+    };
     }
 
     async function loadHealth() {
