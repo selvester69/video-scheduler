@@ -127,6 +127,10 @@ DRY_RUN=true docker compose up --build
 npm start   # boots api + worker + postgres (docker if up, else local node+sqlite)
 npm stop    # tears down whatever's running
 
+# Or call the root-level helpers directly:
+./start.sh
+./stop.sh
+
 # 2) (Optional) seed a fake channel so scheduling has a target
 npm run seed -- uc-local "Local Channel"
 

@@ -11,10 +11,16 @@ if docker info >/dev/null 2>&1 && [ -n "$(docker compose ps -q 2>/dev/null)" ]; 
 else
   echo "[stop] stopping local processes..."
   for pf in ./logs/api.pid ./logs/worker.pid; do
-    [ -f "$pf" ] && kill "$(cat "$pf")" 2>/dev/null || true
+    [ -f "$pf" ] || continue
+    pid="$(cat "$pf")"
+    if [[ "$pid" =~ ^[0-9]+$ ]]; then
+      process="$(ps -p "$pid" -o command= 2>/dev/null || true)"
+      case "$pf:$process" in
+        *"api.pid:"*"src/server.js"*) kill "$pid" 2>/dev/null || true ;;
+        *"worker.pid:"*"src/worker.js"*) kill "$pid" 2>/dev/null || true ;;
+      esac
+    fi
   done
-  pkill -f 'node src/server.js' 2>/dev/null || true
-  pkill -f 'node src/worker.js' 2>/dev/null || true
   rm -f ./logs/api.pid ./logs/worker.pid
 fi
 echo "[stop] done. (logs remain in ./logs/)"

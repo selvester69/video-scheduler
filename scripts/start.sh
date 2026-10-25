@@ -7,7 +7,7 @@
 #
 # Real (non-dry-run) uploads: start with  DRY_RUN=false npm start
 #   (or set DRY_RUN=false in .env). Dry-run is the safe default.
-set -uo pipefail
+set -euo pipefail
 cd "$(dirname "$0")/.."   # repo root
 
 mkdir -p logs
@@ -26,14 +26,27 @@ if docker info >/dev/null 2>&1; then
     fi
     sleep 1
   done
+  if ! curl -sf "http://localhost:${PORT}/api/health" >/dev/null 2>&1; then
+    echo "[start] ❌ API did not become healthy; recent container logs:"
+    docker compose logs --tail=80 api worker
+    exit 1
+  fi
   echo "[start]   connect a channel: http://localhost:${PORT}/api/auth/connect"
   echo "[start]   frontend:          http://localhost:${PORT}/"
 else
   echo "[start] Docker daemon not available → starting local processes (SQLite, .env, port ${PORT})..."
   # stop any stale instances first
-  for pf in ./logs/api.pid ./logs/worker.pid; do [ -f "$pf" ] && kill "$(cat "$pf")" 2>/dev/null || true; done
-  pkill -f 'node src/server.js' 2>/dev/null || true
-  pkill -f 'node src/worker.js' 2>/dev/null || true
+  for pf in ./logs/api.pid ./logs/worker.pid; do
+    [ -f "$pf" ] || continue
+    pid="$(cat "$pf")"
+    if [[ "$pid" =~ ^[0-9]+$ ]]; then
+      process="$(ps -p "$pid" -o command= 2>/dev/null || true)"
+      case "$pf:$process" in
+        *"api.pid:"*"src/server.js"*) kill "$pid" 2>/dev/null || true ;;
+        *"worker.pid:"*"src/worker.js"*) kill "$pid" 2>/dev/null || true ;;
+      esac
+    fi
+  done
   sleep 1
 
   nohup node src/server.js > ./logs/api.log 2>&1 &
@@ -49,6 +62,11 @@ else
     fi
     sleep 1
   done
+  if ! curl -sf "http://localhost:${PORT}/api/health" >/dev/null 2>&1; then
+    echo "[start] ❌ API did not become healthy; recent logs:"
+    tail -n 80 ./logs/api.log ./logs/worker.log
+    exit 1
+  fi
   echo "[start]   connect a channel: http://localhost:${PORT}/api/auth/connect"
   echo "[start]   frontend:          http://localhost:${PORT}/"
   echo "[start]   real uploads? set DRY_RUN=false (env or .env) and restart."
