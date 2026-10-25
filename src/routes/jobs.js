@@ -191,26 +191,64 @@ router.get("/:id", async (req, res) => {
 });
 
 /**
- * DELETE /api/videos/:id — remove a scheduled job before it uploads.
+ * DELETE /api/videos/:id — cancel a scheduled job or dismiss a failed job.
  */
 router.delete("/:id", async (req, res) => {
-  const info = await db.prepare(`UPDATE jobs SET status='deleted' WHERE id=@id AND status IN ('pending','queued')`).run({ id: req.params.id });
+  const info = await db.prepare(`UPDATE jobs SET status='deleted', updated_at=@updatedAt WHERE id=@id AND status IN ('pending','queued','failed','exhausted')`).run({ id: req.params.id, updatedAt: nowSec() });
   if (info.changes === 0) return res.status(404).json({ error: "not found or not deletable" });
   res.json({ id: req.params.id, status: "deleted" });
 });
 
 /**
- * PATCH /api/videos/:id — edit a SCHEDULED (pending) job's metadata.
+ * POST /api/videos/:id/retry — explicitly retry a failed/exhausted job.
+ * Manual retries are delayed by two minutes and reset the automatic retry budget.
+ */
+router.post("/:id/retry", async (req, res) => {
+  try {
+    const job = await queries.findJob.get({ id: req.params.id });
+    if (!job) return res.status(404).json({ error: "not found" });
+    if (!["failed", "exhausted"].includes(job.status)) {
+      return res.status(409).json({ error: "only failed or exhausted uploads can be retried" });
+    }
+
+    let channelId = job.channel_id;
+    if (job.platform === "instagram") {
+      const account = await queries.findInstagramAccount.get({ id: job.instagram_account_id });
+      if (!account?.active) return res.status(409).json({ error: "Reconnect the Instagram account before retrying this upload" });
+    } else if (job.platform === "facebook") {
+      const page = await queries.findFacebookPage.get({ id: job.facebook_page_id });
+      if (!page?.active) return res.status(409).json({ error: "Reconnect the Facebook Page before retrying this upload" });
+    } else {
+      const channels = await queries.listActiveChannels.all();
+      if (!channels.length) return res.status(409).json({ error: "Connect an active YouTube channel before retrying this upload" });
+      if (channelId && !channels.some((channel) => channel.id === channelId)) channelId = null;
+    }
+
+    const now = nowSec();
+    const scheduledAt = now + 120;
+    const info = await db.prepare(`UPDATE jobs SET status='pending', channel_id=@channelId, scheduled_at=@scheduledAt, next_retry_at=@scheduledAt, retry_count=0, last_error=NULL, updated_at=@now WHERE id=@id AND status IN ('failed','exhausted')`).run({
+      id: job.id, channelId, scheduledAt, now,
+    });
+    if (!info.changes) return res.status(409).json({ error: "upload status changed; refresh and try again" });
+    res.json(await queries.findJob.get({ id: job.id }));
+  } catch (error) {
+    console.error("retry job error:", error);
+    res.status(400).json({ error: error.message || "could not retry upload" });
+  }
+});
+
+/**
+ * PATCH /api/videos/:id — edit a scheduled or failed job's metadata.
  * The video file itself can't change (that would be a re-upload); only title,
  * description, hashtags, tags, category, privacy, channelId, priority, and
- * scheduleAt are editable. Jobs already uploading/done/failed are locked.
+ * scheduleAt are editable. Jobs already uploading or done are locked.
  */
 router.patch("/:id", async (req, res) => {
   const id = req.params.id;
   try {
     const existing = await queries.findJob.get({ id });
     if (!existing) return res.status(404).json({ error: "not found" });
-    if (existing.status !== "pending") {
+    if (!["pending", "failed", "exhausted"].includes(existing.status)) {
       return res.status(409).json({ error: `can't edit a job that is "${existing.status}"` });
     }
 
@@ -243,7 +281,7 @@ router.patch("/:id", async (req, res) => {
 
     fields.push("updated_at = @updatedAt"); params.updatedAt = nowSec();
     const info = await db.prepare(
-      `UPDATE jobs SET ${fields.join(", ")} WHERE id = @id AND status = 'pending'`
+      `UPDATE jobs SET ${fields.join(", ")} WHERE id = @id AND status IN ('pending','failed','exhausted')`
     ).run(params);
     if (info.changes === 0) return res.status(409).json({ error: "job no longer editable (in progress or already processed)" });
 

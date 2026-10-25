@@ -825,6 +825,11 @@
       display: none;
     }
 
+    /* Preserve native hidden semantics when component styles set display. */
+    [hidden] {
+      display: none !important;
+    }
+
     .empty {
       border: 1px dashed var(--color-line);
       border-radius: var(--radius-md);
@@ -1243,7 +1248,7 @@
       --color-muted: #64748b;
       --color-faint: #94a3b8;
       --color-line: #e2e8f0;
-      --color-signal: #4f46e5;
+      --color-signal: #111827;
       --color-signal-ink: #fff;
       --color-sage: #16a34a;
       --color-coral: #dc2626;
@@ -1252,16 +1257,16 @@
     }
 
     html.dark {
-      --color-canvas: #0f172a;
-      --color-surface: #111c32;
-      --color-surface-2: #17243b;
-      --color-fg: #e5e7eb;
-      --color-muted: #a8b3c7;
-      --color-faint: #71809a;
-      --color-line: #263653;
-      --color-signal: #818cf8;
-      --color-signal-ink: #111827;
-      --color-muted-bg: #17243b;
+      --color-canvas: #0b1220;
+      --color-surface: #111c2e;
+      --color-surface-2: #17263b;
+      --color-fg: #e8eef8;
+      --color-muted: #a8b8cf;
+      --color-faint: #8295b2;
+      --color-line: #2b3b54;
+      --color-signal: #60a5fa;
+      --color-signal-ink: #07111f;
+      --color-muted-bg: #1e2d43;
       color-scheme: dark;
     }
 
@@ -2572,6 +2577,115 @@
     #folderFormMsg.error {
       color: var(--color-coral);
     }
+
+    /* Studio Desk command center. Colors follow the existing white / black theme tokens. */
+    #desk.card { padding: 1.15rem; }
+    #desk .dashboard-heading {
+      min-height: 0;
+      margin: 0 0 1rem;
+      padding: .15rem .1rem 1rem;
+      background: transparent;
+      border-bottom: 1px solid var(--color-line);
+    }
+    #desk .dashboard-heading h2 { margin: 0; font: 700 1.35rem "Outfit", ui-sans-serif, system-ui, sans-serif; color: var(--color-fg); }
+    #desk .dashboard-heading p { margin: .2rem 0 0; color: var(--color-muted); font-size: .8rem; }
+    .dashboard-heading-actions { display:flex; align-items:center; gap:.55rem; flex-wrap:wrap; }
+    #lastRefresh { color:var(--color-muted); font-size:.72rem; }
+    .dashboard-alert { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin:0 0 .9rem; padding:.8rem 1rem; border:1px solid color-mix(in srgb,var(--color-coral) 42%,var(--color-line)); border-radius:var(--radius-md); background:color-mix(in srgb,var(--color-coral) 9%,var(--color-surface)); }
+    .dashboard-alert-copy { display:flex; align-items:center; gap:.7rem; }
+    .dashboard-alert-icon { display:grid; place-items:center; width:1.8rem; height:1.8rem; flex:0 0 1.8rem; border-radius:50%; background:color-mix(in srgb,var(--color-coral) 15%,var(--color-surface)); color:var(--color-coral); font-weight:800; }
+    .dashboard-alert strong { display:block; color:var(--color-fg); font-size:.84rem; }
+    .dashboard-alert p { margin:.1rem 0 0; color:var(--color-muted); font-size:.74rem; }
+    .dashboard-alert a { color:var(--color-coral); font-size:.78rem; font-weight:650; white-space:nowrap; }
+    .dashboard-stats { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.7rem; margin:0 0 .9rem; }
+    .dashboard-stat { display:flex; min-width:0; min-height:6.15rem; flex-direction:column; justify-content:space-between; padding:.85rem .9rem; border:1px solid var(--color-line); border-radius:var(--radius-md); background:var(--color-surface); color:var(--color-fg); text-align:left; transition:border-color .15s,transform .15s; }
+    .dashboard-stat:hover { border-color:var(--color-signal); transform:translateY(-1px); }
+    .dashboard-stat-head { display:flex; justify-content:space-between; align-items:center; gap:.4rem; }
+    .dashboard-stat-label { color:var(--color-muted); font-size:.7rem; font-weight:600; }
+    .dashboard-stat-icon { display:grid; place-items:center; width:1.65rem; height:1.65rem; border-radius:.5rem; background:var(--color-surface-2); color:var(--color-muted); }
+    .dashboard-stat-icon svg { width:.95rem; height:.95rem; }
+    .dashboard-stat-value { margin-top:.45rem; font:700 1.7rem/1 "Outfit",ui-sans-serif,system-ui,sans-serif; font-variant-numeric:tabular-nums; }
+    .dashboard-stat-hint { margin-top:.35rem; color:var(--color-muted); font-size:.67rem; }
+    .dashboard-stat-cta { margin-left:.25rem; color:var(--color-signal); font-weight:650; }
+    .dashboard-columns { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(18rem,.9fr); align-items:start; gap:.8rem; margin-bottom:.8rem; }
+    .dashboard-columns.no-attention { grid-template-columns:minmax(0,1fr); }
+    .dashboard-panel { min-width:0; padding:1rem; border:1px solid var(--color-line); border-radius:var(--radius-md); background:var(--color-surface); }
+    .dashboard-panel-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:.75rem; margin-bottom:.75rem; }
+    .dashboard-panel-heading h3 { margin:0; color:var(--color-fg); font:650 .95rem "Outfit",ui-sans-serif,system-ui,sans-serif; }
+    .dashboard-panel-heading p { margin:.18rem 0 0; color:var(--color-muted); font-size:.72rem; }
+    .dashboard-next-feature { display:grid; grid-template-columns:3.4rem minmax(0,1fr) auto; align-items:center; gap:.75rem; padding:.75rem; border:1px solid var(--color-line); border-radius:var(--radius-sm); background:var(--color-surface-2); }
+    .dashboard-thumb { display:grid; width:3.4rem; height:3.4rem; place-items:center; overflow:hidden; border-radius:.5rem; background:var(--color-muted-bg); color:var(--color-muted); }
+    .dashboard-thumb video { width:100%; height:100%; object-fit:cover; }
+    .dashboard-title { min-width:0; overflow:hidden; color:var(--color-fg); font-size:.8rem; font-weight:650; text-overflow:ellipsis; white-space:nowrap; }
+    .dashboard-sub { margin-top:.22rem; color:var(--color-muted); font-size:.68rem; }
+    .dashboard-countdown { margin-top:.35rem; color:var(--color-signal); font-size:.72rem; font-weight:700; font-variant-numeric:tabular-nums; }
+    .dashboard-actions { display:flex; align-items:center; justify-content:flex-end; gap:.35rem; flex-wrap:wrap; }
+    .dashboard-actions .btn-ghost,.dashboard-actions .btn-primary { min-height:1.9rem; padding:.35rem .58rem; font-size:.68rem; }
+    .dashboard-upcoming { display:grid; gap:0; margin:.3rem 0 0; padding:0; list-style:none; }
+    .dashboard-upcoming li { display:flex; align-items:center; justify-content:space-between; gap:.7rem; padding:.55rem .15rem; border-top:1px solid var(--color-line); }
+    .dashboard-upcoming .dashboard-title { font-size:.73rem; }
+    .dashboard-upcoming time { color:var(--color-muted); font-size:.67rem; white-space:nowrap; }
+    .dashboard-fail-list { display:grid; gap:.55rem; }
+    .dashboard-fail-item { padding:.7rem; border:1px solid color-mix(in srgb,var(--color-coral) 30%,var(--color-line)); border-radius:var(--radius-sm); background:color-mix(in srgb,var(--color-coral) 5%,var(--color-surface)); }
+    .dashboard-fail-top { display:flex; align-items:flex-start; justify-content:space-between; gap:.5rem; }
+    .dashboard-fail-error { margin:.35rem 0; color:var(--color-coral); font-size:.7rem; line-height:1.45; }
+    .dashboard-fail-meta { margin-bottom:.5rem; color:var(--color-muted); font-size:.66rem; }
+    .dashboard-week-panel { margin-bottom:.8rem; }
+    .dashboard-week { display:grid; grid-template-columns:repeat(7,minmax(5rem,1fr)); gap:.45rem; overflow-x:auto; padding:0 0 .2rem; }
+    .dashboard-day { min-width:5rem; min-height:4.3rem; padding:.55rem; border:1px solid var(--color-line); border-radius:var(--radius-sm); background:var(--color-surface-2); color:var(--color-fg); text-align:left; }
+    .dashboard-day.today { border-color:var(--color-signal); box-shadow:inset 0 0 0 1px var(--color-signal); }
+    .dashboard-day-name,.dashboard-day-count { display:block; color:var(--color-muted); font-size:.63rem; }
+    .dashboard-day-date { display:block; margin:.25rem 0; font-size:.8rem; font-weight:700; }
+    .dashboard-day-dot { display:inline-block; width:.4rem; height:.4rem; margin-right:.25rem; border-radius:50%; background:var(--color-signal); }
+    .dashboard-quick-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.55rem; margin-bottom:.8rem; }
+    .dashboard-quick-stat { min-width:0; padding:.7rem .8rem; border:1px solid var(--color-line); border-radius:var(--radius-sm); background:var(--color-surface-2); }
+    .dashboard-quick-stat span { display:block; color:var(--color-muted); font-size:.64rem; }
+    .dashboard-quick-stat strong { display:flex; align-items:center; gap:.35rem; margin-top:.28rem; color:var(--color-fg); font-size:.88rem; overflow-wrap:anywhere; }
+    .dashboard-channel-dot { width:.45rem; height:.45rem; border-radius:50%; background:var(--color-sage); }
+    .dashboard-recent-panel { padding-bottom:.35rem; }
+    .dashboard-filter-chips { display:flex; gap:.3rem; flex-wrap:wrap; }
+    .dashboard-filter-chip { padding:.28rem .55rem; border:1px solid var(--color-line); border-radius:999px; background:var(--color-surface); color:var(--color-muted); font-size:.64rem; }
+    .dashboard-filter-chip[aria-pressed="true"] { border-color:var(--color-signal); background:color-mix(in srgb,var(--color-signal) 10%,var(--color-surface)); color:var(--color-fg); }
+    .dashboard-table-wrap { width:100%; overflow-x:auto; }
+    .dashboard-table { min-width:42rem; width:100%; border-collapse:collapse; }
+    .dashboard-table th { padding:.55rem .45rem; color:var(--color-muted); font-size:.62rem; text-align:left; text-transform:uppercase; letter-spacing:.04em; }
+    .dashboard-table td { padding:.55rem .45rem; border-top:1px solid var(--color-line); color:var(--color-fg); font-size:.7rem; vertical-align:middle; }
+    .dashboard-video-cell { display:flex; align-items:center; gap:.55rem; min-width:14rem; }
+    .dashboard-video-thumb { display:grid; width:2.45rem; height:2rem; flex:0 0 2.45rem; place-items:center; overflow:hidden; border-radius:.35rem; background:var(--color-muted-bg); color:var(--color-muted); }
+    .dashboard-video-thumb video { width:100%; height:100%; object-fit:cover; }
+    .dashboard-video-title { max-width:20rem; overflow:hidden; color:var(--color-fg); font-weight:600; text-overflow:ellipsis; white-space:nowrap; }
+    .dashboard-video-title:hover { color:var(--color-signal); }
+    .dashboard-video-meta { display:block; margin-top:.16rem; color:var(--color-muted); font-size:.62rem; }
+    .dashboard-platform { color:var(--color-muted); white-space:nowrap; }
+    .dashboard-duplicate { display:inline-block; margin-left:.25rem; color:var(--color-muted); font-size:.6rem; }
+    .dashboard-menu { position:relative; }
+    .dashboard-menu summary { display:grid; width:1.8rem; height:1.7rem; place-items:center; border:1px solid var(--color-line); border-radius:.4rem; color:var(--color-muted); cursor:pointer; list-style:none; }
+    .dashboard-menu summary::-webkit-details-marker { display:none; }
+    .dashboard-menu-items { position:absolute; z-index:5; top:calc(100% + .2rem); right:0; min-width:9rem; padding:.25rem; border:1px solid var(--color-line); border-radius:.5rem; background:var(--color-surface); box-shadow:0 8px 22px color-mix(in srgb,var(--color-fg) 14%,transparent); }
+    .dashboard-menu-items button,.dashboard-menu-items a { display:block; width:100%; padding:.42rem .5rem; border:0; border-radius:.3rem; background:transparent; color:var(--color-fg); font-size:.68rem; text-align:left; }
+    .dashboard-menu-items button:hover,.dashboard-menu-items a:hover { background:var(--color-surface-2); }
+    .dashboard-menu-items button:disabled { color:var(--color-faint); cursor:not-allowed; }
+    .queue-row-actions { display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; }
+    .queue-row-actions .btn-ghost { padding:.3rem .5rem; font-size:.7rem; }
+    .queue-row-actions a { color:var(--color-signal); font-size:.7rem; }
+    .dashboard-inline-confirm { display:flex; align-items:center; gap:.3rem; margin-top:.35rem; padding:.35rem; border:1px solid var(--color-line); border-radius:.4rem; background:var(--color-surface); }
+    .dashboard-inline-confirm span { margin-right:auto; color:var(--color-muted); font-size:.65rem; }
+    .dashboard-inline-confirm button { padding:.28rem .42rem; border:1px solid var(--color-line); border-radius:.3rem; background:var(--color-surface-2); color:var(--color-fg); font-size:.63rem; }
+    .dashboard-inline-confirm .confirm-yes { color:var(--color-coral); }
+    .dashboard-empty { display:flex; min-height:5rem; flex-direction:column; align-items:center; justify-content:center; gap:.3rem; padding:1.1rem .7rem; border:1px dashed var(--color-line); border-radius:var(--radius-sm); color:var(--color-muted); font-size:.75rem; line-height:1.45; text-align:center; }
+    .dashboard-empty strong { display:block; margin:0; color:var(--color-fg); }
+    .dashboard-empty .btn-primary { display:inline-flex; min-height:2.2rem; align-items:center; justify-content:center; margin:.35rem 0 0; padding:.45rem .85rem; line-height:1.2; text-decoration:none; white-space:nowrap; }
+    .dashboard-skeleton { min-height:6.15rem; border-radius:var(--radius-md); background:linear-gradient(90deg,var(--color-surface-2),var(--color-muted-bg),var(--color-surface-2)); background-size:200% 100%; animation:dashboard-shimmer 1.4s linear infinite; }
+    .dashboard-skeleton-row { min-height:3rem; margin:.4rem 0; border-radius:var(--radius-sm); }
+    @keyframes dashboard-shimmer { to { background-position:-200% 0; } }
+    .dashboard-error { margin-top:.75rem; padding:.85rem; border:1px solid color-mix(in srgb,var(--color-coral) 35%,var(--color-line)); border-radius:var(--radius-sm); color:var(--color-coral); font-size:.75rem; }
+    .dashboard-error button { margin-left:.5rem; }
+    .app-toast { position:fixed; right:1rem; bottom:1rem; z-index:100; max-width:min(26rem,calc(100vw - 2rem)); padding:.75rem 1rem; border:1px solid var(--color-line); border-radius:var(--radius-md); background:var(--color-surface); color:var(--color-fg); box-shadow:0 8px 24px color-mix(in srgb,var(--color-fg) 14%,transparent); font-size:.78rem; }
+    .app-toast.error { border-color:var(--color-coral); }
+    #queueDate { max-width:12rem; }
+    @media(max-width:1000px) { .dashboard-stats { grid-template-columns:repeat(3,minmax(0,1fr)); } .dashboard-columns { grid-template-columns:1fr; } }
+    @media(max-width:760px) { #desk.card { padding:.85rem; } #desk .dashboard-heading { align-items:flex-start; flex-direction:column; gap:.65rem; padding:.1rem 0 .8rem; } .dashboard-heading-actions { width:100%; } .dashboard-stats { grid-template-columns:repeat(2,minmax(0,1fr)); gap:.45rem; } .dashboard-stat { min-height:5.3rem; padding:.65rem; } .dashboard-stat-value { font-size:1.45rem; } .dashboard-quick-stats { grid-template-columns:repeat(2,minmax(0,1fr)); } .dashboard-recent-heading { flex-direction:column; } .dashboard-next-feature { grid-template-columns:2.8rem minmax(0,1fr); } .dashboard-thumb { width:2.8rem; height:2.8rem; } .dashboard-next-feature>.dashboard-actions { grid-column:2; justify-content:flex-start; } .toolbar { flex-direction:column; } .toolbar>* { max-width:none; } #queueDate { max-width:none; } }
+    @media(max-width:380px) { #desk.card { padding:.65rem; } .dashboard-stat-label { font-size:.62rem; } .dashboard-stat-hint { font-size:.59rem; } .dashboard-panel { padding:.7rem; } .dashboard-day { min-width:4.5rem; } .dashboard-fail-top { flex-direction:column; } .dashboard-alert { align-items:flex-start; } }
   </style>
 </head>
 
@@ -2693,36 +2807,46 @@
         </a>
       </div>
     </header>
+    <div id="appToast" class="app-toast" role="status" aria-live="polite" hidden></div>
     <main>
       <!-- Desk: overview -->
       <section id="desk" class="card active">
         <div class="page-heading dashboard-heading">
-          <div>
-            <h2>Studio desk</h2>
-            <p>Keep an eye on your schedule, publishing progress, and recent uploads.</p>
-          </div>
+          <div><h2>Studio desk</h2><p>Publishing overview and next actions.</p></div>
           <div class="dashboard-heading-actions">
-            <span id="lastRefresh" aria-live="polite"></span>
+            <span id="lastRefresh" aria-live="polite">Loading…</span>
             <button type="button" class="btn-ghost" onclick="refreshQueue()">Refresh</button>
-            <a class="inline-link" href="#queue">View queue →</a>
             <button type="button" id="dashboardNewUpload" class="btn-primary">＋ Schedule video</button>
           </div>
         </div>
-        <div id="dashboardStats" class="stats-grid" aria-live="polite">
-          <div class="muted">Loading schedule…</div>
+        <div id="dashboardAlert" class="dashboard-alert" hidden></div>
+        <div id="dashboardStats" class="dashboard-stats" aria-label="Publishing summary">
+          <div class="dashboard-skeleton"></div><div class="dashboard-skeleton"></div><div class="dashboard-skeleton"></div><div class="dashboard-skeleton"></div><div class="dashboard-skeleton"></div>
         </div>
-        <div class="dashboard-activity">
-          <div class="dashboard-activity-heading">
-            <div>
-              <h3>Recent activity</h3>
-              <p>Your latest scheduled and published videos</p>
-            </div>
-            <a class="inline-link" href="#history">View history →</a>
+        <div id="dashboardColumns" class="dashboard-columns">
+          <article class="dashboard-panel" id="dashboardUpNext">
+            <div class="dashboard-panel-heading"><div><h3>Up next</h3><p>Next scheduled uploads</p></div><a href="#queue" class="inline-link">Queue →</a></div>
+            <div id="dashboardNext"><div class="dashboard-skeleton dashboard-skeleton-row"></div></div>
+          </article>
+          <article class="dashboard-panel" id="dashboardAttention" hidden>
+            <div class="dashboard-panel-heading"><div><h3>Needs attention</h3><p>Failed uploads you can recover</p></div><span id="dashboardAttentionCount" class="pill failed"></span></div>
+            <div id="dashboardFailed"></div>
+          </article>
+        </div>
+        <article class="dashboard-panel dashboard-week-panel">
+          <div class="dashboard-panel-heading"><div><h3>This week</h3><p>Scheduled and published activity · local time</p></div><span id="dashboardWeekRange" class="muted"></span></div>
+          <div id="dashboardWeek" class="dashboard-week" aria-label="Publishing activity for the next seven days"></div>
+        </article>
+        <div id="dashboardQuickStats" class="dashboard-quick-stats"></div>
+        <article class="dashboard-panel dashboard-recent-panel">
+          <div class="dashboard-panel-heading dashboard-recent-heading">
+            <div><h3>Recent activity</h3><p>Your latest uploads and publishing events</p></div>
+            <div id="dashboardPlatformFilters" class="dashboard-filter-chips" role="group" aria-label="Filter recent activity by platform"></div>
           </div>
-          <div id="recentActivity" class="muted">Loading…</div>
-        </div>
+          <div id="recentActivity" class="dashboard-table-wrap"><div class="dashboard-skeleton dashboard-skeleton-row"></div><div class="dashboard-skeleton dashboard-skeleton-row"></div><div class="dashboard-skeleton dashboard-skeleton-row"></div></div>
+        </article>
+        <div id="dashboardError" class="dashboard-error" hidden></div>
       </section>
-
       <!-- Schedule -->
       <section id="compose" class="card">
         <div class="page-heading">
@@ -2944,9 +3068,11 @@
           <select id="queueStatus" class="field" aria-label="Filter queue by status">
             <option value="all">All active statuses</option>
             <option value="pending">Pending</option>
+            <option value="in_progress">In progress</option>
             <option value="processing">Processing</option>
             <option value="uploading">Uploading</option>
           </select>
+          <input id="queueDate" class="field" type="date" aria-label="Filter queue by scheduled date" />
         </div>
         <div id="jobs">
           <p class="muted">Loading…</p>
@@ -2963,6 +3089,11 @@
         <div class="toolbar">
           <input id="historySearch" class="field" type="search" placeholder="Search upload history"
             aria-label="Search upload history" />
+          <select id="historyStatus" class="field" aria-label="Filter history by status">
+            <option value="all">All history</option>
+            <option value="done">Published</option>
+            <option value="failed">Failed</option>
+          </select>
         </div>
         <div id="historyJobs">
           <p class="muted">Loading…</p>
@@ -3380,6 +3511,7 @@
         const list = await res.json();
         if (!res.ok || !Array.isArray(list)) throw new Error(list.error || "Could not load YouTube channels");
         window._channels = list;
+        if (Array.isArray(window._jobs)) renderQuickStats(window._jobs);
       /* Bulk-upload: populate the "Channels (multi)" select from active channels. */
       const bsel = $("bulkChannelsSelect");
       if (bsel) {
@@ -4067,102 +4199,263 @@
       return haystack.includes(query.trim().toLowerCase());
     }
 
-    function renderJobTable(list, showHistory = false) {
-      if (!list.length) return `<div class="empty"><h3>${showHistory ? "No upload history yet." : "Your queue is clear."}</h3>
-        <p>${showHistory ? "Completed and unsuccessful uploads will appear here." : "Scheduled uploads will appear here once you add a video."}</p></div>`;
-      const rows = list.map(j => {
-        const ts = j.scheduled_at ? new Date(j.scheduled_at * 1000).toLocaleString() : "—";
-        const cls = statusPillClass(j.status);
-        const publishLink = j.published_url
-          ? `<a href="${escape(j.published_url)}" target="_blank" rel="noopener noreferrer">View on ${j.platform === "facebook" ? "Facebook" : j.platform === "instagram" ? "Instagram" : "YouTube"}</a>`
-          : "—";
-        const actions = showHistory
-          ? publishLink
-          : `${j.status === "pending" ? `${j.platform === "youtube" ? `<button type="button" class="btn-ghost" onclick="openEdit('${escape(j.id)}')">Edit</button>` : ""}
-              <button type="button" class="btn-ghost" onclick="cancelJob('${escape(j.id)}')">Cancel</button>` : "—"}`;
-        return `<tr>
-          <td>${escape(j.title)}${j.source === "rotation" ? '<span class="tag rotation">rotation</span>' : ""}</td>
-          <td><span class="pill ${cls}"><span class="dot"></span>${statusLabel(j.status)}</span></td>
-          <td class="muted">${ts}</td>
-          <td class="muted">${escape((j.last_error || "").slice(0, 100)) || "—"}</td>
-          <td>${actions}</td>
-        </tr>`;
-      }).join("");
-      return `<div class="table-wrap"><table><thead><tr><th>Video</th><th>Status</th><th>Scheduled</th><th>${showHistory ? "Result" : "Last error"}</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    function cleanTitle(job) {
+      const name = String(job?.title || job?.filename || "Untitled video");
+      return name.replace(/\.[^.]+$/, "").replace(/(?:[_\s-]\d{10,})$/, "").replace(/_/g, " ").trim();
     }
+    function relTime(epochSeconds) {
+      if (!epochSeconds) return "—";
+      const seconds = Math.max(0, Math.floor(Date.now() / 1000 - Number(epochSeconds)));
+      if (seconds < 60) return "just now";
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return `${minutes} min${minutes === 1 ? "" : "s"} ago`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours} hr${hours === 1 ? "" : "s"} ago`;
+      const days = Math.floor(hours / 24);
+      if (days === 1) return "Yesterday";
+      if (days < 7) return `${days} days ago`;
+      return new Date(Number(epochSeconds) * 1000).toLocaleDateString();
+    }
+    function countdown(epochSeconds) {
+      const remaining = Math.max(0, Number(epochSeconds) - Math.floor(Date.now() / 1000));
+      if (!remaining) return "Due now";
+      const minutes = Math.ceil(remaining / 60);
+      const days = Math.floor(minutes / 1440);
+      const hours = Math.floor((minutes % 1440) / 60);
+      const rest = minutes % 60;
+      return `in ${days ? `${days}d ${hours}h` : hours ? `${hours}h ${rest}m` : `${rest}m`}`;
+    }
+    function platformLabel(job) {
+      if (job.platform === "facebook") return { name: "Facebook", icon: "f", destination: job.facebook_page_name || "Facebook Page" };
+      if (job.platform === "instagram") return { name: "Instagram", icon: "◎", destination: job.instagram_username ? `@${job.instagram_username}` : "Instagram account" };
+      const channel = (window._channels || []).find((item) => item.id === job.channel_id);
+      return { name: "YouTube", icon: "▶", destination: channel?.name || "YouTube channel" };
+    }
+    function toast(message, type = "success") {
+      const node = $("appToast");
+      if (!node) return;
+      node.textContent = message;
+      node.classList.toggle("error", type === "error");
+      node.hidden = false;
+      clearTimeout(window._dashboardToastTimer);
+      window._dashboardToastTimer = setTimeout(() => { node.hidden = true; }, 4000);
+    }
+    window.toast = toast;
 
-    function renderDashboard(list) {
+    function renderStats(list) {
       const counts = {
-        pending: list.filter(j => j.status === "pending").length,
-        processing: list.filter(j => ["processing", "uploading"].includes(j.status)).length,
-        done: list.filter(j => j.status === "done").length,
-        attention: list.filter(j => ["failed", "exhausted"].includes(j.status)).length,
-        rotation: list.filter(j => j.source === "rotation" && ["pending", "processing", "uploading"].includes(j.status)).length,
+        pending: list.filter((job) => job.status === "pending").length,
+        progress: list.filter((job) => ["processing", "uploading"].includes(job.status)).length,
+        done: list.filter((job) => job.status === "done").length,
+        failed: list.filter((job) => ["failed", "exhausted"].includes(job.status)).length,
+        rotation: list.filter((job) => job.source === "rotation" && ["pending", "processing", "uploading"].includes(job.status)).length,
       };
-      // Rotation badge on the Queue tab.
       const qc = $("queueCount");
       if (qc) qc.textContent = counts.rotation || "";
-      const metrics = [
-        { label: "Scheduled", value: counts.pending, hint: "Uploads waiting in your queue", href: "#queue", filter: "pending", icon: '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>' },
-        { label: "In progress", value: counts.processing, hint: "Currently being uploaded", href: "#queue", filter: "uploading", icon: '<path d="M12 3a9 9 0 1 0 9 9"/><path d="M12 7v5l3 2M19 3v5h-5"/>' },
-        { label: "Published", value: counts.done, hint: "Successfully published videos", href: "#history", filter: "done", icon: '<path d="M20 6 9 17l-5-5"/><circle cx="12" cy="12" r="9"/>' },
-        { label: "Needs attention", value: counts.attention, hint: "Failed uploads to review", href: "#history", filter: "attention", icon: '<path d="M12 9v4m0 4h.01"/><path d="m10.3 3.9-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.1l-8-14a2 2 0 0 0-3.4 0Z"/>' },
-        { label: "Rotation", value: counts.rotation, hint: "Active folder rotation uploads", href: "#rotation", icon: '<path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9A7 7 0 0 1 18 6l2 2M4 16l2 2a7 7 0 0 0 12.4-3"/>' },
+      const cards = [
+        { label: "Scheduled", value: counts.pending, hint: "Waiting to publish", href: "#queue", filter: "pending", icon: '<path d="M7 3v3m10-3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v13H4V6a1 1 0 0 1 1-1Z"/>' },
+        { label: "In progress", value: counts.progress, hint: "Uploading now", href: "#queue", filter: "in_progress", icon: '<path d="M12 3a9 9 0 1 0 9 9M12 7v5l3 2M19 3v5h-5"/>' },
+        { label: "Published", value: counts.done, hint: "Successfully published", href: "#history", filter: "done", icon: '<path d="m5 12 4 4L19 6"/>' },
+        { label: "Failed", value: counts.failed, hint: "Need review", href: "#history", filter: "failed", icon: '<path d="M12 8v5m0 4h.01M4 20h16L12 4 4 20Z"/>' },
+        { label: "Rotation", value: counts.rotation, hint: "Active rotation uploads", href: "#rotation", icon: '<path d="M20 7v5h-5M4 17v-5h5M5.6 9A7 7 0 0 1 18 6l2 2M4 16l2 2a7 7 0 0 0 12.4-3"/>' },
       ];
-      $("dashboardStats").innerHTML = metrics.map((metric) => `
-        <a class="stat-card" href="${metric.href}"${metric.filter ? ` data-dashboard-filter="${metric.filter}"` : ""} aria-label="${metric.label}: ${metric.value}. ${metric.hint}">
-          <div class="dashboard-stat-top">
-            <span class="stat-label">${metric.label}</span>
-            <span class="dashboard-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${metric.icon}</svg></span>
-          </div>
-          <div><div class="stat-value">${metric.value}</div><span class="dashboard-stat-hint">${metric.hint}</span></div>
+      $("dashboardStats").innerHTML = cards.map((card) => `
+        <a class="dashboard-stat" href="${card.href}" ${card.filter ? `data-dashboard-filter="${card.filter}"` : ""} aria-label="${card.label}: ${card.value}. ${card.hint}${card.value === 0 ? ". Schedule a video." : ""}">
+          <span class="dashboard-stat-head"><span class="dashboard-stat-label">${card.label}</span><span class="dashboard-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${card.icon}</svg></span></span>
+          <span><span class="dashboard-stat-value">${card.value}</span>${card.value === 0 ? '<span class="dashboard-stat-cta">＋ Schedule</span>' : ""}<span class="dashboard-stat-hint">${card.hint}</span></span>
         </a>`).join("");
-
-      const recent = [...list]
-        .filter((job) => job.status !== "deleted")
-        .sort((a, b) => (b.updated_at || b.created_at || 0) - (a.updated_at || a.created_at || 0))
-        .slice(0, 5);
-      $("recentActivity").innerHTML = recent.length
-        ? `<div class="table-wrap"><table><thead><tr><th>Video</th><th>Destination</th><th>Status</th><th>Updated</th></tr></thead><tbody>${recent.map(j => {
-          const destination = j.platform === "facebook" ? "Facebook Page"
-            : j.platform === "instagram" ? "Instagram"
-              : "YouTube";
-          const updated = j.updated_at ? new Date(j.updated_at * 1000) : null;
-          return `<tr>
-            <td><div class="dashboard-video-name" title="${escape(j.title)}">${escape(j.title)}${j.source === "rotation" ? '<span class="tag rotation">rotation</span>' : ""}</div></td>
-            <td><span class="dashboard-destination">${destination}</span></td>
-            <td><span class="pill ${statusPillClass(j.status)}"><span class="dot"></span>${statusLabel(j.status)}</span></td>
-            <td class="muted" title="${updated ? escape(updated.toLocaleString()) : ""}">${updated ? updated.toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : "—"}</td>
-          </tr>`;
-        }).join("")}</tbody></table></div>`
-        : `<div class="dashboard-activity-empty"><strong>Your activity will show up here</strong><p>Schedule a video to start filling your publishing calendar.</p><a class="inline-link" href="#compose">Create your first upload →</a></div>`;
+      return counts;
     }
-
+    function renderAlertBanner(failedJobs) {
+      const alert = $("dashboardAlert");
+      alert.hidden = !failedJobs.length;
+      if (failedJobs.length) alert.innerHTML = `<div class="dashboard-alert-copy"><span class="dashboard-alert-icon" aria-hidden="true">!</span><div><strong>${failedJobs.length} upload${failedJobs.length === 1 ? "" : "s"} need attention</strong><p>Review the failed uploads and retry when ready.</p></div></div><a href="#dashboardAttention" onclick="document.getElementById('dashboardAttention').scrollIntoView({behavior:'smooth'});return false;">Review ↓</a>`;
+    }
+    function dashboardThumb(job, compact = false) {
+      const label = compact ? "Video thumbnail" : `Preview ${cleanTitle(job)}`;
+      return job.filename
+        ? `<span class="${compact ? "dashboard-video-thumb" : "dashboard-thumb"}"><video muted playsinline preload="metadata" src="${API}/media/${encodeURIComponent(job.filename)}" aria-label="${escape(label)}"></video></span>`
+        : `<span class="${compact ? "dashboard-video-thumb" : "dashboard-thumb"}" aria-hidden="true">▶</span>`;
+    }
+    function renderUpNext(list) {
+      const upcoming = list.filter((job) => job.status === "pending" && job.scheduled_at).sort((a, b) => a.scheduled_at - b.scheduled_at);
+      const host = $("dashboardNext");
+      if (!upcoming.length) {
+        host.innerHTML = '<div class="dashboard-empty"><strong>Nothing scheduled</strong><span>Your queue is clear for now.</span><a class="btn-primary" href="#compose">＋ Schedule video</a></div>';
+        return;
+      }
+      const job = upcoming[0];
+      const destination = platformLabel(job);
+      const absolute = new Date(job.scheduled_at * 1000);
+      host.innerHTML = `<div class="dashboard-next-feature">
+        ${dashboardThumb(job)}
+        <div><div class="dashboard-title" title="${escape(job.title)}">${escape(cleanTitle(job))}</div><div class="dashboard-sub">${escape(destination.icon)} ${escape(destination.name)} · ${escape(destination.destination)} · ${escape(absolute.toLocaleString())}</div><div class="dashboard-countdown" data-dashboard-countdown="${job.scheduled_at}">${countdown(job.scheduled_at)}</div></div>
+        <div class="dashboard-actions"><button type="button" class="btn-ghost" onclick="openEdit('${escape(job.id)}')">Edit</button><button type="button" class="btn-ghost" onclick="cancelJob('${escape(job.id)}',this)">Cancel</button></div>
+      </div>${upcoming.length > 1 ? `<ul class="dashboard-upcoming">${upcoming.slice(1, 4).map((item) => `<li><span class="dashboard-title" title="${escape(item.title)}">${escape(cleanTitle(item))}</span><time title="${escape(new Date(item.scheduled_at * 1000).toLocaleString())}">${escape(new Date(item.scheduled_at * 1000).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }))}</time></li>`).join("")}</ul>` : ""}`;
+    }
+    function renderFailed(failedJobs) {
+      const panel = $("dashboardAttention");
+      panel.hidden = !failedJobs.length;
+      $("dashboardAttentionCount").innerHTML = `<span class="dot"></span>${failedJobs.length} failed`;
+      $("dashboardColumns").classList.toggle("no-attention", !failedJobs.length);
+      if (!failedJobs.length) { $("dashboardFailed").innerHTML = ""; return; }
+      $("dashboardFailed").innerHTML = `<div class="dashboard-fail-list">${failedJobs.map((job) => `<div class="dashboard-fail-item">
+        <div class="dashboard-fail-top"><strong class="dashboard-title" title="${escape(job.title)}">${escape(cleanTitle(job))}</strong><span class="pill ${statusPillClass(job.status)}"><span class="dot"></span>${statusLabel(job.status)}</span></div>
+        <p class="dashboard-fail-error" title="${escape(job.last_error || "Upload failed")}">${escape((job.last_error || "Upload failed").slice(0, 120))}${(job.last_error || "").length > 120 ? "…" : ""}</p>
+        <div class="dashboard-fail-meta">${escape(platformLabel(job).name)}${job.retry_count ? ` · ${Number(job.retry_count)} attempt${Number(job.retry_count) === 1 ? "" : "s"}` : ""} · ${escape(relTime(job.updated_at || job.created_at))}</div>
+        <div class="dashboard-actions"><button type="button" class="btn-primary" onclick="retryJob('${escape(job.id)}')">Retry</button><button type="button" class="btn-ghost" onclick="openEdit('${escape(job.id)}')">Edit</button><button type="button" class="btn-ghost" onclick="dismissJob('${escape(job.id)}',this)">Dismiss</button></div>
+      </div>`).join("")}</div>`;
+    }
+    function localDateKey(date) {
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    }
+    function jobActivityDay(job) {
+      const value = job.status === "done" ? (job.updated_at || job.scheduled_at) : job.scheduled_at;
+      return value ? localDateKey(new Date(value * 1000)) : "";
+    }
+    function renderWeekStrip(list) {
+      const host = $("dashboardWeek");
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const days = Array.from({ length: 7 }, (_, index) => {
+        const day = new Date(today); day.setDate(today.getDate() + index);
+        const key = localDateKey(day);
+        const count = list.filter((job) => job.status !== "deleted" && jobActivityDay(job) === key).length;
+        const label = day.toLocaleDateString([], { weekday: "short" });
+        const date = day.toLocaleDateString([], { month: "short", day: "numeric" });
+        return `<button type="button" class="dashboard-day${index === 0 ? " today" : ""}" onclick="filterQueueByDate('${key}')" aria-label="${escape(day.toLocaleDateString([], { dateStyle: "full" }))}: ${count} upload${count === 1 ? "" : "s"}"><span class="dashboard-day-name">${escape(label)}${index === 0 ? " · Today" : ""}</span><strong class="dashboard-day-date">${escape(date)}</strong><span class="dashboard-day-count">${count ? `<i class="dashboard-day-dot" aria-hidden="true"></i>${count} item${count === 1 ? "" : "s"}` : "No posts"}</span></button>`;
+      });
+      host.innerHTML = days.join("");
+      const end = new Date(today); end.setDate(today.getDate() + 6);
+      $("dashboardWeekRange").textContent = `${today.toLocaleDateString([], { month: "short", day: "numeric" })} – ${end.toLocaleDateString([], { month: "short", day: "numeric" })}`;
+    }
+    function renderQuickStats(list) {
+      const now = Math.floor(Date.now() / 1000);
+      const done = list.filter((job) => job.status === "done");
+      const failed = list.filter((job) => ["failed", "exhausted"].includes(job.status));
+      const published7 = done.filter((job) => Number(job.updated_at || 0) >= now - 7 * 86400).length;
+      const denominator = done.length + failed.length;
+      const rate = denominator ? Math.round(done.length / denominator * 100) : null;
+      const occupied = new Set(list.filter((job) => job.status !== "deleted").map(jobActivityDay).filter(Boolean));
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      let nextFree = "No free day";
+      for (let index = 0; index < 7; index++) { const day = new Date(today); day.setDate(today.getDate() + index); if (!occupied.has(localDateKey(day))) { nextFree = day.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" }); break; } }
+      const activeChannel = (window._channels || []).find((channel) => channel.active);
+      const stats = [
+        ["Published · last 7 days", String(published7)],
+        ["Success rate", rate == null ? "—" : `${rate}%`],
+        ["Next free slot", nextFree],
+        ["Connected channel", activeChannel ? `${activeChannel.name}` : "No channels"],
+      ];
+      $("dashboardQuickStats").innerHTML = stats.map(([label, value], index) => `<div class="dashboard-quick-stat"><span>${label}</span><strong>${index === 3 && activeChannel ? '<i class="dashboard-channel-dot" aria-hidden="true"></i>' : ""}${escape(value)}</strong></div>`).join("");
+    }
+    let dashboardPlatformFilter = "all";
+    function renderRecent(list) {
+      const filters = ["all", "youtube", "facebook", "instagram"];
+      $("dashboardPlatformFilters").innerHTML = filters.map((platform) => `<button type="button" class="dashboard-filter-chip" aria-pressed="${dashboardPlatformFilter === platform}" data-platform-filter="${platform}">${platform === "all" ? "All" : platform[0].toUpperCase() + platform.slice(1)}</button>`).join("");
+      const recent = list.filter((job) => job.status !== "deleted")
+        .filter((job) => dashboardPlatformFilter === "all" || (job.platform || "youtube") === dashboardPlatformFilter)
+        .sort((a, b) => Number(b.updated_at || b.created_at || 0) - Number(a.updated_at || a.created_at || 0)).slice(0, 8);
+      if (!recent.length) {
+        $("recentActivity").innerHTML = `<div class="dashboard-empty"><strong>${dashboardPlatformFilter === "all" ? "No recent activity yet" : `No ${escape(dashboardPlatformFilter)} activity yet`}</strong><span>Schedule your first video to see publishing activity here.</span><a class="btn-primary" href="#compose">＋ Schedule video</a></div>`;
+        return;
+      }
+      const titleCounts = new Map();
+      recent.forEach((job) => { const key = cleanTitle(job).toLowerCase(); titleCounts.set(key, (titleCounts.get(key) || 0) + 1); });
+      const seenTitles = new Map();
+      const rows = recent.map((job) => {
+        const platform = platformLabel(job);
+        const updatedSeconds = Number(job.updated_at || job.created_at || 0);
+        const updated = updatedSeconds ? new Date(updatedSeconds * 1000) : null;
+        const key = cleanTitle(job).toLowerCase();
+        const duplicateIndex = (seenTitles.get(key) || 0) + 1; seenTitles.set(key, duplicateIndex);
+        const duplicate = titleCounts.get(key) > 1 ? `<span class="dashboard-duplicate">#${duplicateIndex}</span>` : "";
+        const scheduled = job.scheduled_at ? new Date(job.scheduled_at * 1000).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : "";
+        const title = job.published_url && job.status === "done"
+          ? `<a class="dashboard-video-title" href="${escape(job.published_url)}" target="_blank" rel="noopener noreferrer" title="${escape(job.title)}">${escape(cleanTitle(job))}</a>`
+          : `<span class="dashboard-video-title" title="${escape(job.title)}">${escape(cleanTitle(job))}</span>`;
+        const actions = `<details class="dashboard-menu"><summary aria-label="Actions for ${escape(cleanTitle(job))}">⋯</summary><div class="dashboard-menu-items">${job.published_url ? `<a href="${escape(job.published_url)}" target="_blank" rel="noopener noreferrer">View on ${escape(platform.name)}</a>` : ""}${job.status === "pending" ? `<button type="button" onclick="openEdit('${escape(job.id)}')">Edit</button><button type="button" onclick="cancelJob('${escape(job.id)}',this)">Cancel</button>` : ""}${["failed", "exhausted"].includes(job.status) ? `<button type="button" onclick="retryJob('${escape(job.id)}')">Retry</button>` : ""}<button type="button" ${job.published_url ? `onclick="copyPublishedLink('${escape(job.published_url)}')"` : "disabled title=\"No published link available\""}>Copy link</button></div></details>`;
+        return `<tr><td><div class="dashboard-video-cell">${dashboardThumb(job, true)}<div class="dashboard-video-title-wrap">${title}${duplicate}${scheduled ? `<small class="dashboard-video-meta">Scheduled ${escape(scheduled)}</small>` : ""}</div></div></td><td><span class="dashboard-platform"><span aria-hidden="true">${escape(platform.icon)}</span> ${escape(platform.name)} · ${escape(platform.destination)}</span></td><td><span class="pill ${statusPillClass(job.status)}"><span class="dot"></span>${statusLabel(job.status)}</span></td><td title="${updated ? escape(updated.toLocaleString()) : ""}">${escape(relTime(updatedSeconds))}</td><td>${actions}</td></tr>`;
+      });
+      $("recentActivity").innerHTML = `<table class="dashboard-table"><thead><tr><th>Video</th><th>Destination</th><th>Status</th><th>Updated</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody>${rows.join("")}</tbody></table>`;
+    }
+    function renderDashboard(list) {
+      const failedJobs = list.filter((job) => ["failed", "exhausted"].includes(job.status)).sort((a, b) => Number(b.updated_at || 0) - Number(a.updated_at || 0));
+      renderStats(list);
+      renderAlertBanner(failedJobs);
+      renderUpNext(list);
+      renderFailed(failedJobs);
+      renderWeekStrip(list);
+      renderQuickStats(list);
+      renderRecent(list);
+    }
+    function updateDashboardCountdowns() {
+      document.querySelectorAll("[data-dashboard-countdown]").forEach((node) => { node.textContent = countdown(node.dataset.dashboardCountdown); });
+    }
+    function filterQueueByDate(date) {
+      $("queueStatus").value = "all";
+      $("queueSearch").value = "";
+      $("queueDate").value = date;
+      location.hash = "#queue";
+      renderQueue(window._jobs || []);
+    }
+    window.filterQueueByDate = filterQueueByDate;
     $("dashboardNewUpload")?.addEventListener("click", () => { location.hash = "#compose"; });
     $("dashboardStats")?.addEventListener("click", (event) => {
       const card = event.target.closest("[data-dashboard-filter]");
       if (!card) return;
       const filter = card.dataset.dashboardFilter;
-      if (filter === "done" || filter === "attention") {
+      if (card.getAttribute("href") === "#history") {
+        $("historyStatus").value = filter;
         $("historySearch").value = "";
-        return;
+        renderHistory(window._jobs || []);
+      } else if (card.getAttribute("href") === "#queue") {
+        $("queueStatus").value = filter;
+        $("queueSearch").value = "";
+        $("queueDate").value = "";
+        renderQueue(window._jobs || []);
       }
-      $("queueStatus").value = filter;
-      $("queueSearch").value = "";
+    });
+    $("dashboardPlatformFilters")?.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-platform-filter]");
+      if (!button) return;
+      dashboardPlatformFilter = button.dataset.platformFilter;
+      renderRecent(window._jobs || []);
     });
 
+    function renderJobTable(list, showHistory = false) {
+      if (!list.length) return `<div class="empty"><h3>${showHistory ? "No matching upload history." : "Your queue is clear."}</h3><p>${showHistory ? "Change the filters or publish a video to see activity here." : "Schedule a video and it will appear here."}</p>${showHistory ? "" : '<a class="inline-link" href="#compose">＋ Schedule video</a>'}</div>`;
+      const rows = list.map((job) => {
+        const timestamp = job.scheduled_at ? new Date(job.scheduled_at * 1000).toLocaleString() : "—";
+        const platform = platformLabel(job);
+        const actions = `<div class="queue-row-actions">${job.published_url ? `<a href="${escape(job.published_url)}" target="_blank" rel="noopener noreferrer">View on ${escape(platform.name)}</a>` : ""}${job.status === "pending" ? `<button type="button" class="btn-ghost" onclick="openEdit('${escape(job.id)}')">Edit</button><button type="button" class="btn-ghost" onclick="cancelJob('${escape(job.id)}',this)">Cancel</button>` : ""}${["failed", "exhausted"].includes(job.status) ? `<button type="button" class="btn-ghost" onclick="retryJob('${escape(job.id)}')">Retry</button>` : ""}${!job.published_url && !["pending", "failed", "exhausted"].includes(job.status) ? "—" : ""}</div>`;
+        return `<tr><td>${escape(job.title)}${job.source === "rotation" ? '<span class="tag rotation">rotation</span>' : ""}</td><td><span class="pill ${statusPillClass(job.status)}"><span class="dot"></span>${statusLabel(job.status)}</span></td><td class="muted">${escape(timestamp)}</td><td class="muted" title="${escape(job.last_error || "")}">${escape((job.last_error || "").slice(0, 120)) || "—"}</td><td>${actions}</td></tr>`;
+      }).join("");
+      return `<div class="table-wrap"><table><thead><tr><th>Video</th><th>Status</th><th>Scheduled</th><th>${showHistory ? "Result" : "Last error"}</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    }
+
+    function matchesLocalDate(epochSeconds, dateValue) {
+      if (!dateValue) return true;
+      return epochSeconds ? localDateKey(new Date(Number(epochSeconds) * 1000)) === dateValue : false;
+    }
     function renderQueue(list) {
-      const active = list.filter(j => ["pending", "processing", "uploading"].includes(j.status));
+      const active = list.filter((job) => ["pending", "processing", "uploading"].includes(job.status));
       const status = $("queueStatus").value;
       const query = $("queueSearch").value;
-      const filtered = active.filter(j => (status === "all" || j.status === status) && jobMatchesSearch(j, query));
+      const date = $("queueDate").value;
+      const filtered = active.filter((job) => {
+        const statusMatch = status === "all" || (status === "in_progress" ? ["processing", "uploading"].includes(job.status) : job.status === status);
+        return statusMatch && matchesLocalDate(job.scheduled_at, date) && jobMatchesSearch(job, query);
+      }).sort((a, b) => Number(a.scheduled_at || 0) - Number(b.scheduled_at || 0));
       $("jobs").innerHTML = renderJobTable(filtered);
     }
 
     function renderHistory(list) {
-      const history = list.filter(j => ["done", "failed", "exhausted", "deleted"].includes(j.status));
-      const filtered = history.filter(j => jobMatchesSearch(j, $("historySearch").value))
-        .sort((a, b) => (b.updated_at || b.created_at || 0) - (a.updated_at || a.created_at || 0));
+      const status = $("historyStatus").value;
+      const history = list.filter((job) => ["done", "failed", "exhausted", "deleted"].includes(job.status));
+      const filtered = history.filter((job) => {
+        const statusMatch = status === "all" || (status === "failed" ? ["failed", "exhausted"].includes(job.status) : job.status === status);
+        return statusMatch && jobMatchesSearch(job, $("historySearch").value);
+      }).sort((a, b) => Number(b.updated_at || b.created_at || 0) - Number(a.updated_at || a.created_at || 0));
       $("historyJobs").innerHTML = renderJobTable(filtered, true);
     }
 
@@ -4179,36 +4472,95 @@
     }
 
     async function loadJobs({ refreshMedia = false } = {}) {
-      const res = await api(`${API}/videos`);
-      const list = await res.json();
-      window._jobs = list;
-      renderDashboard(list);
-      renderQueue(list);
-      renderHistory(list);
-      if (refreshMedia || location.hash !== "#media") renderMedia(list);
-      // Stamp the last successful refresh so stale data is visible at a glance.
-      // NOTE: we deliberately do NOT auto-poll /api/videos — the worker is what
-      // talks to the YouTube Data API (quota-burning), and a timer here would
-      // only re-read local job rows. Refresh is manual via the Desk/Queue button.
-      const stamp = $("lastRefresh");
-      if (stamp) stamp.textContent = `Updated ${new Date().toLocaleTimeString()}`;
+      try {
+        const res = await api(`${API}/videos`);
+        const list = await res.json();
+        if (!res.ok || !Array.isArray(list)) throw new Error(list.error || "Could not load uploads");
+        window._jobs = list;
+        renderDashboard(list);
+        renderQueue(list);
+        renderHistory(list);
+        if (refreshMedia || location.hash !== "#media") renderMedia(list);
+        const stamp = $("lastRefresh");
+        if (stamp) stamp.textContent = `Updated ${new Date().toLocaleTimeString()}`;
+        $("dashboardError").hidden = true;
+        return list;
+      } catch (error) {
+        if (error.message === "not authenticated") return null;
+        const errorBox = $("dashboardError");
+        errorBox.hidden = false;
+        errorBox.innerHTML = `Could not load uploads: ${escape(error.message)} <button type="button" class="btn-ghost" onclick="loadJobs()">Retry</button>`;
+        if (!Array.isArray(window._jobs)) {
+          $("dashboardStats").innerHTML = "";
+          $("dashboardNext").innerHTML = '<div class="dashboard-empty">Dashboard data is temporarily unavailable.</div>';
+          $("recentActivity").innerHTML = '<div class="dashboard-empty">Activity could not be loaded.</div>';
+        }
+        toast(`Could not refresh uploads: ${error.message}`, "error");
+        return null;
+      }
     }
 
-    window.cancelJob = async (id) => {
-      if (!window.confirm("Cancel this scheduled upload?")) return;
+    function showInlineConfirm(button, prompt, onConfirm) {
+      const host = button.parentElement;
+      host.querySelector(".dashboard-inline-confirm")?.remove();
+      const popover = document.createElement("div");
+      popover.className = "dashboard-inline-confirm";
+      const message = document.createElement("span");
+      message.textContent = prompt;
+      const confirm = document.createElement("button");
+      confirm.className = "confirm-yes";
+      confirm.type = "button";
+      confirm.textContent = "Confirm";
+      const cancel = document.createElement("button");
+      cancel.type = "button";
+      cancel.textContent = "Keep";
+      cancel.addEventListener("click", () => popover.remove());
+      confirm.addEventListener("click", async () => { popover.remove(); await onConfirm(); });
+      popover.append(message, confirm, cancel);
+      button.after(popover);
+      confirm.focus();
+    }
+    async function deleteJob(id, message) {
       try {
         const res = await api(`${API}/videos/${encodeURIComponent(id)}`, { method: "DELETE" });
         const result = await res.json();
         if (!res.ok) throw new Error(result.error || "Could not cancel upload");
         await loadJobs();
+        toast(message);
       } catch (error) {
-        window.alert(error.message || "Could not cancel upload");
+        toast(error.message || "Could not update upload", "error");
+      }
+    }
+    window.cancelJob = (id, button) => {
+      if (!button) return toast("Use the Cancel action beside the scheduled upload.", "error");
+      showInlineConfirm(button, "Cancel upload?", () => deleteJob(id, "Upload cancelled."));
+    };
+    window.dismissJob = (id, button) => showInlineConfirm(button, "Dismiss failed upload?", () => deleteJob(id, "Upload dismissed from attention. It remains in History."));
+    window.retryJob = async (id) => {
+      try {
+        const res = await api(`${API}/videos/${encodeURIComponent(id)}/retry`, { method: "POST" });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error || "Could not retry upload");
+        await loadJobs();
+        toast("Retry scheduled for two minutes from now.");
+      } catch (error) {
+        toast(error.message || "Could not retry upload", "error");
+      }
+    };
+    window.copyPublishedLink = async (url) => {
+      try {
+        await navigator.clipboard.writeText(url);
+        toast("Published link copied.");
+      } catch {
+        toast("Could not copy the link. Open the published video and copy its address.", "error");
       }
     };
 
     $("queueSearch").addEventListener("input", () => renderQueue(window._jobs || []));
     $("queueStatus").addEventListener("change", () => renderQueue(window._jobs || []));
+    $("queueDate").addEventListener("change", () => renderQueue(window._jobs || []));
     $("historySearch").addEventListener("input", () => renderHistory(window._jobs || []));
+    $("historyStatus").addEventListener("change", () => renderHistory(window._jobs || []));
 
     // ---- Edit a scheduled job ----
     let _editingId = null;
@@ -4824,17 +5176,24 @@
     };
     folderAutoRefresh.addEventListener("change", syncFolderAutoRefresh);
     syncFolderAutoRefresh();
-    // Jobs are refreshed manually via the Desk/Queue "Refresh" buttons. We do NOT
-    // auto-poll GET /api/videos on a 4s timer: the worker is what talks to the
-    // YouTube Data API (quota-burning) and a short /videos timer only re-reads
-    // local rows while risking noise. A single re-fetch on tab focus keeps the
-    // Desk current without any polling.
+    // Poll local job rows only while the visible Studio Desk has active work.
+    // This does not call any YouTube API; the worker owns all platform requests.
+    setInterval(() => {
+      updateDashboardCountdowns();
+      const activeWork = (window._jobs || []).some((job) => ["pending", "processing", "uploading"].includes(job.status));
+      if (document.visibilityState === "visible" && location.hash === "#desk" && activeWork) loadJobs();
+    }, 30000);
     let focusTicking = false;
     const refreshOnFocus = () => {
-      if (!focusTicking) { focusTicking = true; loadJobs(); loadChannels(); setTimeout(() => (focusTicking = false), 1500); }
+      if (!focusTicking) {
+        focusTicking = true;
+        if (location.hash === "#desk") loadJobs();
+        loadChannels();
+        setTimeout(() => (focusTicking = false), 1500);
+      }
     };
     window.addEventListener("focus", refreshOnFocus);
-    document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshOnFocus(); });
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && location.hash === "#desk") refreshOnFocus(); });
     if (location.hash === "#rotation") loadFolders();
     if (location.hash === "#explorer") loadExplorerTables();
     window.addEventListener("hashchange", () => {
