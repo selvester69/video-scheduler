@@ -1115,6 +1115,53 @@
       max-width: 18rem;
     }
 
+    .audit-log-table {
+      min-width: 62rem !important;
+    }
+
+    .audit-log-destination {
+      display: block;
+      margin-top: .2rem;
+      color: var(--color-muted);
+      font-size: .75rem;
+    }
+
+    .audit-log-details {
+      min-width: 4rem;
+    }
+
+    .audit-log-details summary {
+      color: var(--color-signal);
+      cursor: pointer;
+    }
+
+    .audit-log-details > div {
+      position: absolute;
+      z-index: 3;
+      width: min(28rem, calc(100vw - 3rem));
+      max-height: 18rem;
+      overflow: auto;
+      margin-top: .35rem;
+      padding: .7rem;
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface);
+      box-shadow: 0 8px 22px rgba(15, 23, 42, .16);
+      color: var(--color-fg);
+      font-size: .78rem;
+      overflow-wrap: anywhere;
+    }
+
+    .audit-log-details > div > div + div {
+      margin-top: .35rem;
+    }
+
+    .audit-log-details a {
+      display: inline-block;
+      margin-top: .5rem;
+      color: var(--color-signal);
+    }
+
     .table-wrap {
       overflow-x: auto;
     }
@@ -1128,6 +1175,76 @@
       grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
       gap: 1rem;
     }
+
+    .media-library-source-tabs {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      margin: .75rem 0 1rem;
+    }
+
+    .media-library-source-tabs .active {
+      border-color: var(--color-signal);
+      color: var(--color-signal);
+    }
+
+    .media-library-toolbar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+      gap: .8rem;
+      margin: 0 0 1rem;
+      padding: 1rem;
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-2);
+    }
+
+    .media-filter-field { display: grid; align-content: start; gap: .35rem; min-width: 0; }
+    .media-filter-field > label { color: var(--color-muted); font-size: .75rem; font-weight: 600; }
+    .media-filter-field .field { width: 100%; min-width: 0; }
+
+    .media-library-table-wrap { overflow-x: auto; border: 1px solid var(--color-line); border-radius: var(--radius-md); }
+    .media-library-table { width: 100%; min-width: 58rem; border-collapse: collapse; }
+    .media-library-table th, .media-library-table td { padding: .8rem .9rem; border-bottom: 1px solid var(--color-line); text-align: left; vertical-align: middle; }
+    .media-library-table th { color: var(--color-muted); background: var(--color-surface-2); font-size: .72rem; letter-spacing: .035em; text-transform: uppercase; }
+    .media-library-table tbody tr:last-child td { border-bottom: 0; }
+    .media-library-table .media-name { min-width: 12rem; color: var(--color-fg); font-weight: 600; overflow-wrap: anywhere; }
+    .media-library-table .media-description { min-width: 14rem; max-width: 25rem; color: var(--color-muted); overflow-wrap: anywhere; }
+    .media-library-table .media-date, .media-library-table .media-destination { white-space: nowrap; color: var(--color-muted); font-size: .8rem; }
+    .media-sort-button { padding: 0; border: 0; color: inherit; background: transparent; font: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer; }
+    .media-eye-link { display: inline-grid; width: 2.25rem; height: 2.25rem; place-items: center; border: 1px solid var(--color-line); border-radius: var(--radius-sm); color: var(--color-fg); }
+    .media-eye-link:hover { border-color: var(--color-signal); color: var(--color-signal); }
+    .media-eye-link svg { width: 1.1rem; height: 1.1rem; }
+    .media-table-pagination { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem; margin-top: .8rem; }
+    .media-table-pagination > label { display: flex; align-items: center; gap: .5rem; color: var(--color-muted); font-size: .8rem; }
+    .media-table-pagination .field { width: auto; min-width: 4.5rem; padding: .4rem .6rem; }
+    .media-sort-controls { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+
+    .media-remote-pager, .media-edit-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .75rem;
+      margin-top: 1rem;
+    }
+
+    .media-library-table .media-edit-button { margin-top: .35rem; padding: .3rem .5rem; font-size: .72rem; }
+
+    .media-edit-dialog {
+      width: min(36rem, calc(100vw - 2rem));
+      max-height: min(90vh, 48rem);
+      padding: 0;
+      border: 1px solid var(--color-line);
+      border-radius: var(--radius-lg);
+      color: var(--color-fg);
+      background: var(--color-surface);
+      box-shadow: 0 1.5rem 4rem #0004;
+    }
+
+    .media-edit-dialog::backdrop { background: #10182888; }
+    .media-edit-form { display: grid; gap: .65rem; padding: 1.25rem; }
+    .media-edit-form h2 { margin: 0; }
+    .media-edit-actions { justify-content: flex-end; }
 
     .media-card {
       min-width: 0;
@@ -1226,6 +1343,15 @@
       }
 
       .toolbar>* {
+        max-width: none;
+      }
+
+      .media-library-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .media-library-toolbar > select {
         max-width: none;
       }
 
@@ -2737,6 +2863,13 @@
         </svg>
         History
       </a>
+      <a href="#audit-log" data-section="Audit Log" class="tablink" aria-label="Audit Log">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M8 3h8l4 4v14H4V3z" />
+          <path d="M8 12h8M8 16h8M8 8h3" />
+        </svg>
+        Audit Log
+      </a>
       <a href="#insights" data-section="Insights" class="tablink" aria-label="Insights">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M4 19V5M4 19h17" />
@@ -3085,6 +3218,7 @@
             <h2>Upload history</h2>
             <p class="muted">Browse completed and past upload attempts.</p>
           </div>
+          <button type="button" id="clearHistory" class="btn-ghost">Clean history</button>
         </div>
         <div class="toolbar">
           <input id="historySearch" class="field" type="search" placeholder="Search upload history"
@@ -3096,6 +3230,30 @@
           </select>
         </div>
         <div id="historyJobs">
+          <p class="muted">Loading…</p>
+        </div>
+      </section>
+
+      <section id="audit-log" class="card">
+        <div class="page-heading">
+          <div>
+            <h2>Audit Log</h2>
+            <p class="muted">Persistent upload records with publishing status, destination, timing, and results. Cleaning History does not remove these records.</p>
+          </div>
+        </div>
+        <div class="toolbar">
+          <input id="auditSearch" class="field" type="search" placeholder="Search upload records"
+            aria-label="Search audit log" />
+          <select id="auditStatus" class="field" aria-label="Filter audit log by status">
+            <option value="all">All statuses</option>
+            <option value="done">Published</option>
+            <option value="failed">Failed</option>
+            <option value="pending">Pending</option>
+            <option value="uploading">In progress</option>
+            <option value="deleted">Deleted</option>
+          </select>
+        </div>
+        <div id="auditLogRecords">
           <p class="muted">Loading…</p>
         </div>
       </section>
@@ -3159,16 +3317,24 @@
             </article>
           </div>
         </div>
-        <div id="facebookInsights" class="insights-panel" role="tabpanel" hidden>
-          <div class="insights-facebook-state">
-            <div>
-              <span class="insights-facebook-icon" aria-hidden="true">f</span>
-              <h3>Facebook Page insights</h3>
-              <p>Facebook Page analytics aren’t connected in this workspace yet. Connect a Meta app and Page with
-                Insights permissions to show views, comments, reach, and engagement here.</p>
-              <span class="pill"><span class="dot"></span>Not connected</span>
-            </div>
+        <div id="facebookInsights" class="insights-facebook" role="tabpanel" hidden>
+          <div class="insights-toolbar">
+            <span id="facebookInsightsRange" class="muted">Lifetime views for videos published by Castline in the selected range</span>
+            <select id="facebookInsightsPage" class="field" aria-label="Filter by Facebook Page">
+              <option value="">All Pages</option>
+            </select>
           </div>
+          <div id="facebookInsightsStatus" class="muted" aria-live="polite"></div>
+          <div class="insights-kpis">
+            <div class="insights-kpi"><span>Lifetime video views</span><strong id="facebookInsightViews">—</strong></div>
+            <div class="insights-kpi"><span>Published videos</span><strong id="facebookInsightVideos">—</strong></div>
+            <div class="insights-kpi"><span>Pages with data</span><strong id="facebookInsightPages">—</strong></div>
+          </div>
+          <article class="insights-panel">
+            <h3>Published video performance</h3>
+            <p class="muted">Lifetime view counts for videos published by Castline during the selected date range.</p>
+            <div id="facebookInsightsTable"></div>
+          </article>
         </div>
       </section>
 
@@ -3176,13 +3342,73 @@
         <div class="page-heading">
           <div>
             <h2>Video library</h2>
-            <p class="muted">Preview staged video files attached to your scheduled and completed jobs.</p>
+            <p class="muted">Browse Castline files or load published videos from connected platforms. Edit published details where the platform API allows it.</p>
           </div>
         </div>
-        <div id="mediaLibrary" class="media-grid">
+        <div class="media-library-source-tabs" role="group" aria-label="Video source">
+          <button type="button" id="mediaLocalSource" class="btn-ghost active" aria-pressed="true">Castline files</button>
+          <button type="button" id="mediaPublishedSource" class="btn-ghost" aria-pressed="false">Published platform library</button>
+          <button type="button" id="mediaRefreshRemote" class="btn-ghost" hidden aria-label="Refresh videos from platforms" title="Refresh videos from platforms">↻ Refresh</button>
+        </div>
+        <div class="media-library-toolbar">
+          <div class="media-filter-field">
+            <label for="mediaPlatformFilter">Platform</label>
+            <select id="mediaPlatformFilter" class="field">
+            <option value="all">All platforms</option>
+            <option value="youtube">YouTube</option>
+            <option value="instagram">Instagram</option>
+            <option value="facebook">Facebook</option>
+            </select>
+          </div>
+          <div class="media-filter-field">
+            <label for="mediaDestinationFilter">Where uploaded</label>
+            <select id="mediaDestinationFilter" class="field"><option value="all">All channels and accounts</option></select>
+          </div>
+          <div class="media-filter-field">
+            <label for="mediaStatusFilter">Status</label>
+            <select id="mediaStatusFilter" class="field">
+              <option value="all">All statuses</option><option value="done">Published</option>
+              <option value="pending">Scheduled</option><option value="uploading">Uploading</option>
+              <option value="failed">Failed</option><option value="exhausted">Needs attention</option>
+            </select>
+          </div>
+          <div class="media-filter-field media-date-filter">
+            <label for="mediaDateFrom">Date from</label><input id="mediaDateFrom" class="field" type="date" />
+          </div>
+          <div class="media-filter-field media-date-filter">
+            <label for="mediaDateTo">Date to</label><input id="mediaDateTo" class="field" type="date" />
+          </div>
+        </div>
+        <div id="mediaLibrary" class="media-library-table-wrap">
           <p class="muted">Loading…</p>
         </div>
+        <div id="mediaRemotePager" class="media-remote-pager" hidden>
+          <span id="mediaRemoteStatus" class="muted" aria-live="polite"></span>
+          <button type="button" id="mediaLoadMore" class="btn-ghost" hidden>Load more</button>
+        </div>
+        <div id="mediaTablePagination" class="media-table-pagination" hidden>
+          <label>Rows per page <select id="mediaPageSize" class="field"><option>10</option><option>20</option><option>50</option></select></label>
+          <span id="mediaPageStatus" class="muted" aria-live="polite"></span>
+          <div><button type="button" id="mediaPrevPage" class="btn-ghost">Previous</button> <button type="button" id="mediaNextPage" class="btn-ghost">Next</button></div>
+        </div>
       </section>
+
+      <dialog id="mediaEditDialog" class="media-edit-dialog">
+        <form id="mediaEditForm" class="media-edit-form">
+          <h2>Edit published video</h2>
+          <p id="mediaEditPlatformNote" class="muted"></p>
+          <label class="field-label" for="mediaEditTitle">Title / name</label>
+          <input id="mediaEditTitle" class="field" maxlength="500" />
+          <label class="field-label" for="mediaEditDescription">Description / caption</label>
+          <textarea id="mediaEditDescription" class="field" rows="5" maxlength="10000"></textarea>
+          <label class="field-label" for="mediaEditTags">Tags (YouTube)</label>
+          <input id="mediaEditTags" class="field" maxlength="5000" />
+          <div class="media-edit-actions">
+            <button type="button" id="mediaEditCancel" class="btn-ghost">Cancel</button>
+            <button type="submit" id="mediaEditSave" class="btn-primary">Save changes</button>
+          </div>
+        </form>
+      </dialog>
 
       <!-- Edit panel (revealed per job) -->
       <section class="card" id="editSection" style="display:none;">
@@ -3493,14 +3719,64 @@
       }
     };
 
-    $("insightsDays")?.addEventListener("change", loadInsights);
+    function renderFacebookInsights(data) {
+      const pages = data.pages || [];
+      const videos = pages.flatMap((page) => page.videos.map((video) => ({ ...video, pageName: page.name })))
+        .sort((a, b) => Number(b.publishedAt) - Number(a.publishedAt));
+      $("facebookInsightViews").textContent = formatMetric(data.totals.views);
+      $("facebookInsightVideos").textContent = formatMetric(data.totals.videos);
+      $("facebookInsightPages").textContent = formatMetric(data.availablePageCount);
+      $("facebookInsightsRange").textContent = `${data.startDate} – ${data.endDate} · ${data.metricScope}`;
+      const unavailable = pages.flatMap((page) => page.errors.map((error) => ({ pageName: page.name, ...error })));
+      const warning = unavailable.length
+        ? `<div class="explorer-empty">Some video insights are unavailable. Confirm Meta <code>read_insights</code> access and reconnect affected Pages.</div>${unavailable.map((item) => `<p class="muted">${escape(item.pageName)} · ${escape(item.title)}: ${escape(item.error)}</p>`).join("")}<p><a class="inline-link" href="${API}/facebook/connect">Reconnect Facebook Pages</a></p>`
+        : "";
+      $("facebookInsightsTable").innerHTML = videos.length
+        ? `${warning}<div class="table-wrap"><table class="insights-channel-table"><thead><tr><th>Video</th><th>Facebook Page</th><th>Published</th><th>Lifetime views</th><th>Link</th></tr></thead><tbody>${videos.map((video) => `<tr><td>${escape(video.title)}</td><td>${escape(video.pageName)}</td><td>${video.publishedAt ? new Date(Number(video.publishedAt) * 1000).toLocaleDateString() : "—"}</td><td>${video.available ? formatMetric(video.views) : "—"}</td><td>${video.permalink ? `<a class="inline-link" href="${escape(video.permalink)}" target="_blank" rel="noopener noreferrer">Open</a>` : "—"}</td></tr>`).join("")}</tbody></table></div>`
+        : `${warning}<div class="explorer-empty">${pages.length ? "No Facebook videos were published during this date range." : "No active Facebook Pages are connected. Connect a Page to load video insights."}</div>`;
+      $("facebookInsightsStatus").textContent = data.truncated
+        ? "Showing the 100 most recent videos in this date range. Shorten the range to see a smaller set."
+        : "Views are lifetime totals for each video; the date range filters videos by publishing date.";
+    }
+
+    window.loadFacebookInsights = async function () {
+      const status = $("facebookInsightsStatus");
+      if (!status) return;
+      status.textContent = "Loading Facebook video insights…";
+      const pageSelect = $("facebookInsightsPage");
+      const selectedPage = pageSelect.value;
+      const pages = (window._facebookPages || []).filter((page) => page.active);
+      pageSelect.innerHTML = '<option value="">All Pages</option>' + pages
+        .map((page) => `<option value="${escape(page.id)}">${escape(page.name)}</option>`).join("");
+      if (pages.some((page) => page.id === selectedPage)) pageSelect.value = selectedPage;
+      const query = new URLSearchParams({ days: $("insightsDays").value });
+      if (pageSelect.value) query.set("pageId", pageSelect.value);
+      try {
+        const response = await api(`${API}/analytics/facebook?${query}`);
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Could not load Facebook insights");
+        renderFacebookInsights(data);
+      } catch (error) {
+        status.textContent = error.message;
+        $("facebookInsightsTable").innerHTML = `<div class="pill error"><span class="dot"></span>${escape(error.message)}</div>`;
+        ["facebookInsightViews", "facebookInsightVideos", "facebookInsightPages"].forEach((id) => { $(id).textContent = "—"; });
+      }
+    };
+
+    $("insightsDays")?.addEventListener("change", () => {
+      if (!$("facebookInsights").hidden) window.loadFacebookInsights();
+      else window.loadInsights();
+    });
     $("insightsChannel")?.addEventListener("change", loadInsights);
+    $("facebookInsightsPage")?.addEventListener("change", window.loadFacebookInsights);
     document.querySelectorAll("[data-insights-provider]").forEach((button) => {
       button.addEventListener("click", () => {
         const facebook = button.dataset.insightsProvider === "facebook";
         document.querySelectorAll("[data-insights-provider]").forEach((tab) => tab.setAttribute("aria-selected", String(tab === button)));
         $("youtubeInsights").hidden = facebook;
         $("facebookInsights").hidden = !facebook;
+        if (facebook) window.loadFacebookInsights();
+        else window.loadInsights();
       });
     });
 
@@ -3512,6 +3788,7 @@
         if (!res.ok || !Array.isArray(list)) throw new Error(list.error || "Could not load YouTube channels");
         window._channels = list;
         if (Array.isArray(window._jobs)) renderQuickStats(window._jobs);
+        renderMedia(window._jobs || []);
       /* Bulk-upload: populate the "Channels (multi)" select from active channels. */
       const bsel = $("bulkChannelsSelect");
       if (bsel) {
@@ -4043,12 +4320,14 @@
         renderChannelConnectCards();
         renderBulkDestinationOptions();
         renderBulkRows();
+        renderMedia(window._jobs || []);
       } catch (error) {
         console.error("Could not load Instagram accounts:", error.message);
         window._instagramAccounts = [];
         window._instagramConnectionStatus = { unavailable: true };
         renderChannelConnectCards();
         renderBulkDestinationOptions();
+        renderMedia(window._jobs || []);
       }
     }
 
@@ -4063,6 +4342,8 @@
         renderFacebookPageList();
         renderBulkDestinationOptions();
         renderBulkRows();
+        renderMedia(window._jobs || []);
+        if (location.hash === "#insights" && !$("facebookInsights").hidden) window.loadFacebookInsights();
       } catch (error) {
         console.error("Could not load Facebook Pages:", error.message);
         window._facebookPages = [];
@@ -4070,6 +4351,7 @@
         renderChannelConnectCards();
         renderFacebookPageList(error.message);
         renderBulkDestinationOptions();
+        renderMedia(window._jobs || []);
       }
     }
 
@@ -4451,26 +4733,284 @@
 
     function renderHistory(list) {
       const status = $("historyStatus").value;
-      const history = list.filter((job) => ["done", "failed", "exhausted", "deleted"].includes(job.status));
+      const history = list.filter((job) => !job.history_hidden_at && ["done", "failed", "exhausted", "deleted"].includes(job.status));
       const filtered = history.filter((job) => {
         const statusMatch = status === "all" || (status === "failed" ? ["failed", "exhausted"].includes(job.status) : job.status === status);
         return statusMatch && jobMatchesSearch(job, $("historySearch").value);
       }).sort((a, b) => Number(b.updated_at || b.created_at || 0) - Number(a.updated_at || a.created_at || 0));
       $("historyJobs").innerHTML = renderJobTable(filtered, true);
+      $("clearHistory").disabled = history.length === 0;
     }
 
+    function renderAuditLog(list) {
+      const status = $("auditStatus").value;
+      const query = $("auditSearch").value.trim().toLowerCase();
+      const records = list.filter((job) => {
+        const statusMatch = status === "all"
+          || (status === "failed" ? ["failed", "exhausted"].includes(job.status)
+            : status === "uploading" ? ["processing", "uploading"].includes(job.status)
+              : job.status === status);
+        const destination = job.platform === "instagram" ? job.instagram_username
+          : job.platform === "facebook" ? job.facebook_page_name : job.channel_name;
+        const haystack = `${job.title || ""} ${job.filename || ""} ${job.platform || ""} ${job.format || ""} ${destination || ""} ${job.description || ""} ${job.last_error || ""}`.toLowerCase();
+        return statusMatch && haystack.includes(query);
+      }).sort((a, b) => Number(b.updated_at || b.created_at || 0) - Number(a.updated_at || a.created_at || 0));
+      const time = (value) => value ? new Date(Number(value) * 1000).toLocaleString() : "—";
+      const platformName = (job) => job.platform === "instagram" ? "Instagram Reel"
+        : job.platform === "facebook" ? "Facebook video"
+          : `YouTube ${job.format === "short" ? "Short" : "video"}`;
+      const destinationName = (job) => job.platform === "instagram"
+        ? (job.instagram_username ? `@${job.instagram_username}` : job.instagram_account_id || "Instagram account")
+        : job.platform === "facebook"
+          ? (job.facebook_page_name || job.facebook_page_id || "Facebook Page")
+          : (job.channel_name || job.channel_id || "Auto-selected YouTube channel");
+      $("auditLogRecords").innerHTML = records.length
+        ? `<div class="table-wrap"><table class="audit-log-table"><thead><tr>
+            <th>Video</th><th>Platform / destination</th><th>Status</th><th>Created</th><th>Scheduled</th><th>Published / updated</th><th>Details</th>
+          </tr></thead><tbody>${records.map((job) => {
+            const detailRows = [
+              ["Record ID", job.id],
+              ["File", job.filename],
+              ["Format", job.format],
+              ["Description / caption", job.description],
+              ["Privacy", job.privacy],
+              ["Retries", String(job.retry_count ?? 0)],
+              ["Last error", job.last_error],
+              ["History cleaned", time(job.history_hidden_at)],
+            ].filter(([, value]) => value !== null && value !== undefined && value !== "");
+            const details = detailRows.map(([label, value]) => `<div><strong>${escape(label)}:</strong> ${escape(value)}</div>`).join("");
+            const publishLink = job.published_url
+              ? `<a href="${escape(job.published_url)}" target="_blank" rel="noopener noreferrer">Open published video</a>`
+              : "";
+            return `<tr>
+              <td><strong>${escape(job.title || job.filename || "Untitled video")}</strong></td>
+              <td>${escape(platformName(job))}<span class="audit-log-destination">${escape(destinationName(job))}</span></td>
+              <td><span class="pill ${statusPillClass(job.status)}"><span class="dot"></span>${statusLabel(job.status)}</span></td>
+              <td class="muted">${time(job.created_at)}</td>
+              <td class="muted">${time(job.scheduled_at)}</td>
+              <td class="muted">${time(job.published_at || job.updated_at)}${publishLink ? `<br>${publishLink}` : ""}</td>
+              <td><details class="audit-log-details"><summary>View</summary><div>${details}</div></details></td>
+            </tr>`;
+          }).join("")}</tbody></table></div>`
+        : `<div class="empty"><h3>No matching upload records.</h3><p>Upload attempts will appear here and remain available after cleaning History.</p></div>`;
+    }
+
+    let mediaLibrarySource = "local";
+    let remoteMedia = [];
+    let remoteMediaCursor = null;
+    let editingRemoteMedia = null;
+    let mediaPage = 1;
+    let mediaSortKey = "date";
+    let mediaSortDirection = "desc";
     function renderMedia(list) {
-      const assets = list.filter(j => j.filename);
-      $("mediaLibrary").innerHTML = assets.length
-        ? assets.map(j => `<article class="media-card">
-            <video controls preload="none" src="${API}/media/${encodeURIComponent(j.filename)}" aria-label="Preview ${escape(j.title)}"></video>
-            <h3>${escape(j.title)}</h3>
-            <p><span class="pill ${statusPillClass(j.status)}"><span class="dot"></span>${statusLabel(j.status)}</span></p>
-            <p>File: ${escape(j.filename)}</p>
-          </article>`).join("")
-        : `<div class="empty"><h3>No videos in your library.</h3><p>Uploaded video files linked to jobs will appear here.</p></div>`;
+      const platformFilter = $("mediaPlatformFilter")?.value || "all";
+      const destinationFilter = $("mediaDestinationFilter")?.value || "all";
+      const activeDestinations = [
+        ...(window._channels || []).filter((channel) => channel.active).map((channel) => ({
+          platform: "youtube", id: channel.id, name: channel.name,
+        })),
+        ...(window._instagramAccounts || []).filter((account) => account.active).map((account) => ({
+          platform: "instagram", id: account.id, name: `@${account.username}`,
+        })),
+        ...(window._facebookPages || []).filter((page) => page.active).map((page) => ({
+          platform: "facebook", id: page.id, name: page.name,
+        })),
+      ].filter((destination) => platformFilter === "all" || destination.platform === platformFilter);
+      const destinationSelect = $("mediaDestinationFilter");
+      const availableOptions = new Set(activeDestinations.map((destination) => `${destination.platform}:${destination.id}`));
+      const nextDestinationFilter = destinationFilter === "all" || availableOptions.has(destinationFilter)
+        ? destinationFilter : "all";
+      destinationSelect.innerHTML = `<option value="all">All active channels and accounts</option>${activeDestinations
+        .map((destination) => `<option value="${escape(`${destination.platform}:${destination.id}`)}">${escape(destination.platform[0].toUpperCase() + destination.platform.slice(1))} · ${escape(destination.name)}</option>`)
+        .join("")}`;
+      destinationSelect.value = nextDestinationFilter;
+
+      const assets = list.filter((job) => job.filename && job.status !== "deleted"
+        && (platformFilter === "all" || job.platform === platformFilter)
+        && (nextDestinationFilter === "all" || `${job.platform}:${job.platform === "instagram" ? job.instagram_account_id : job.platform === "facebook" ? job.facebook_page_id : job.channel_id}` === nextDestinationFilter));
+      const destinationsById = new Map(activeDestinations.map((destination) => [`${destination.platform}:${destination.id}`, destination.name]));
+      const platformName = (platform) => ({ youtube: "YouTube", instagram: "Instagram", facebook: "Facebook" }[platform] || "Other");
+      const selectedDestination = activeDestinations.find((destination) => `${destination.platform}:${destination.id}` === nextDestinationFilter);
+      const library = $("mediaLibrary");
+      const statusFilter = $("mediaStatusFilter")?.value || "all";
+      const dateFrom = $("mediaDateFrom")?.value ? new Date(`${$("mediaDateFrom").value}T00:00:00`).getTime() : null;
+      const dateTo = $("mediaDateTo")?.value ? new Date(`${$("mediaDateTo").value}T23:59:59.999`).getTime() : null;
+      const sourceRows = mediaLibrarySource === "remote"
+        ? remoteMedia.filter((item) => (platformFilter === "all" || item.platform === platformFilter)
+            && (nextDestinationFilter === "all" || `${item.platform}:${item.destinationId}` === nextDestinationFilter)).map((item) => ({
+            id: item.id, platform: item.platform, destinationId: item.destinationId,
+            destinationName: item.destinationName, name: item.title || "Untitled video",
+            description: item.description || "", status: "done", date: item.publishedAt ? new Date(item.publishedAt).getTime() : 0,
+            dateLabel: "Published", url: item.url || "#", filename: "", remote: item,
+          }))
+        : assets.map((job) => {
+            const destinationId = job.platform === "instagram" ? job.instagram_account_id
+              : job.platform === "facebook" ? job.facebook_page_id : job.channel_id;
+            const key = `${job.platform}:${destinationId || ""}`;
+            const fallbackName = job.platform === "instagram" ? (job.instagram_username ? `@${job.instagram_username}` : "Instagram account")
+              : job.platform === "facebook" ? (job.facebook_page_name || "Facebook Page") : (job.channel_name || "YouTube channel");
+            const published = job.published_at ? Number(job.published_at) * 1000 : 0;
+            const uploaded = Number(job.created_at || 0) * 1000;
+            return {
+              id: job.id, platform: job.platform || "youtube", destinationId,
+              destinationName: destinationsById.get(key) || fallbackName,
+              name: job.title || job.filename || "Untitled video", description: job.description || "",
+              status: job.status, date: published || uploaded, dateLabel: published ? "Published" : "Uploaded",
+              url: `${API}/media/${encodeURIComponent(job.filename)}`, filename: job.filename, job,
+            };
+          });
+      const filteredRows = sourceRows.filter((row) => {
+        const statusMatch = statusFilter === "all" || (statusFilter === "done" ? row.status === "done" : row.status === statusFilter);
+        const dateMatch = (!dateFrom || row.date >= dateFrom) && (!dateTo || row.date <= dateTo);
+        return statusMatch && dateMatch;
+      });
+      const sortValue = (row) => ({ name: row.name.toLocaleLowerCase(), description: row.description.toLocaleLowerCase(), status: row.status, destination: `${row.platform} ${row.destinationName}`.toLocaleLowerCase(), date: row.date })[mediaSortKey];
+      filteredRows.sort((a, b) => {
+        const av = sortValue(a), bv = sortValue(b);
+        const cmp = av < bv ? -1 : av > bv ? 1 : 0;
+        return mediaSortDirection === "asc" ? cmp : -cmp;
+      });
+      const pageSize = Number($("mediaPageSize")?.value || 10);
+      const pageCount = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+      mediaPage = Math.min(mediaPage, pageCount);
+      const start = (mediaPage - 1) * pageSize;
+      const rows = filteredRows.slice(start, start + pageSize);
+      const sortHeader = (key, label) => `<button type="button" class="media-sort-button" data-media-sort="${key}">${label}${mediaSortKey === key ? (mediaSortDirection === "asc" ? " ↑" : " ↓") : ""}</button>`;
+      const eyeIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2.5 12s3.5-7 9.5-7 9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+      const dateText = (row) => row.date ? `${row.dateLabel} ${new Date(row.date).toLocaleDateString()}` : "Date unavailable";
+      $("mediaTablePagination").hidden = filteredRows.length === 0;
+      $("mediaPageStatus").textContent = filteredRows.length ? `Showing ${start + 1}–${Math.min(start + pageSize, filteredRows.length)} of ${filteredRows.length}` : "";
+      $("mediaPrevPage").disabled = mediaPage <= 1;
+      $("mediaNextPage").disabled = mediaPage >= pageCount;
+      if (mediaLibrarySource === "remote") {
+        if (!filteredRows.length) {
+          library.innerHTML = `<div class="empty"><h3>No published videos found.</h3><p>${remoteMedia.length ? "Try changing the filters." : "Use Refresh to pull videos from your connected accounts."}</p></div>`;
+        } else library.innerHTML = `<table class="media-library-table"><thead><tr>
+            <th>${sortHeader("name", "Name")}</th><th>${sortHeader("description", "Description")}</th><th>${sortHeader("status", "Status")}</th><th>${sortHeader("destination", "Uploaded via")}</th><th>${sortHeader("date", "Published date")}</th><th aria-label="View"></th>
+          </tr></thead><tbody>${rows.map((row) => `<tr>
+            <td class="media-name">${escape(row.name)}${row.remote && row.platform !== "instagram" ? `<br><button type="button" class="btn-ghost media-edit-button" data-edit-remote="${escape(row.platform)}:${escape(row.destinationId)}:${escape(row.id)}">Edit details</button>` : row.remote ? `<br><a class="btn-ghost media-edit-button" href="${escape(row.url)}" target="_blank" rel="noopener noreferrer">Edit on Instagram ↗</a>` : ""}</td>
+            <td class="media-description">${escape(row.description || "—")}</td>
+            <td><span class="pill ${statusPillClass(row.status)}"><span class="dot"></span>${escape(statusLabel(row.status))}</span></td>
+            <td class="media-destination">${escape(platformName(row.platform))} · ${escape(row.destinationName)}</td>
+            <td class="media-date">${escape(dateText(row))}</td>
+            <td><a class="media-eye-link" href="${escape(row.url)}" target="_blank" rel="noopener noreferrer" aria-label="View ${escape(row.name)}">${eyeIcon}</a></td>
+          </tr>`).join("")}</tbody></table>`;
+        $("mediaRemotePager").hidden = false;
+        $("mediaLoadMore").hidden = !remoteMediaCursor || platformFilter === "all" || nextDestinationFilter === "all";
+        return;
+      }
+      $("mediaRemotePager").hidden = true;
+      if (!filteredRows.length) {
+        library.innerHTML = `<div class="empty"><h3>${selectedDestination ? `No videos for ${escape(selectedDestination.name)} yet.` : "No videos in your library."}</h3><p>Deleted videos are hidden from this library. Adjust your filters or schedule a new upload.</p></div>`;
+      } else library.innerHTML = `<table class="media-library-table"><thead><tr>
+          <th>${sortHeader("name", "Name")}</th><th>${sortHeader("description", "Description")}</th><th>${sortHeader("status", "Status")}</th><th>${sortHeader("destination", "Uploaded via")}</th><th>${sortHeader("date", "Uploaded / published date")}</th><th aria-label="View"></th>
+        </tr></thead><tbody>${rows.map((row) => `<tr>
+          <td class="media-name">${escape(row.name)}</td><td class="media-description">${escape(row.description || "—")}</td>
+          <td><span class="pill ${statusPillClass(row.status)}"><span class="dot"></span>${escape(statusLabel(row.status))}</span></td>
+          <td class="media-destination">${escape(platformName(row.platform))} · ${escape(row.destinationName)}</td><td class="media-date">${escape(dateText(row))}</td>
+          <td><a class="media-eye-link" href="${escape(row.url)}" target="_blank" rel="noopener noreferrer" aria-label="View ${escape(row.name)}">${eyeIcon}</a></td>
+        </tr>`).join("")}</tbody></table>`;
     }
 
+    $("mediaPlatformFilter")?.addEventListener("change", () => {
+      if (mediaLibrarySource === "remote") { remoteMedia = []; remoteMediaCursor = null; $("mediaRemoteStatus").textContent = "Filter changed. Load again to fetch the selected library."; }
+      mediaPage = 1;
+      renderMedia(window._jobs || []);
+    });
+    $("mediaDestinationFilter")?.addEventListener("change", () => {
+      if (mediaLibrarySource === "remote") { remoteMedia = []; remoteMediaCursor = null; $("mediaRemoteStatus").textContent = "Filter changed. Load again to fetch the selected library."; }
+      mediaPage = 1;
+      renderMedia(window._jobs || []);
+    });
+    ["mediaStatusFilter", "mediaDateFrom", "mediaDateTo"].forEach((id) => $(id)?.addEventListener("change", () => { mediaPage = 1; renderMedia(window._jobs || []); }));
+    $("mediaPageSize")?.addEventListener("change", () => { mediaPage = 1; renderMedia(window._jobs || []); });
+    $("mediaPrevPage")?.addEventListener("click", () => { mediaPage = Math.max(1, mediaPage - 1); renderMedia(window._jobs || []); });
+    $("mediaNextPage")?.addEventListener("click", () => { mediaPage += 1; renderMedia(window._jobs || []); });
+    $("mediaLibrary")?.addEventListener("click", (event) => {
+      const sort = event.target.closest("[data-media-sort]");
+      if (!sort) return;
+      if (mediaSortKey === sort.dataset.mediaSort) mediaSortDirection = mediaSortDirection === "asc" ? "desc" : "asc";
+      else { mediaSortKey = sort.dataset.mediaSort; mediaSortDirection = mediaSortKey === "date" ? "desc" : "asc"; }
+      mediaPage = 1; renderMedia(window._jobs || []);
+    });
+    $("mediaLocalSource")?.addEventListener("click", () => {
+      mediaLibrarySource = "local";
+      $("mediaLocalSource").classList.add("active"); $("mediaLocalSource").setAttribute("aria-pressed", "true");
+      $("mediaPublishedSource").classList.remove("active"); $("mediaPublishedSource").setAttribute("aria-pressed", "false");
+      $("mediaRefreshRemote").hidden = true;
+      $("mediaTablePagination").hidden = false;
+      mediaPage = 1;
+      renderMedia(window._jobs || []);
+    });
+    $("mediaPublishedSource")?.addEventListener("click", () => {
+      mediaLibrarySource = "remote";
+      $("mediaPublishedSource").classList.add("active"); $("mediaPublishedSource").setAttribute("aria-pressed", "true");
+      $("mediaLocalSource").classList.remove("active"); $("mediaLocalSource").setAttribute("aria-pressed", "false");
+      $("mediaRefreshRemote").hidden = false;
+      remoteMedia = []; remoteMediaCursor = null;
+      $("mediaRemoteStatus").textContent = "Load published posts from your connected accounts.";
+      $("mediaRefreshRemote").textContent = "↻ Refresh videos";
+      mediaPage = 1;
+      renderMedia(window._jobs || []);
+    });
+    async function fetchRemoteMedia({ append = false } = {}) {
+      const button = $("mediaRefreshRemote");
+      button.disabled = true;
+      $("mediaRemoteStatus").textContent = "Loading published videos from connected accounts…";
+      const params = new URLSearchParams({ platform: $("mediaPlatformFilter").value || "all" });
+      const destination = $("mediaDestinationFilter").value || "all";
+      if (destination !== "all") params.set("destinationId", destination.split(":").slice(1).join(":"));
+      if (append && remoteMediaCursor) params.set("cursor", remoteMediaCursor);
+      try {
+        const response = await api(`${API}/media/library?${params}`);
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.error || "Could not load published videos");
+        remoteMedia = append ? [...remoteMedia, ...(body.items || [])] : (body.items || []);
+        remoteMediaCursor = body.nextCursor || null;
+        if (!append) mediaPage = 1;
+        $("mediaRemoteStatus").textContent = `${remoteMedia.length} published video${remoteMedia.length === 1 ? "" : "s"} loaded from connected platforms.`;
+        renderMedia(window._jobs || []);
+      } catch (error) {
+        $("mediaRemoteStatus").textContent = error.message;
+      } finally { button.disabled = false; }
+    }
+    $("mediaRefreshRemote")?.addEventListener("click", () => fetchRemoteMedia());
+    $("mediaLoadMore")?.addEventListener("click", () => fetchRemoteMedia({ append: true }));
+    $("mediaLibrary")?.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-edit-remote]");
+      if (!button) return;
+      const [platform, destinationId, mediaId] = button.dataset.editRemote.split(":");
+      editingRemoteMedia = remoteMedia.find((item) => item.platform === platform && item.destinationId === destinationId && item.id === mediaId);
+      if (!editingRemoteMedia) return;
+      $("mediaEditTitle").value = editingRemoteMedia.title || "";
+      $("mediaEditDescription").value = editingRemoteMedia.description || "";
+      $("mediaEditTags").value = editingRemoteMedia.tags || "";
+      $("mediaEditTitle").disabled = false;
+      $("mediaEditTags").disabled = platform !== "youtube";
+      $("mediaEditPlatformNote").textContent = platform === "facebook" ? "Facebook videos support a title and description. Separate tags are not available." : "YouTube supports title, description, and tags. Reconnect this channel if Google asks for expanded edit permission.";
+      $("mediaEditDialog").showModal();
+    });
+    $("mediaEditCancel")?.addEventListener("click", () => $("mediaEditDialog").close());
+    $("mediaEditForm")?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!editingRemoteMedia) return;
+      const save = $("mediaEditSave"); save.disabled = true;
+      try {
+        const item = editingRemoteMedia;
+        const response = await api(`${API}/media/library/${encodeURIComponent(item.platform)}/${encodeURIComponent(item.destinationId)}/${encodeURIComponent(item.id)}`, {
+          method: "PATCH", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: $("mediaEditTitle").value, description: $("mediaEditDescription").value, tags: $("mediaEditTags").value }),
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Could not update video details");
+        item.title = $("mediaEditTitle").value;
+        item.description = $("mediaEditDescription").value;
+        item.tags = $("mediaEditTags").value;
+        $("mediaEditDialog").close(); renderMedia(window._jobs || []);
+        toast("Published video details updated.");
+      } catch (error) { toast(error.message, "error"); }
+      finally { save.disabled = false; }
+    });
     async function loadJobs({ refreshMedia = false } = {}) {
       try {
         const res = await api(`${API}/videos`);
@@ -4480,7 +5020,8 @@
         renderDashboard(list);
         renderQueue(list);
         renderHistory(list);
-        if (refreshMedia || location.hash !== "#media") renderMedia(list);
+        renderAuditLog(list);
+        renderMedia(list);
         const stamp = $("lastRefresh");
         if (stamp) stamp.textContent = `Updated ${new Date().toLocaleTimeString()}`;
         $("dashboardError").hidden = true;
@@ -4561,6 +5102,23 @@
     $("queueDate").addEventListener("change", () => renderQueue(window._jobs || []));
     $("historySearch").addEventListener("input", () => renderHistory(window._jobs || []));
     $("historyStatus").addEventListener("change", () => renderHistory(window._jobs || []));
+    $("auditSearch").addEventListener("input", () => renderAuditLog(window._jobs || []));
+    $("auditStatus").addEventListener("change", () => renderAuditLog(window._jobs || []));
+    $("clearHistory").addEventListener("click", async () => {
+      if (!window.confirm("Clean completed and past uploads from History? The records will remain in Audit Log.")) return;
+      const button = $("clearHistory");
+      button.disabled = true;
+      try {
+        const response = await api(`${API}/videos/history/clear`, { method: "POST" });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Could not clean upload history");
+        await loadJobs();
+        toast(`Cleaned ${result.hiddenCount} history record${result.hiddenCount === 1 ? "" : "s"}. They remain in Audit Log.`);
+      } catch (error) {
+        button.disabled = false;
+        toast(error.message || "Could not clean upload history", "error");
+      }
+    });
 
     // ---- Edit a scheduled job ----
     let _editingId = null;

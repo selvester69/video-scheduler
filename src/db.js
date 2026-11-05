@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   format        TEXT NOT NULL DEFAULT 'video',
   instagram_account_id TEXT,
   facebook_page_id TEXT,
+  history_hidden_at BIGINT,
   scheduled_at  BIGINT NOT NULL,
   status        TEXT NOT NULL DEFAULT 'pending',
   priority      INTEGER NOT NULL DEFAULT 0,
@@ -359,6 +360,7 @@ export async function initDb() {
     `ALTER TABLE jobs ADD COLUMN format TEXT NOT NULL DEFAULT 'video'`,
     `ALTER TABLE jobs ADD COLUMN instagram_account_id TEXT`,
     `ALTER TABLE jobs ADD COLUMN facebook_page_id TEXT`,
+    `ALTER TABLE jobs ADD COLUMN history_hidden_at BIGINT`,
     // Folder watcher: track whether a watched path is currently reachable.
     `ALTER TABLE source_folders ADD COLUMN status TEXT NOT NULL DEFAULT 'reachable'`,
   ];
@@ -395,6 +397,8 @@ export async function initDb() {
   queries.requeueJob = S(`UPDATE jobs SET status = 'pending', retry_count = retry_count + 1, next_retry_at = @nextRetryAt, channel_id = @channelId, last_error = @lastError, updated_at = @updatedAt WHERE id = @id`);
   queries.markDone = S(`UPDATE jobs SET status = 'done', retry_count = @retryCount, last_error = NULL, updated_at = @updatedAt WHERE id = @id`);
   queries.findJob = S(`SELECT * FROM jobs WHERE id = @id`);
+  queries.clearUploadHistory = S(`UPDATE jobs SET history_hidden_at = @hiddenAt
+    WHERE history_hidden_at IS NULL AND status IN ('done', 'failed', 'exhausted', 'deleted')`);
   queries.findInstagramAccount = S(`SELECT * FROM instagram_accounts WHERE id = @id`);
   queries.listInstagramAccounts = S(`SELECT id, username, token_expires_at, active FROM instagram_accounts ORDER BY username`);
   queries.deactivateInstagramAccount = S(`UPDATE instagram_accounts SET active = 0, updated_at = @updatedAt WHERE id = @id`);
@@ -407,10 +411,14 @@ export async function initDb() {
   queries.insertFacebookUpload = S(`INSERT INTO facebook_uploads (id, job_id, facebook_video_id, permalink, created_at) VALUES (@id, @jobId, @videoId, @permalink, @created)`);
   queries.listJobs = S(`SELECT jobs.*, uploads.youtube_url AS youtube_url,
       COALESCE(uploads.youtube_url, instagram_uploads.permalink, facebook_uploads.permalink) AS published_url,
+      COALESCE(uploads.created_at, instagram_uploads.created_at, facebook_uploads.created_at) AS published_at,
+      COALESCE(upload_channels.name, channels.name) AS channel_name,
       instagram_accounts.username AS instagram_username,
       facebook_pages.name AS facebook_page_name
     FROM jobs
     LEFT JOIN uploads ON uploads.job_id = jobs.id
+    LEFT JOIN channels AS upload_channels ON upload_channels.id = uploads.channel_id
+    LEFT JOIN channels ON channels.id = jobs.channel_id
     LEFT JOIN instagram_uploads ON instagram_uploads.job_id = jobs.id
     LEFT JOIN instagram_accounts ON instagram_accounts.id = jobs.instagram_account_id
     LEFT JOIN facebook_uploads ON facebook_uploads.job_id = jobs.id

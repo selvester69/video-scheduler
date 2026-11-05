@@ -182,6 +182,14 @@ router.get("/", async (_req, res) => {
 });
 
 /**
+ * POST /api/videos/history/clear — hide completed upload history, retaining it in the audit log.
+ */
+router.post("/history/clear", async (_req, res) => {
+  const result = await queries.clearUploadHistory.run({ hiddenAt: nowSec() });
+  res.json({ hiddenCount: result.changes });
+});
+
+/**
  * GET /api/videos/:id
  */
 router.get("/:id", async (req, res) => {

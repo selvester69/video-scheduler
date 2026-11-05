@@ -4,7 +4,7 @@ import { AuthError, FatalUploadError, RateLimitError, SchedulerError } from "./e
 import { createSignedMediaUrl } from "./media-url.js";
 
 const GRAPH_ORIGIN = "https://graph.facebook.com";
-const SCOPES = ["pages_show_list", "pages_read_engagement", "pages_manage_posts"];
+const SCOPES = ["pages_show_list", "pages_read_engagement", "pages_manage_posts", "read_insights"];
 
 function graphUrl(path) {
   return `${GRAPH_ORIGIN}/${config.facebook.graphVersion}/${path}`;
@@ -107,6 +107,46 @@ export async function connectFacebookPages(code) {
     });
   }
   return manageablePages.map(({ id, name }) => ({ id, name }));
+}
+
+export async function getFacebookVideoInsights(videoId, pageAccessToken) {
+  const url = new URL(graphUrl(`${encodeURIComponent(videoId)}/video_insights`));
+  url.searchParams.set("metric", "total_video_views");
+  url.searchParams.set("access_token", pageAccessToken);
+  const result = await getJson(url);
+  const metric = (result.data || []).find((item) => item.name === "total_video_views");
+  const value = metric?.values?.[0]?.value;
+  return Number.isFinite(Number(value)) ? Number(value) : 0;
+}
+
+export async function listFacebookPublishedVideos(page, after = "") {
+  const url = new URL(graphUrl(`${encodeURIComponent(page.id)}/videos`));
+  url.searchParams.set("fields", "id,title,description,created_time,permalink_url,picture");
+  url.searchParams.set("limit", "50");
+  if (after) url.searchParams.set("after", after);
+  url.searchParams.set("access_token", page.access_token);
+  const result = await getJson(url);
+  return {
+    items: (result.data || []).map((item) => ({
+      id: item.id, platform: "facebook", destinationId: page.id,
+      destinationName: page.name, title: item.title || item.description || "Facebook video",
+      description: item.description || "", tags: "", thumbnail: item.picture || "",
+      url: item.permalink_url || `https://www.facebook.com/${encodeURIComponent(page.id)}/videos/${encodeURIComponent(item.id)}/`,
+      publishedAt: item.created_time || null,
+    })),
+    nextCursor: result.paging?.next ? (result.paging?.cursors?.after || null) : null,
+  };
+}
+
+export async function updateFacebookPublishedVideo(page, videoId, { title, description }) {
+  const url = new URL(graphUrl(encodeURIComponent(videoId)));
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ title, description, access_token: page.access_token }),
+    signal: AbortSignal.timeout(30000),
+  });
+  return readJson(response);
 }
 
 export async function publishFacebookVideo(job, page) {

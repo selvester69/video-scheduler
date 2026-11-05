@@ -178,3 +178,21 @@ export async function publishReel(job, account) {
   const media = await tokenRequest(permalinkUrl);
   return { mediaId: published.id, permalink: media.permalink || null };
 }
+export async function listInstagramPublishedMedia(account, after = "") {
+  const accessToken = await validAccessToken(account);
+  const url = new URL(`${GRAPH_URL}/${encodeURIComponent(account.id)}/media`);
+  url.searchParams.set("fields", "id,caption,media_type,permalink,thumbnail_url,timestamp");
+  url.searchParams.set("limit", "50");
+  if (after) url.searchParams.set("after", after);
+  url.searchParams.set("access_token", accessToken);
+  const result = await tokenRequest(url);
+  return {
+    items: (result.data || []).filter((item) => ["VIDEO", "REELS"].includes(item.media_type)).map((item) => ({
+      id: item.id, platform: "instagram", destinationId: account.id,
+      destinationName: `@${account.username}`, title: item.caption || "Instagram post",
+      description: item.caption || "", tags: "", thumbnail: item.thumbnail_url || "",
+      url: item.permalink || "", publishedAt: item.timestamp || null,
+    })),
+    nextCursor: result.paging?.next ? (result.paging?.cursors?.after || null) : null,
+  };
+}

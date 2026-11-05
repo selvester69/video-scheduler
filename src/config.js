@@ -52,7 +52,8 @@ export const config = {
     ssoCallbackUrl: process.env.GOOGLE_SSO_CALLBACK_URL || `http://localhost:${process.env.PORT || 3001}/api/auth/google/callback`,
     ssoScopes: (process.env.GOOGLE_SSO_SCOPES || "openid,email,profile").split(",").map((s) => s.trim()),
     scopes: [...new Set([
-      ...(process.env.YOUTUBE_SCOPES || "https://www.googleapis.com/auth/youtube.upload,https://www.googleapis.com/auth/youtube.readonly").split(",").map((s) => s.trim()).filter(Boolean),
+      ...(process.env.YOUTUBE_SCOPES || "https://www.googleapis.com/auth/youtube.upload,https://www.googleapis.com/auth/youtube.readonly,https://www.googleapis.com/auth/youtube.force-ssl").split(",").map((s) => s.trim()).filter(Boolean),
+      "https://www.googleapis.com/auth/youtube.force-ssl",
       "https://www.googleapis.com/auth/yt-analytics.readonly",
     ])],
   },

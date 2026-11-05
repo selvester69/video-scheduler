@@ -13,6 +13,7 @@ import analyticsRouter from "./routes/analytics.js";
 import { foldersRouter, rulesRouter, rotationRouter } from "./routes/folders.js";
 import instagramRouter from "./routes/instagram.js";
 import facebookRouter from "./routes/facebook.js";
+import mediaLibraryRouter from "./routes/media-library.js";
 import { requireAuth } from "./middleware/auth.js";
 import { currentUser, seedDefaultUser } from "./services/auth.js";
 import { verifySignedMediaUrl } from "./services/media-url.js";
@@ -48,6 +49,9 @@ app.get("/media/:filename", (req, res, next) => {
     }
   });
 });
+
+// Mount the remote platform library before the filename catch-all below.
+app.use("/api/media", mediaLibraryRouter);
 
 // The Studio media library is for signed-in users; keep it separate from the
 // short-lived signed URL above, which is used by Instagram's remote fetcher.

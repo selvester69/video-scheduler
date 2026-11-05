@@ -106,6 +106,21 @@ hashed with bcrypt. A `users` table is created on first run.
   reverse-proxy that handles auth).
 - `/api/health`, `/api/auth/connect`, and `/auth/callback` stay public.
 
+## Insights
+
+YouTube Insights use the YouTube Analytics API and the
+`yt-analytics.readonly` OAuth scope. Enable **YouTube Analytics API** in the
+Google Cloud project, then use **Reconnect** beside each YouTube channel in
+Insights so Google can grant the new scope to its stored channel token. Existing
+channel tokens do not gain scopes automatically.
+
+Facebook Insights show lifetime views for videos published through this app in
+the selected publish-date range. The Facebook OAuth flow requests `read_insights`;
+reconnect each Page after enabling the permission in the Meta app. Meta may
+require Advanced Access and App Review before accounts outside the app's roles
+can grant it. The API returns at most the 100 most recent app-published videos
+per report.
+
 ## Quick start (dry-run, no Google account needed)
 
 Dry-run mode lets you validate the whole scheduling + backoff + rotation flow
@@ -202,10 +217,11 @@ HTTPS origin (localhost alone will not work).
    `http://localhost:3001/api/facebook/callback`). For local development, use
    an HTTPS tunnel if Meta does not accept a local callback.
 2. Set `FACEBOOK_APP_ID` and `FACEBOOK_APP_SECRET` in `.env`. The app requests
-   `pages_show_list`, `pages_read_engagement`, and `pages_manage_posts`. The
-   Meta user must grant access to the Page and have permission to create Page
-   content. For users outside the app's developer/tester roles, configure the
-   Meta app's review and access requirements for those permissions.
+   `pages_show_list`, `pages_read_engagement`, `pages_manage_posts`, and
+   `read_insights`. The Meta user must grant access to the Page and have
+   permission to create Page content. For users outside the app's
+   developer/tester roles, configure the Meta app's review and access
+   requirements for those permissions.
 3. Set `APP_PUBLIC_URL` to the HTTPS origin served by this API. A stable
    `MEDIA_SIGNING_SECRET` is recommended in production; if unset, the app uses
    the configured Instagram or Facebook app secret to sign staged-media URLs.
@@ -239,6 +255,9 @@ Facebook API routes:
 | POST   | `/api/auth/channels/:id/deactivate` | Disable a channel |
 | POST   | `/api/videos` | Schedule upload(s) (multipart; one job per file) |
 | GET    | `/api/videos` | List all jobs |
+| POST   | `/api/videos/history/clear` | Hide completed and past uploads from History while retaining them in Audit Log |
+| GET    | `/api/analytics/youtube` | YouTube Analytics by active channel and date range |
+| GET    | `/api/analytics/facebook` | Facebook lifetime video views for app-published videos in a date range |
 | GET    | `/api/videos/:id` | Get a job |
 | DELETE | `/api/videos/:id` | Soft-delete a scheduled (`pending`) job |
 | PATCH  | `/api/videos/:id` | Edit a `pending` job's title/description/hashtags/tags/category/privacy/channelId/priority/scheduleAt (the video file itself is not changed — re-schedule a new upload to replace it) |
