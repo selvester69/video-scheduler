@@ -64,6 +64,10 @@ CREATE TABLE IF NOT EXISTS jobs (
   instagram_account_id TEXT,
   facebook_page_id TEXT,
   history_hidden_at BIGINT,
+  campaign_id   TEXT,
+  orchestrator_approval_status TEXT NOT NULL DEFAULT 'approved',
+  orchestrator_selected_at BIGINT,
+  orchestrator_deferred_until BIGINT,
   scheduled_at  BIGINT NOT NULL,
   status        TEXT NOT NULL DEFAULT 'pending',
   priority      INTEGER NOT NULL DEFAULT 0,
@@ -124,6 +128,8 @@ CREATE TABLE IF NOT EXISTS facebook_uploads (
 CREATE INDEX IF NOT EXISTS idx_jobs_pending
   ON jobs (status, scheduled_at, priority)
   WHERE status = 'pending';
+CREATE INDEX IF NOT EXISTS idx_jobs_status_schedule ON jobs(status, scheduled_at, id);
+CREATE INDEX IF NOT EXISTS idx_jobs_channel_status ON jobs(channel_id, status);
 
 /* ================= Folder-import / rotation feature ===============
  *
@@ -212,6 +218,58 @@ CREATE TABLE IF NOT EXISTS youtube_review_notes (
 );
 CREATE INDEX IF NOT EXISTS idx_youtube_review_notes_video
   ON youtube_review_notes(channel_id, youtube_video_id, timestamp_seconds, created_at);
+
+CREATE TABLE IF NOT EXISTS orchestrator_runtime (
+  workspace_id TEXT PRIMARY KEY,
+  mode TEXT NOT NULL DEFAULT 'monitor',
+  state TEXT NOT NULL DEFAULT 'monitoring',
+  last_cycle_at BIGINT,
+  config TEXT NOT NULL DEFAULT '{}',
+  created_at BIGINT NOT NULL,
+  updated_at BIGINT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS orchestrator_actions (
+  id TEXT PRIMARY KEY,
+  workspace_id TEXT NOT NULL,
+  job_id TEXT,
+  action_type TEXT NOT NULL,
+  actor TEXT NOT NULL DEFAULT 'orchestrator',
+  result TEXT NOT NULL DEFAULT 'info',
+  reason TEXT NOT NULL,
+  details TEXT NOT NULL DEFAULT '{}',
+  created_at BIGINT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_orchestrator_actions_job_time
+  ON orchestrator_actions(job_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_orchestrator_actions_time
+  ON orchestrator_actions(workspace_id, created_at);
+
+CREATE TABLE IF NOT EXISTS job_workflow_state (
+  job_id TEXT PRIMARY KEY REFERENCES jobs(id) ON DELETE CASCADE,
+  workflow_id TEXT NOT NULL,
+  current_step INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'pending',
+  updated_at BIGINT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS orchestrator_channel_controls (
+  platform TEXT NOT NULL,
+  channel_id TEXT NOT NULL,
+  paused INTEGER NOT NULL DEFAULT 0,
+  reason TEXT,
+  updated_at BIGINT NOT NULL,
+  PRIMARY KEY(platform, channel_id)
+);
+
+CREATE TABLE IF NOT EXISTS orchestrator_workflows (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  definition TEXT NOT NULL DEFAULT '[]',
+  active INTEGER NOT NULL DEFAULT 1,
+  created_at BIGINT NOT NULL,
+  updated_at BIGINT NOT NULL
+);
 
 CREATE INDEX IF NOT EXISTS idx_items_folder    ON source_items(folder_id);
 CREATE INDEX IF NOT EXISTS idx_rules_folder    ON rotation_rules(folder_id);
@@ -374,6 +432,13 @@ export async function initDb() {
     `ALTER TABLE jobs ADD COLUMN instagram_account_id TEXT`,
     `ALTER TABLE jobs ADD COLUMN facebook_page_id TEXT`,
     `ALTER TABLE jobs ADD COLUMN history_hidden_at BIGINT`,
+    `ALTER TABLE jobs ADD COLUMN campaign_id TEXT`,
+    `ALTER TABLE jobs ADD COLUMN orchestrator_approval_status TEXT NOT NULL DEFAULT 'approved'`,
+    `ALTER TABLE jobs ADD COLUMN orchestrator_selected_at BIGINT`,
+    `ALTER TABLE jobs ADD COLUMN orchestrator_deferred_until BIGINT`,
+    `ALTER TABLE orchestrator_actions ADD COLUMN actor TEXT NOT NULL DEFAULT 'orchestrator'`,
+    `ALTER TABLE orchestrator_actions ADD COLUMN result TEXT NOT NULL DEFAULT 'info'`,
+    `CREATE INDEX IF NOT EXISTS idx_jobs_platform_status ON jobs(platform, status)`,
     // Folder watcher: track whether a watched path is currently reachable.
     `ALTER TABLE source_folders ADD COLUMN status TEXT NOT NULL DEFAULT 'reachable'`,
   ];
@@ -404,8 +469,21 @@ export async function initDb() {
 
   queries.insertJob = S(`INSERT INTO jobs (id, channel_id, filename, title, description, hashtags, tags, category, privacy, scheduled_at, priority, next_retry_at, status, created_at, updated_at) VALUES (@id, @channelId, @filename, @title, @description, @hashtags, @tags, @category, @privacy, @scheduledAt, @priority, @nextRetryAt, @status, @created, @updated)`);
   queries.insertPlatformJob = S(`INSERT INTO jobs (id, channel_id, filename, title, description, hashtags, tags, category, privacy, platform, format, instagram_account_id, facebook_page_id, scheduled_at, priority, next_retry_at, status, created_at, updated_at) VALUES (@id, @channelId, @filename, @title, @description, @hashtags, @tags, @category, @privacy, @platform, @format, @instagramAccountId, @facebookPageId, @scheduledAt, @priority, @nextRetryAt, @status, @created, @updated)`);
-  queries.claimJob = S(`UPDATE jobs SET status = 'uploading' WHERE id = @id AND status = 'pending' RETURNING *`);
-  queries.dueJobs = S(`SELECT * FROM jobs WHERE status = 'pending' AND scheduled_at <= @now AND (next_retry_at IS NULL OR next_retry_at <= @now) ORDER BY priority ASC, scheduled_at ASC, created_at ASC`);
+  queries.claimJob = S(`UPDATE jobs SET status = 'uploading', updated_at = @now WHERE id = @id AND status = 'pending'
+    AND orchestrator_approval_status = 'approved'
+    AND (orchestrator_deferred_until IS NULL OR orchestrator_deferred_until <= @now) RETURNING *`);
+  queries.staleUploadingJobs = S(`SELECT id, retry_count, title FROM jobs WHERE status = 'uploading' AND updated_at <= @cutoff`);
+  queries.recoverStaleClaim = S(`UPDATE jobs SET status = @status, retry_count = @retryCount, next_retry_at = @nextRetryAt,
+    last_error = @lastError, orchestrator_approval_status = @approvalStatus, orchestrator_selected_at = NULL, updated_at = @now
+    WHERE id = @id AND status = 'uploading' AND updated_at <= @cutoff`);
+  queries.dueJobs = S(`SELECT * FROM jobs WHERE status = 'pending' AND orchestrator_approval_status = 'approved'
+    AND (orchestrator_deferred_until IS NULL OR orchestrator_deferred_until <= @now)
+    AND scheduled_at <= @now AND (next_retry_at IS NULL OR next_retry_at <= @now)
+    ORDER BY priority ASC, scheduled_at ASC, created_at ASC`);
+  queries.dueJobsSelected = S(`SELECT * FROM jobs WHERE status = 'pending' AND orchestrator_approval_status = 'approved'
+    AND orchestrator_selected_at IS NOT NULL AND (orchestrator_deferred_until IS NULL OR orchestrator_deferred_until <= @now)
+    AND scheduled_at <= @now AND (next_retry_at IS NULL OR next_retry_at <= @now)
+    ORDER BY priority ASC, scheduled_at ASC, created_at ASC`);
   queries.setJobStatus = S(`UPDATE jobs SET status = @status, retry_count = @retryCount, next_retry_at = @nextRetryAt, last_error = @lastError, updated_at = @updatedAt WHERE id = @id`);
   queries.requeueJob = S(`UPDATE jobs SET status = 'pending', retry_count = retry_count + 1, next_retry_at = @nextRetryAt, channel_id = @channelId, last_error = @lastError, updated_at = @updatedAt WHERE id = @id`);
   queries.markDone = S(`UPDATE jobs SET status = 'done', retry_count = @retryCount, last_error = NULL, updated_at = @updatedAt WHERE id = @id`);

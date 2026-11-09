@@ -19,14 +19,17 @@ function dateString(date) {
 function errorReason(error) {
   const status = error?.response?.status || error?.code;
   const message = error?.response?.data?.error?.message || error?.message || "Could not load analytics";
-  if (String(message).toLowerCase().includes("youtube analytics api has not been used") ||
-      String(message).toLowerCase().includes("is disabled")) {
-    return "Enable the YouTube Analytics API in the Google Cloud project, then retry.";
+  const reason = String(error?.response?.data?.error?.errors?.[0]?.reason || error?.response?.data?.error?.status || "").toLowerCase();
+  if (["accessnotconfigured", "servicedisabled", "service_disabled"].includes(reason) ||
+      /youtube analytics api has not been used|api has not been used|is disabled/i.test(String(message))) {
+    return { code: "api_disabled", message: "The YouTube Analytics API is disabled for this Google Cloud project. Enable it, wait a few minutes, then refresh." };
   }
-  if (Number(status) === 401 || Number(status) === 403) {
-    return "Reconnect this YouTube channel and grant YouTube Analytics read access.";
+  if (["insufficientpermissions", "autherror", "invalidcredentials", "forbidden"].includes(reason) || Number(status) === 401 ||
+      (Number(status) === 403 && /does not have permission|permission denied|analytics.*access/i.test(String(message))) ||
+      /insufficient authentication scopes|insufficient permission/i.test(String(message))) {
+    return { code: "reauthorize", message: "This channel’s Google authorization does not include YouTube Analytics read access. Reconnect it and approve the requested access." };
   }
-  return message;
+  return { code: "unavailable", message };
 }
 
 router.get("/youtube", async (req, res) => {
@@ -81,7 +84,8 @@ router.get("/youtube", async (req, res) => {
         daily: rows,
       };
     } catch (error) {
-      return { id: channel.id, name: channel.name, available: false, error: errorReason(error) };
+      const diagnostic = errorReason(error);
+      return { id: channel.id, name: channel.name, available: false, error: diagnostic.message, errorCode: diagnostic.code };
     }
   }));
 

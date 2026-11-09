@@ -12,6 +12,10 @@ import { uploadJob } from "./youtube-upload.js";
 import { publishReel } from "./instagram.js";
 import { publishFacebookVideo } from "./facebook.js";
 import { RateLimitError, AuthError, FatalUploadError, SchedulerError } from "./errors.js";
+import { getOrchestratorRuntime, runOrchestratorCycle, channelIsPaused, recordOrchestratorAction } from "./task-orchestrator.js";
+import { access, realpath, stat } from "fs/promises";
+import { constants as fsConstants } from "fs";
+import { basename, resolve, sep } from "path";
 
 const state = {
   active: new Set(), // { id, channelId, promise }
@@ -49,12 +53,14 @@ export async function refreshBudgets() {
 /** Pick a channel with budget AND a free per-channel slot. Returns null if none. */
 async function resolveChannel(job) {
   if (job.platform === "instagram") {
+    if (await channelIsPaused("instagram", job.instagram_account_id)) return null;
     const account = await queries.findInstagramAccount.get({ id: job.instagram_account_id });
     if (!account?.active) return null;
     if (inFlight(`instagram:${account.id}`) >= config.worker.perChannelMaxConcurrent) return null;
     return account;
   }
   if (job.platform === "facebook") {
+    if (await channelIsPaused("facebook", job.facebook_page_id)) return null;
     const page = await queries.findFacebookPage.get({ id: job.facebook_page_id });
     if (!page?.active) return null;
     if (inFlight(`facebook:${page.id}`) >= config.worker.perChannelMaxConcurrent) return null;
@@ -63,6 +69,7 @@ async function resolveChannel(job) {
   const channels = await queries.listActiveChannels.all();
   for (const ch of channels) {
     if (job.channel_id && ch.id !== job.channel_id) continue;
+    if (await channelIsPaused("youtube", ch.id)) continue;
     if (!hasBudget(ch)) continue;
     if (inFlight(ch.id) >= config.worker.perChannelMaxConcurrent) continue;
     return ch;
@@ -79,7 +86,7 @@ function backoffFor(retryCount) {
 
 /** Claim a job (optimistic lock) and start its upload fire-and-forget. */
 async function dispatch(job, channel) {
-  const claimed = await queries.claimJob.get({ id: job.id });
+  const claimed = await queries.claimJob.get({ id: job.id, now: nowSec() });
   if (!claimed) return { skipped: true }; // lost the race to another tick/worker
 
   const key = job.platform === "instagram" ? `instagram:${channel.id}`
@@ -101,7 +108,17 @@ async function dispatch(job, channel) {
 
 async function runUpload(job, channel) {
   const now = nowSec();
+  const audit = (actionType, result, reason, details = {}) => recordOrchestratorAction({ jobId: job.id, actionType, actor: "worker", result, reason, details }).catch((error) => console.error("[audit] failed to record upload action:", error));
   try {
+    const validationErrors = await validateClaimedJob(job);
+    if (validationErrors.length) {
+      const reason = validationErrors.join("; ");
+      await queries.setJobStatus.run({ id: job.id, status: "failed", retryCount: job.retry_count || 0,
+        nextRetryAt: null, lastError: reason, updatedAt: nowSec() });
+      await audit("execution_failed", "validation_failed", reason, { platform: job.platform || "youtube", validationErrors });
+      console.warn(`[validation] ${job.id}: ${reason}`);
+      return;
+    }
     if (job.platform === "instagram") {
       const result = await publishReel(job, channel);
       await queries.insertInstagramUpload.run({
@@ -112,6 +129,7 @@ async function runUpload(job, channel) {
         created: now,
       });
       await queries.markDone.run({ id: job.id, retryCount: job.retry_count, updatedAt: now });
+      await audit("executed", "published", "Instagram Reel published", { platform: "instagram", destinationId: channel.id });
       console.log(`[ready] Instagram Reel "${job.title}" published for @${channel.username}`);
       return;
     }
@@ -125,6 +143,7 @@ async function runUpload(job, channel) {
         created: now,
       });
       await queries.markDone.run({ id: job.id, retryCount: job.retry_count, updatedAt: now });
+      await audit("executed", "published", "Facebook video published", { platform: "facebook", destinationId: channel.id });
       console.log(`[ready] Facebook video "${job.title}" published for ${channel.name}`);
       return;
     }
@@ -145,10 +164,42 @@ async function runUpload(job, channel) {
     });
     await queries.spendQuota.run({ id: channel.id, cost: result.quotaCost, now });
     await queries.markDone.run({ id: job.id, retryCount: job.retry_count, updatedAt: now });
+    await audit("executed", "published", "YouTube video published", { platform: "youtube", destinationId: channel.id, quotaCost: result.quotaCost });
     console.log(`[ready] ${job.title} -> ${result.url} (channel ${channel.name})`);
   } catch (err) {
     await handleFailure(job, channel, err);
+    await audit("execution_failed", "failed", err.message || "Upload failed", { platform: job.platform || "youtube", retryCount: Number(job.retry_count || 0) });
   }
+}
+
+async function validateClaimedJob(job) {
+  const errors = [];
+  const filename = String(job.filename || "");
+  const extension = filename.split(".").at(-1)?.toLowerCase();
+  if (!filename || basename(filename) !== filename) errors.push("Source filename is missing or invalid");
+  if (!new Set(["mp4", "mov", "webm"]).has(extension)) errors.push("Video format must be MP4, MOV, or WebM");
+  if (!String(job.title || "").trim()) errors.push("Title or caption is required");
+  if (job.platform === "youtube") {
+    if (String(job.title || "").length > 100) errors.push("YouTube title exceeds 100 characters");
+    if (String(job.description || "").length > 5000) errors.push("YouTube description exceeds 5,000 characters");
+  } else if (job.platform === "instagram" && String(job.description || "").length > 2200) {
+    errors.push("Instagram caption exceeds 2,200 characters");
+  }
+  if (!errors.length) {
+    try {
+      const root = await realpath(config.storageRoot);
+      const path = await realpath(resolve(root, filename));
+      if (!path.startsWith(`${root}${sep}`)) errors.push("Source file is outside the managed media directory");
+      else {
+        await access(path, fsConstants.R_OK);
+        const info = await stat(path);
+        if (!info.isFile()) errors.push("Source path is not a regular file");
+        else if (info.size <= 0) errors.push("Source video is empty");
+        else if (info.size > config.upload.maxFileSize) errors.push("Source video exceeds the configured maximum file size");
+      }
+    } catch { errors.push("Source video is missing or unreadable"); }
+  }
+  return errors;
 }
 
 /** Decide what to do after an upload error. */
@@ -227,8 +278,21 @@ async function handleFailure(job, channel, err) {
 export async function runTick() {
   await refreshBudgets();
 
+  const orchestration = await getOrchestratorRuntime();
+  if (orchestration.state === "paused") {
+    return { tickAt: new Date().toISOString(), due: 0, dispatched: 0, skipped: 0, stalled: 0, paused: true, active: concurrencySnapshot() };
+  }
+  if (orchestration.mode === "assisted") {
+    // Gate work created since the previous pass before looking for due jobs.
+    await getDb().prepare(`UPDATE jobs SET orchestrator_approval_status = 'waiting'
+      WHERE status = 'pending' AND orchestrator_approval_status = 'approved' AND orchestrator_selected_at IS NULL`).run();
+  }
+  if (["assisted", "automatic"].includes(orchestration.mode)) {
+    await runOrchestratorCycle();
+  }
+
   const now = nowSec();
-  const due = await queries.dueJobs.all({ now });
+  const due = await (orchestration.mode === "automatic" ? queries.dueJobsSelected : queries.dueJobs).all({ now });
   let dispatched = 0, skipped = 0, stalled = 0;
 
   for (const job of due) {

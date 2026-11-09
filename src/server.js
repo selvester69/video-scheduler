@@ -15,6 +15,7 @@ import instagramRouter from "./routes/instagram.js";
 import facebookRouter from "./routes/facebook.js";
 import mediaLibraryRouter from "./routes/media-library.js";
 import reviewsRouter from "./routes/reviews.js";
+import orchestratorRouter from "./routes/orchestrator.js";
 import { requireAuth } from "./middleware/auth.js";
 import { currentUser, seedDefaultUser } from "./services/auth.js";
 import { verifySignedMediaUrl } from "./services/media-url.js";
@@ -90,6 +91,7 @@ app.use("/api/rotation", rotationRouter); // Phase 2 core: POST /plan (assignmen
 app.use("/api/explorer", requireAuth, explorerRouter); // admin read-only DB query UI
 app.use("/api/analytics", requireAuth, analyticsRouter);
 app.use("/api/reviews", reviewsRouter);
+app.use("/api/orchestrator", orchestratorRouter);
 
 // OAuth callback is a public GET (Google redirects here with a query string)
 app.use("/auth", authRouter);

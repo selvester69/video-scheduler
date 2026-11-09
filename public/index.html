@@ -1235,6 +1235,41 @@
     .review-editor .field-label, .review-editor textarea, .review-editor button { grid-column: 1 / -1; }
     @media(max-width:850px) { .review-layout { grid-template-columns: 1fr; } .review-video-frame { max-height: 75vh; } }
 
+    .task-viewer-banner { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; padding:1rem; border:1px solid var(--color-line); border-radius:var(--radius-md); background:var(--color-surface-2); margin-bottom:1rem; }
+    .task-viewer-banner p { margin:.25rem 0 0; }
+    .task-viewer-actions, .task-viewer-controls, .task-viewer-footer { display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; }
+    .task-viewer-controls { margin:.8rem 0; }
+    .task-viewer-controls .field { min-width:9rem; flex:1 1 9rem; }
+    .task-viewer-stats { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.65rem; margin:.8rem 0; }
+    .task-viewer-stat { padding:.75rem; border:1px solid var(--color-line); border-radius:var(--radius-sm); background:var(--color-surface-2); }
+    .task-viewer-stat span { display:block; color:var(--color-muted); font-size:.72rem; }
+    .task-viewer-stat strong { display:block; margin-top:.25rem; font-size:1.2rem; }
+    .task-table-wrap { overflow:auto; border:1px solid var(--color-line); border-radius:var(--radius-md); }
+    .task-table { width:100%; min-width:72rem; border-collapse:collapse; }
+    .task-table th,.task-table td { padding:.7rem; text-align:left; vertical-align:top; border-bottom:1px solid var(--color-line); }
+    .task-table th { background:var(--color-surface-2); color:var(--color-muted); font-size:.7rem; text-transform:uppercase; }
+    .task-table tbody tr:last-child td { border-bottom:0; }
+    .task-risk { display:inline-flex; min-width:2.7rem; justify-content:center; padding:.2rem .4rem; border-radius:99px; font-size:.75rem; font-weight:700; background:var(--color-surface-2); }
+    .task-risk.high { color:#b42318; background:#fee4e2; }
+    .task-risk.medium { color:#9a6700; background:#fff1c2; }
+    .task-config-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(11rem,1fr)); gap:.7rem; align-items:end; }
+    .task-action-log { max-height:24rem; overflow:auto; }
+    .task-action-row { display:grid; grid-template-columns:minmax(7rem,.6fr) minmax(10rem,1fr) minmax(0,2fr) auto; gap:.65rem; padding:.65rem 0; border-bottom:1px solid var(--color-line); font-size:.82rem; }
+    .task-approval-row { background:color-mix(in srgb, var(--color-warning, #c58a22) 10%, transparent); }
+    .task-row-actions { display:flex; flex-wrap:wrap; gap:.3rem; min-width:11rem; }
+    .task-quota-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(14rem,1fr)); gap:.6rem; margin-top:.75rem; }
+    .task-quota-row { display:grid; gap:.4rem; padding:.7rem; border:1px solid var(--color-line); border-radius:var(--radius-sm); background:var(--color-surface-2); }
+    .task-quota-meter { height:.42rem; overflow:hidden; border-radius:99px; background:var(--color-line); }
+    .task-quota-meter i { display:block; height:100%; background:var(--color-primary); }
+    .task-workflow-editor { margin-top:1rem; padding-top:.75rem; border-top:1px solid var(--color-line); }
+    .task-workflow-form { display:grid; grid-template-columns:minmax(10rem,1fr) minmax(16rem,2fr) auto; align-items:end; gap:.6rem; }
+    .task-workflow-list { display:grid; gap:.35rem; margin-top:.6rem; }
+    .task-workflow-item { display:flex; justify-content:space-between; align-items:center; gap:.5rem; padding:.5rem; border:1px solid var(--color-line); border-radius:var(--radius-sm); }
+    .task-selection-toolbar { display:flex; flex-wrap:wrap; align-items:end; gap:.5rem; padding:.65rem; margin:.7rem 0; border:1px solid var(--color-line); border-radius:var(--radius-sm); }
+    .task-detail-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.7rem; }
+    .task-detail-block { padding:.7rem; background:var(--color-surface-2); border:1px solid var(--color-line); border-radius:var(--radius-sm); overflow-wrap:anywhere; }
+    @media(max-width:760px) { .task-viewer-banner { flex-direction:column; } .task-viewer-stats { grid-template-columns:repeat(2,minmax(0,1fr)); } .task-action-row { grid-template-columns:1fr 1fr; } .task-detail-grid,.task-workflow-form { grid-template-columns:1fr; } }
+
     .media-remote-pager, .media-edit-actions {
       display: flex;
       align-items: center;
@@ -2892,6 +2927,12 @@
         </svg>
         Insights
       </a>
+      <a href="#orchestrator" data-section="Task viewer" class="tablink" aria-label="Task viewer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 4h16v16H4z" /><path d="M8 8h8M8 12h8M8 16h4" />
+        </svg>
+        Task viewer
+      </a>
       <a href="#review" data-section="Review" class="tablink" aria-label="Review">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M4 4h16v16H4z" /><path d="M8 9h8M8 13h5M8 17h3" />
@@ -3277,6 +3318,90 @@
         <div id="auditLogRecords">
           <p class="muted">Loading…</p>
         </div>
+      </section>
+
+      <section id="orchestrator" class="card">
+        <div class="page-heading">
+          <div><h2>Task viewer</h2><p class="muted">Deterministic task monitoring, priority recommendations, and decision history.</p></div>
+          <div class="task-viewer-actions">
+            <span id="taskViewerState" class="pill"><span class="dot"></span>Monitor only</span>
+            <label class="field-label">Mode<select id="taskViewerMode" class="field"><option value="monitor">Monitor only</option><option value="assisted">Assisted</option><option value="automatic">Automatic</option></select></label>
+            <span class="muted">Last cycle <strong id="taskViewerLastCycle">—</strong></span>
+            <button type="button" id="taskViewerPause" class="btn-ghost">Pause orchestrator</button>
+            <button type="button" id="taskViewerRefresh" class="btn-ghost">Refresh</button>
+            <button type="button" id="taskViewerCycle" class="btn-primary">Run selection cycle</button>
+          </div>
+        </div>
+        <div class="task-viewer-banner">
+          <div><strong id="taskViewerModeExplanation">Monitor-only mode</strong><p id="taskViewerModeDescription" class="muted">Shows task recommendations without claiming jobs. The existing worker still publishes scheduled uploads.</p></div>
+          <a href="#queue" class="inline-link">Open upload queue →</a>
+        </div>
+        <div class="task-viewer-stats" id="taskViewerStats" aria-live="polite">
+          <div class="task-viewer-stat"><span>Pending</span><strong>—</strong></div><div class="task-viewer-stat"><span>Uploading</span><strong>—</strong></div><div class="task-viewer-stat"><span>Waiting approval</span><strong>—</strong></div><div class="task-viewer-stat"><span>Failed</span><strong>—</strong></div><div class="task-viewer-stat"><span>Needs attention</span><strong>—</strong></div>
+        </div>
+        <article class="dashboard-panel task-quota-panel"><div class="dashboard-panel-heading"><div><h3>Quota and cycle health</h3><p>Last 24 hours · YouTube upload quota and orchestrator activity</p></div><button type="button" id="taskMetricsRefresh" class="btn-ghost">Refresh</button></div><div id="taskMetricsSummary" class="task-viewer-stats"><div class="task-viewer-stat">Loading metrics…</div></div><div id="taskQuotaChannels" class="task-quota-list"></div></article>
+        <details class="dashboard-panel" style="margin-bottom:.8rem">
+          <summary class="muted">Selection rules</summary>
+          <p class="muted">Selection rules are deterministic. Automatic mode hands selected jobs to the existing worker; Assisted mode waits for approval. Lower base-priority values mean higher queue priority.</p>
+          <form id="taskViewerConfig" class="task-config-grid">
+            <label class="field-label">Maximum preview tasks<input id="taskConfigMaxTasks" class="field" type="number" min="1" max="100" /></label>
+            <label class="field-label">Viewer refresh interval (seconds)<input id="taskConfigInterval" class="field" type="number" min="15" max="3600" /></label>
+            <label class="field-label">Quota safety margin (%)<input id="taskConfigQuotaMargin" class="field" type="number" min="0" max="50" /></label>
+            <label class="field-label">Deadline weight<input id="taskWeightDeadline" class="field" type="number" min="0" max="100" /></label>
+            <label class="field-label">Quota fit weight<input id="taskWeightQuota" class="field" type="number" min="0" max="100" /></label>
+            <label class="field-label">Channel health weight<input id="taskWeightHealth" class="field" type="number" min="0" max="100" /></label>
+            <label class="field-label">Retry penalty<input id="taskWeightRetry" class="field" type="number" min="0" max="100" /></label>
+            <label class="field-label">Base priority weight<input id="taskWeightBase" class="field" type="number" min="0" max="100" /></label>
+            <label class="field-label">Quota risk penalty<input id="taskWeightQuotaRisk" class="field" type="number" min="0" max="100" /></label>
+            <label class="field-label">Campaign continuity weight<input id="taskWeightCampaign" class="field" type="number" min="0" max="100" /></label>
+            <label class="field-label">Platform preference order (comma separated)<input id="taskPlatformOrder" class="field" placeholder="youtube, instagram, facebook" /></label>
+            <label class="field-label" style="display:flex;align-items:center;gap:.45rem"><input id="taskConfigFairness" type="checkbox" /> Round-robin channel fairness</label>
+            <button type="submit" class="btn-ghost">Save selection rules</button>
+          </form>
+          <p id="taskConfigMessage" class="muted" role="status" aria-live="polite"></p>
+          <div class="task-workflow-editor"><h3>Workflow definitions</h3><p class="muted">Ordered workflow steps are stored and assignable. The current upload worker handles publishing; platform-specific follow-up actions still need connector implementations.</p><div class="task-workflow-form"><label class="field-label">Workflow name<input id="taskWorkflowName" class="field" maxlength="120" placeholder="Private review then publish" /></label><label class="field-label">Ordered steps (JSON)<textarea id="taskWorkflowDefinition" class="field" rows="3">[{"action":"upload"}]</textarea></label><button type="button" id="taskWorkflowSave" class="btn-ghost">Save workflow</button></div><div id="taskWorkflowList" class="task-workflow-list"></div></div>
+        </details>
+        <div class="task-viewer-controls" aria-label="Task filters">
+          <input id="taskSearch" class="field" type="search" placeholder="Search title or description" />
+          <select id="taskStatusFilter" class="field" aria-label="Filter by task status"><option value="all">All statuses</option><option value="pending">Pending</option><option value="queued">Queued</option><option value="waiting_approval">Waiting approval</option><option value="uploading">Uploading</option><option value="processing">Processing</option><option value="done">Published</option><option value="failed">Failed</option><option value="exhausted">Needs attention</option><option value="deferred">Deferred</option><option value="deleted">Cancelled</option></select>
+          <select id="taskPlatformFilter" class="field" aria-label="Filter by platform"><option value="all">All platforms</option><option value="youtube">YouTube</option><option value="instagram">Instagram</option><option value="facebook">Facebook</option></select>
+          <select id="taskChannelFilter" class="field" aria-label="Filter by channel"><option value="">All channels</option></select>
+          <input id="taskDateFrom" class="field" type="date" aria-label="Scheduled from" />
+          <input id="taskDateTo" class="field" type="date" aria-label="Scheduled to" />
+          <input id="taskPriorityMin" class="field" type="number" min="0" max="100" placeholder="Min base priority" aria-label="Minimum base priority" />
+          <input id="taskPriorityMax" class="field" type="number" min="0" max="100" placeholder="Max base priority" aria-label="Maximum base priority" />
+          <input id="taskCampaignFilter" class="field" type="search" placeholder="Campaign / series ID" />
+          <select id="taskSort" class="field" aria-label="Sort tasks"><option value="scheduled">Sort: scheduled time</option><option value="priority">Sort: recommendation score</option><option value="created">Sort: newest created</option></select>
+        </div>
+        <p id="taskViewerMessage" class="muted" role="status" aria-live="polite"></p>
+        <div class="task-selection-toolbar" aria-label="Bulk task controls">
+          <label class="field-label"><input id="taskSelectAll" type="checkbox" /> Select page</label>
+          <label class="field-label">Base priority<input id="taskBulkPriority" class="field" type="number" min="0" max="100" value="0" /></label>
+          <label class="field-label">Defer until<input id="taskBulkDeferUntil" class="field" type="datetime-local" /></label>
+          <button type="button" id="taskBulkApprove" class="btn-ghost">Approve</button>
+          <button type="button" id="taskBulkReject" class="btn-ghost">Reject</button>
+          <button type="button" id="taskBulkDefer" class="btn-ghost">Defer</button>
+          <button type="button" id="taskBulkCancel" class="btn-ghost">Cancel</button>
+          <button type="button" id="taskBulkPriorityApply" class="btn-ghost">Set priority</button>
+          <button type="button" id="taskBulkForce" class="btn-primary">Force execute</button>
+        </div>
+        <div id="taskViewerTable" class="task-table-wrap"><p class="muted">Loading tasks…</p></div>
+        <div class="task-viewer-footer" style="justify-content:space-between;margin:.7rem 0 1rem">
+          <span id="taskViewerPageStatus" class="muted"></span>
+          <div><button type="button" id="taskViewerPrev" class="btn-ghost" disabled>Previous</button> <button type="button" id="taskViewerNext" class="btn-ghost" disabled>Next</button></div>
+        </div>
+        <article class="dashboard-panel">
+          <div class="dashboard-panel-heading"><div><h3>Decision and action history</h3><p>Immutable monitor decisions, configuration changes, and operator controls.</p></div><button type="button" id="taskViewerActionsRefresh" class="btn-ghost">Refresh log</button></div>
+          <div class="task-viewer-controls" aria-label="Action history filters">
+            <select id="taskActionTypeFilter" class="field" aria-label="Filter action type"><option value="">All actions</option><option value="cycle_completed">Selection previews</option><option value="selected">Recommended</option><option value="deferred">Deferred</option><option value="priority_overridden">Priority changes</option><option value="skipped">Skipped tasks</option><option value="configuration_updated">Rule changes</option></select>
+            <select id="taskActionPlatformFilter" class="field" aria-label="Filter action platform"><option value="">All platforms</option><option value="youtube">YouTube</option><option value="instagram">Instagram</option><option value="facebook">Facebook</option></select>
+            <select id="taskActionChannelFilter" class="field" aria-label="Filter action channel"><option value="">All channels</option></select>
+            <label class="field-label">From<input id="taskActionDateFrom" class="field" type="date" /></label>
+            <label class="field-label">To<input id="taskActionDateTo" class="field" type="date" /></label>
+          </div>
+          <div id="taskViewerActions" class="task-action-log"><p class="muted">Loading action history…</p></div>
+        </article>
+        <dialog id="taskDetailDialog" class="task-detail-dialog"><form method="dialog"><button class="btn-ghost" style="float:right">Close</button></form><h2 id="taskDetailTitle">Task details</h2><label class="field-label">Assign workflow<select id="taskDetailWorkflow" class="field"></select></label><button type="button" id="taskDetailAssignWorkflow" class="btn-ghost">Assign workflow</button><div id="taskDetailContent"></div></dialog>
       </section>
 
       <section id="insights" class="card">
@@ -3698,6 +3823,7 @@
       });
       if (hash === "#media") loadJobs({ refreshMedia: true });
       if (hash === "#insights") setTimeout(() => window.loadInsights?.(), 0);
+      if (hash === "#orchestrator") setTimeout(() => loadTaskViewer({ reset: true, populateConfig: true, clearMessage: true }), 0);
       if (hash === "#review") setTimeout(() => loadReviewVideos(), 0);
     }
     window.addEventListener("hashchange", setActiveNav);
@@ -3750,15 +3876,24 @@
       const usable = channels.filter((channel) => channel.available);
       const unavailable = channels.filter((channel) => !channel.available);
       const channelRows = usable.map((channel) => `<tr><td>${escape(channel.name)}</td><td>${formatMetric(channel.totals.views)}</td><td>${formatMetric(channel.totals.comments)}</td><td>${formatMetric(channel.totals.likes)}</td><td>${formatMetric(channel.totals.subscribers)}</td><td>${(channel.totals.watchMinutes / 60).toLocaleString(undefined, { maximumFractionDigits: 1 })} hrs</td></tr>`).join("");
-      const errors = unavailable.map((channel) => `<div class="rule-row"><div><strong>${escape(channel.name)}</strong><p class="muted" style="margin:.2rem 0">${escape(channel.error)}</p></div><a class="cc-btn" href="/api/auth/channels/${encodeURIComponent(channel.id)}/reauth">Reconnect</a></div>`).join("");
+      const errors = unavailable.map((channel) => {
+        const action = channel.errorCode === "api_disabled"
+          ? '<a class="cc-btn" href="https://console.cloud.google.com/apis/library/youtubeanalytics.googleapis.com" target="_blank" rel="noopener noreferrer">Enable Analytics API ↗</a>'
+          : channel.errorCode === "reauthorize"
+            ? `<a class="cc-btn" href="${API}/auth/channels/${encodeURIComponent(channel.id)}/reauth">Reconnect YouTube</a>`
+            : "";
+        return `<div class="rule-row"><div><strong>${escape(channel.name)}</strong><p class="muted" style="margin:.2rem 0">${escape(channel.error)}</p></div>${action}</div>`;
+      }).join("");
       $("insightsChannels").innerHTML = usable.length
         ? `<div class="table-wrap"><table class="insights-channel-table"><thead><tr><th>Channel</th><th>Views</th><th>Comments</th><th>Likes</th><th>Subscribers gained</th><th>Watch time</th></tr></thead><tbody>${channelRows}</tbody></table></div>${errors}`
         : channels.length
-          ? `<div class="explorer-empty">Analytics permission is missing for these channels. Reconnect each channel to grant access.</div>${errors}`
+          ? `<div class="explorer-empty">YouTube Analytics is unavailable for ${unavailable.length} connected channel${unavailable.length === 1 ? "" : "s"}. See the channel-specific reason below.</div>${errors}`
           : '<div class="explorer-empty">No active YouTube channels are connected. <a class="inline-link" href="/api/auth/connect">Connect a channel</a> to load insights.</div>';
       $("insightsStatus").textContent = unavailable.length && usable.length
         ? `${unavailable.length} channel${unavailable.length === 1 ? " is" : "s are"} unavailable; totals include connected channels only.`
-        : "YouTube Analytics data can be delayed by up to a few days. The report ends on the last complete day.";
+        : unavailable.length
+          ? `Analytics unavailable: ${unavailable.map((channel) => `${channel.name}: ${channel.error}`).join(" · ")}`
+          : "YouTube Analytics data can be delayed by up to a few days. The report ends on the last complete day.";
     }
 
     window.loadInsights = async function () {
@@ -3871,6 +4006,7 @@
         renderBulkDestinationOptions();
         renderChannelConnectCards();
         if (location.hash === "#insights") setTimeout(() => window.loadInsights?.(), 0);
+        if (location.hash === "#orchestrator") setTimeout(() => loadTaskViewer({ populateConfig: true }), 0);
 
         const link = $("connectLink");
         if (list.length) {
@@ -4860,6 +4996,391 @@
           }).join("")}</tbody></table></div>`
         : `<div class="empty"><h3>No matching upload records.</h3><p>Upload attempts will appear here and remain available after cleaning History.</p></div>`;
     }
+
+    let taskViewerCursorStack = [null];
+    let taskViewerPage = null;
+    let taskViewerRefreshSeconds = 60;
+    let taskViewerLastRefresh = 0;
+    let taskWorkflowDefinitions = [];
+    let editingTaskWorkflowId = null;
+    let taskDetailActiveId = null;
+    const taskPlatformName = (value) => ({ youtube: "YouTube", instagram: "Instagram", facebook: "Facebook" }[value] || value || "—");
+    const taskStatusName = (value) => ({ pending: "Pending", queued: "Queued", waiting_approval: "Waiting approval", uploading: "Uploading", processing: "Processing", done: "Published", published: "Published", failed: "Failed", exhausted: "Needs attention", deferred: "Deferred", deleted: "Cancelled", cancelled: "Cancelled" }[value] || value || "—");
+    const taskDate = (seconds) => seconds ? new Date(Number(seconds) * 1000).toLocaleString() : "—";
+    function taskMessage(message, error = false) {
+      const node = $("taskViewerMessage");
+      node.textContent = message || "";
+      node.classList.toggle("error", error);
+    }
+    async function loadTaskState({ populateConfig = false } = {}) {
+      const response = await api(`${API}/orchestrator/state`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not load task viewer state");
+      taskViewerRefreshSeconds = data.config?.selectionIntervalSeconds || 60;
+      $("taskViewerMode").value = data.mode || "monitor";
+      const modeLabel = { monitor: "Monitor only", assisted: "Assisted", automatic: "Automatic" }[data.mode] || "Monitor only";
+      $("taskViewerState").innerHTML = `<span class="dot"></span>${escape(data.state === "paused" ? `${modeLabel} · Paused` : `${modeLabel} · Running`)}`;
+      $("taskViewerPause").textContent = data.state === "paused" ? "Resume orchestrator" : "Pause orchestrator";
+      $("taskViewerLastCycle").textContent = taskDate(data.lastCycleAt);
+      $("taskViewerModeExplanation").textContent = `${modeLabel} mode`;
+      $("taskViewerModeDescription").textContent = data.mode === "automatic"
+        ? "The selector chooses eligible jobs and hands scheduled work to the existing upload worker. The worker validates, claims, and publishes."
+        : data.mode === "assisted"
+          ? "The selector prepares tasks and holds them for operator approval. Approved jobs are published by the existing worker at their scheduled time."
+          : "Shows task recommendations without the orchestrator selecting jobs for execution. The existing worker still publishes scheduled uploads.";
+      const summary = data.summary || {};
+      $("taskViewerStats").innerHTML = [["Pending", summary.pending], ["Uploading", summary.uploading], ["Waiting approval", summary.waiting_approval], ["Failed", summary.failed], ["Needs attention", summary.exhausted]]
+        .map(([label, value]) => `<div class="task-viewer-stat"><span>${label}</span><strong>${Number(value || 0).toLocaleString()}</strong></div>`).join("");
+      if (populateConfig) {
+        const cfg = data.config || {};
+        taskViewerRefreshSeconds = cfg.selectionIntervalSeconds || 60;
+        $("taskConfigMaxTasks").value = cfg.maxTasksPerCycle || 5;
+        $("taskConfigInterval").value = cfg.selectionIntervalSeconds || 60;
+        $("taskConfigQuotaMargin").value = Math.round((cfg.quotaSafetyMargin ?? 0.1) * 100);
+        $("taskConfigFairness").checked = cfg.fairness !== false;
+        const weights = cfg.weights || {};
+        $("taskWeightDeadline").value = weights.deadline ?? 30;
+        $("taskWeightQuota").value = weights.quotaFit ?? 10;
+        $("taskWeightHealth").value = weights.channelHealth ?? 15;
+        $("taskWeightRetry").value = weights.retryPenalty ?? 5;
+        $("taskWeightBase").value = weights.basePriority ?? 1;
+        $("taskWeightQuotaRisk").value = weights.quotaRisk ?? 15;
+        $("taskWeightCampaign").value = weights.campaignContinuity ?? 5;
+        $("taskPlatformOrder").value = (cfg.platformOrder || ["youtube", "instagram", "facebook"]).join(", ");
+      const destinations = [
+          ...(window._channels || []).filter((item) => item.active).map((item) => ({ id: item.id, type: "youtube", name: item.name })),
+          ...(window._instagramAccounts || []).filter((item) => item.active).map((item) => ({ id: item.id, type: "instagram", name: `@${item.username}` })),
+          ...(window._facebookPages || []).filter((item) => item.active).map((item) => ({ id: item.id, type: "facebook", name: item.name })),
+        ];
+        const channelSelect = $("taskChannelFilter");
+        const oldChannel = channelSelect.value;
+        const options = '<option value="">All channels</option>' + destinations.map((item) => `<option value="${escape(item.id)}">${escape(taskPlatformName(item.type))} · ${escape(item.name)}</option>`).join("");
+        [channelSelect, $("taskActionChannelFilter")].forEach((select) => {
+          if (!select) return;
+          const previous = select.value;
+          select.innerHTML = options;
+          if (destinations.some((item) => item.id === previous)) select.value = previous;
+        });
+      }
+      return data;
+    }
+    function renderTaskViewerTasks(data) {
+      const target = $("taskViewerTable");
+      const tasks = data.tasks || [];
+      if (!tasks.length) {
+        target.innerHTML = `<div class="empty"><h3>No matching tasks</h3><p>Try widening the filters or check the upload queue.</p></div>`;
+      } else {
+        target.innerHTML = `<table class="task-table"><thead><tr><th>Select</th><th>Task</th><th>Destination</th><th>Status</th><th>Scheduled</th><th>Priority / risk</th><th>Quota</th><th>Suggested window</th><th>Workflow / campaign</th><th>Latest action</th><th>Operator</th></tr></thead><tbody>${tasks.map((task) => {
+          const riskClass = task.riskScore >= 65 ? "high" : task.riskScore >= 35 ? "medium" : "";
+          const quota = task.estimatedQuotaCost == null ? "Not metered" : `${Number(task.estimatedQuotaCost).toLocaleString()} estimated · ${Number(task.remainingQuota || 0).toLocaleString()} left`;
+          const latest = task.latestAction ? `${task.latestAction.type}: ${task.latestAction.reason}` : "—";
+          const workflow = [task.campaignId ? `Campaign ${task.campaignId}` : "", task.workflowStep == null ? "" : `Step ${task.workflowStep + 1}`].filter(Boolean).join(" · ") || "—";
+          const reprioritize = ["pending", "waiting_approval", "failed", "exhausted"].includes(task.status)
+            ? `<form class="task-priority-form" data-task-priority="${escape(task.id)}"><input class="field" type="number" min="0" max="100" value="${Number(task.priority)}" aria-label="Base priority for ${escape(task.title)}" style="width:4.4rem;padding:.3rem" /><button type="submit" class="btn-ghost" title="Save priority">Save</button></form>` : "—";
+          const pending = ["pending", "waiting_approval"].includes(task.status);
+          const waiting = task.approvalStatus === "waiting";
+          const actions = `<div class="task-row-actions"><button type="button" class="btn-ghost" data-task-detail="${escape(task.id)}">Details</button>${waiting ? `<button type="button" class="btn-primary" data-task-approve="${escape(task.id)}">Approve</button><button type="button" class="btn-ghost" data-task-reject="${escape(task.id)}">Reject</button>` : ""}${pending ? `<button type="button" class="btn-ghost" data-task-defer="${escape(task.id)}">Defer</button><button type="button" class="btn-ghost" data-task-force="${escape(task.id)}">Force</button><button type="button" class="btn-ghost" data-task-skip="${escape(task.id)}">Cancel</button>` : ""}</div>`;
+          return `<tr class="${waiting ? "task-approval-row" : ""}"><td><input type="checkbox" class="task-row-select" value="${escape(task.id)}" aria-label="Select ${escape(task.title)}" /></td><td><strong>${escape(task.title)}</strong><div class="muted">${escape(task.filename)} · ${task.fileExists ? "file ready" : "file missing"}</div><div class="muted">${escape(task.description || "")}</div></td>
+            <td>${escape(taskPlatformName(task.platform))}<div class="muted">${escape(task.channelName)}</div>${task.destinationActive ? "" : '<span class="pill error"><span class="dot"></span>Inactive</span>'}</td>
+            <td>${escape(taskStatusName(task.status))}${task.lastError ? `<div class="muted">${escape(task.lastError)}</div>` : ""}</td>
+            <td>${escape(taskDate(task.scheduledAt))}</td><td><strong>${Number(task.priorityScore)}</strong> score<br><span class="task-risk ${riskClass}">${Number(task.riskScore)} risk</span><div class="muted">Base ${Number(task.priority)}</div></td>
+            <td>${escape(quota)}${task.quotaResetAt ? `<div class="muted">Reset ${escape(taskDate(task.quotaResetAt))}</div>` : ""}</td>
+            <td>${escape(task.suggestedWindow)}${task.riskFactors?.length ? `<div class="muted">${escape(task.riskFactors.join(" · "))}</div>` : ""}</td>
+            <td>${escape(workflow)}</td><td>${escape(latest)}</td><td>${reprioritize}${actions}</td></tr>`;
+        }).join("")}</tbody></table>`;
+      }
+      const pageIndex = taskViewerCursorStack.length;
+      $("taskViewerPageStatus").textContent = `${tasks.length} task${tasks.length === 1 ? "" : "s"} on page ${pageIndex}${data.nextCursor ? " · more available" : ""}`;
+      $("taskViewerPrev").disabled = taskViewerCursorStack.length <= 1;
+      $("taskViewerNext").disabled = !data.nextCursor;
+      taskViewerPage = data;
+      $("taskSelectAll").checked = false;
+    }
+    async function loadTaskPage({ reset = false } = {}) {
+      if (reset) taskViewerCursorStack = [null];
+      const params = new URLSearchParams({ limit: "25", sort: $("taskSort").value });
+      const mapping = { search: "taskSearch", status: "taskStatusFilter", platform: "taskPlatformFilter", channelId: "taskChannelFilter", from: "taskDateFrom", to: "taskDateTo", priorityMin: "taskPriorityMin", priorityMax: "taskPriorityMax", campaignId: "taskCampaignFilter" };
+      for (const [key, id] of Object.entries(mapping)) {
+        const value = $(id).value;
+        if (value && value !== "all") params.set(key, value);
+      }
+      const cursor = taskViewerCursorStack.at(-1);
+      if (cursor) params.set("cursor", cursor);
+      const response = await api(`${API}/orchestrator/tasks?${params}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not load task list");
+      renderTaskViewerTasks(data);
+    }
+    async function loadTaskActions() {
+      const params = new URLSearchParams({ limit: "30" });
+      const actionFilters = { platform: "taskActionPlatformFilter", channelId: "taskActionChannelFilter", from: "taskActionDateFrom", to: "taskActionDateTo", actionType: "taskActionTypeFilter" };
+      for (const [key, id] of Object.entries(actionFilters)) {
+        const value = $(id)?.value || "";
+        if (value && value !== "all") params.set(key, value);
+      }
+      const response = await api(`${API}/orchestrator/actions?${params}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not load action history");
+      const host = $("taskViewerActions");
+      host.innerHTML = data.items?.length ? data.items.map((item) => `<div class="task-action-row"><span>${escape(taskDate(item.createdAt))}</span><strong>${escape(item.actionType)} <small>${escape(item.result || "")}</small></strong><span>${escape(item.reason)}${item.jobId ? `<div class="muted">Task ${escape(item.jobId)}</div>` : ""}</span><span>${escape(item.actor || "orchestrator")}${item.details?.priorityScore != null ? ` · Score ${item.details.priorityScore}` : ""}</span></div>`).join("") : '<p class="muted">No orchestrator actions recorded yet.</p>';
+    }
+    async function loadTaskMetrics() {
+      const [metricsResponse, channelsResponse] = await Promise.all([
+        api(`${API}/orchestrator/metrics`), api(`${API}/orchestrator/channels`),
+      ]);
+      const [metrics, channels] = await Promise.all([metricsResponse.json(), channelsResponse.json()]);
+      if (!metricsResponse.ok) throw new Error(metrics.error || "Could not load orchestrator metrics");
+      if (!channelsResponse.ok) throw new Error(channels.error || "Could not load destination status");
+      $("taskMetricsSummary").innerHTML = [["Cycles", metrics.cycles], ["Selected", metrics.selected], ["Executed", metrics.executed], ["Deferred", metrics.deferred], ["Avg. cycle", `${Number(metrics.averageSelectionDurationMs || 0)} ms`]]
+        .map(([label, value]) => `<div class="task-viewer-stat"><span>${escape(label)}</span><strong>${Number.isFinite(Number(value)) ? Number(value).toLocaleString() : escape(value)}</strong></div>`).join("");
+      const quotaById = new Map((metrics.quota || []).map((item) => [item.channelId, item]));
+      $("taskQuotaChannels").innerHTML = channels.length ? channels.map((channel) => {
+        const quota = quotaById.get(channel.id);
+        const used = quota ? Math.min(100, Math.round(quota.used * 100 / Math.max(1, quota.limit))) : null;
+        const status = channel.paused ? "Paused" : channel.active ? "Active" : "Disconnected";
+        return `<div class="task-quota-row"><strong>${escape(taskPlatformName(channel.platform))} · ${escape(channel.name)}</strong><span>${escape(status)}</span>${quota ? `<div class="task-quota-meter"><i style="width:${used}%"></i></div><span>${Number(quota.remaining).toLocaleString()} upload units remain · reset ${escape(taskDate(quota.resetsAt))}</span>` : `<span>Platform quota usage is not available through this connector.</span>`}<button type="button" class="btn-ghost" data-channel-control="${channel.paused ? "resume" : "pause"}" data-channel-platform="${escape(channel.platform)}" data-channel-id="${escape(channel.id)}">${channel.paused ? "Resume channel" : "Pause channel"}</button></div>`;
+      }).join("") : '<p class="muted">No connected destinations.</p>';
+    }
+    async function loadTaskWorkflows() {
+      const response = await api(`${API}/orchestrator/workflows`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not load workflows");
+      taskWorkflowDefinitions = data;
+      $("taskWorkflowList").innerHTML = data.length ? data.map((workflow) => `<div class="task-workflow-item"><span><strong>${escape(workflow.name)}</strong> · ${workflow.definition.length} steps · ${workflow.active ? "Active" : "Inactive"}</span><span><button type="button" class="btn-ghost" data-workflow-edit="${escape(workflow.id)}">Edit</button> <button type="button" class="btn-ghost" data-workflow-delete="${escape(workflow.id)}">Delete</button></span></div>`).join("") : '<p class="muted">No workflows defined.</p>';
+      const selector = $("taskDetailWorkflow");
+      if (selector && taskDetailActiveId) {
+        const current = selector.value;
+        selector.innerHTML = '<option value="">No workflow</option>' + data.filter((workflow) => workflow.active).map((workflow) => `<option value="${escape(workflow.id)}">${escape(workflow.name)}</option>`).join("");
+        if (data.some((workflow) => workflow.id === current && workflow.active)) selector.value = current;
+      }
+    }
+    async function loadTaskViewer({ reset = false, populateConfig = false, clearMessage = false } = {}) {
+      try {
+        await Promise.all([loadTaskState({ populateConfig }), loadTaskPage({ reset }), loadTaskActions(), loadTaskMetrics(), loadTaskWorkflows()]);
+        taskViewerLastRefresh = Date.now();
+        if (clearMessage) taskMessage("");
+      } catch (error) { taskMessage(error.message, true); }
+    }
+    $("taskViewerRefresh")?.addEventListener("click", () => loadTaskViewer({ reset: true, populateConfig: true, clearMessage: true }));
+    $("taskViewerActionsRefresh")?.addEventListener("click", () => loadTaskActions().catch((error) => taskMessage(error.message, true)));
+    $("taskMetricsRefresh")?.addEventListener("click", () => loadTaskMetrics().catch((error) => taskMessage(error.message, true)));
+    $("taskWorkflowSave")?.addEventListener("click", async () => {
+      try {
+        const name = $("taskWorkflowName").value.trim();
+        const definition = JSON.parse($("taskWorkflowDefinition").value);
+        const editing = editingTaskWorkflowId;
+        const response = await api(`${API}/orchestrator/workflows${editing ? `/${encodeURIComponent(editing)}` : ""}`, {
+          method: editing ? "PATCH" : "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, definition }),
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Could not save workflow");
+        editingTaskWorkflowId = null; $("taskWorkflowName").value = ""; $("taskWorkflowDefinition").value = '[{"action":"upload"}]'; $("taskWorkflowSave").textContent = "Save workflow";
+        taskMessage("Workflow definition saved."); await loadTaskWorkflows();
+      } catch (error) { taskMessage(error.message, true); }
+    });
+    $("taskWorkflowList")?.addEventListener("click", async (event) => {
+      const edit = event.target.closest("[data-workflow-edit]");
+      const remove = event.target.closest("[data-workflow-delete]");
+      if (edit) {
+        const workflow = taskWorkflowDefinitions.find((item) => item.id === edit.dataset.workflowEdit);
+        if (!workflow) return;
+        editingTaskWorkflowId = workflow.id; $("taskWorkflowName").value = workflow.name;
+        $("taskWorkflowDefinition").value = JSON.stringify(workflow.definition, null, 2); $("taskWorkflowSave").textContent = "Update workflow";
+      } else if (remove && confirm("Delete this workflow definition? Tasks already assigned keep their recorded workflow ID.")) {
+        try {
+          const response = await api(`${API}/orchestrator/workflows/${encodeURIComponent(remove.dataset.workflowDelete)}`, { method: "DELETE" });
+          const result = await response.json(); if (!response.ok) throw new Error(result.error || "Could not delete workflow");
+          taskMessage("Workflow deleted."); await loadTaskWorkflows();
+        } catch (error) { taskMessage(error.message, true); }
+      }
+    });
+    $("taskDetailAssignWorkflow")?.addEventListener("click", async () => {
+      if (!taskDetailActiveId) return;
+      try {
+        const response = await api(`${API}/orchestrator/tasks/${encodeURIComponent(taskDetailActiveId)}/workflow`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ workflowId: $("taskDetailWorkflow").value }) });
+        const result = await response.json(); if (!response.ok) throw new Error(result.error || "Could not assign workflow");
+        taskMessage("Workflow assigned and recorded."); await loadTaskViewer(); await openTaskDetails(taskDetailActiveId);
+      } catch (error) { taskMessage(error.message, true); }
+    });
+    $("taskQuotaChannels")?.addEventListener("click", async (event) => {
+      const button = event.target.closest("[data-channel-control]");
+      if (!button) return;
+      const action = button.dataset.channelControl;
+      if (action === "pause" && !confirm("Pause this destination? Its pending jobs will remain queued.")) return;
+      try {
+        const response = await api(`${API}/orchestrator/channels/${encodeURIComponent(button.dataset.channelPlatform)}/${encodeURIComponent(button.dataset.channelId)}/${action}`, { method: "POST" });
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.error || "Could not change destination state");
+        taskMessage(`Destination ${action}d.`); await loadTaskMetrics();
+      } catch (error) { taskMessage(error.message, true); }
+    });
+    ["taskActionPlatformFilter", "taskActionChannelFilter", "taskActionDateFrom", "taskActionDateTo", "taskActionTypeFilter"].forEach((id) => $(id)?.addEventListener("change", () => loadTaskActions().catch((error) => taskMessage(error.message, true))));
+    $("taskViewerPause")?.addEventListener("click", async () => {
+      const paused = $("taskViewerState").textContent.includes("Paused");
+      try {
+        const response = await api(`${API}/orchestrator/${paused ? "resume" : "pause"}`, { method: "POST" });
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.error || "Could not change task viewer state");
+        taskMessage(body.message || "State updated.");
+        await loadTaskViewer();
+      } catch (error) { taskMessage(error.message, true); }
+    });
+    $("taskViewerMode")?.addEventListener("change", async (event) => {
+      const requestedMode = event.target.value;
+      if (requestedMode === "automatic" && !confirm("Enable Automatic mode? The existing worker may publish eligible scheduled uploads without further approval.")) {
+        await loadTaskState(); return;
+      }
+      try {
+        const response = await api(`${API}/orchestrator/config`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: requestedMode, confirmAutomatic: requestedMode === "automatic" }) });
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.error || "Could not change operating mode");
+        taskMessage(`Orchestrator mode changed to ${requestedMode}.`);
+        await loadTaskViewer({ reset: true, populateConfig: true });
+      } catch (error) { taskMessage(error.message, true); await loadTaskState(); }
+    });
+    $("taskViewerCycle")?.addEventListener("click", async () => {
+      const button = $("taskViewerCycle"); button.disabled = true; button.textContent = "Calculating…";
+      try {
+        const response = await api(`${API}/orchestrator/cycle`, { method: "POST" });
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.error || "Selection preview failed");
+        const titles = (body.selected || []).map((task) => task.title).slice(0, 3).join(", ");
+        const modeMessage = body.mode === "automatic" ? "Selected tasks are available to the existing upload worker."
+          : body.mode === "assisted" ? "Selected tasks are waiting for operator approval."
+            : "Monitor preview only; no task was selected for execution.";
+        taskMessage(`${body.selected?.length || 0} selected from ${body.considered} tasks; ${body.deferred} deferred. ${modeMessage}${titles ? ` First: ${titles}` : ""}`);
+        await loadTaskViewer({ reset: true });
+      } catch (error) { taskMessage(error.message, true); }
+      finally { button.disabled = false; button.textContent = "Run selection cycle"; }
+    });
+    $("taskViewerConfig")?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const message = $("taskConfigMessage");
+      const body = { maxTasksPerCycle: Number($("taskConfigMaxTasks").value), selectionIntervalSeconds: Number($("taskConfigInterval").value), fairness: $("taskConfigFairness").checked,
+        quotaSafetyMargin: Number($("taskConfigQuotaMargin").value) / 100,
+        platformOrder: $("taskPlatformOrder").value.split(",").map((value) => value.trim().toLowerCase()).filter(Boolean),
+        weights: { deadline: Number($("taskWeightDeadline").value), quotaFit: Number($("taskWeightQuota").value), channelHealth: Number($("taskWeightHealth").value), retryPenalty: Number($("taskWeightRetry").value), basePriority: Number($("taskWeightBase").value), quotaRisk: Number($("taskWeightQuotaRisk").value), campaignContinuity: Number($("taskWeightCampaign").value) } };
+      try {
+        const response = await api(`${API}/orchestrator/config`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Could not save selection rules");
+        taskViewerRefreshSeconds = result.config?.selectionIntervalSeconds || taskViewerRefreshSeconds;
+        message.textContent = "Selection rules saved.";
+        await loadTaskViewer({ populateConfig: true });
+      } catch (error) { message.textContent = error.message; }
+    });
+    const taskFilterChanged = () => loadTaskViewer({ reset: true });
+    ["taskStatusFilter", "taskPlatformFilter", "taskChannelFilter", "taskDateFrom", "taskDateTo", "taskPriorityMin", "taskPriorityMax", "taskSort"].forEach((id) => $(id)?.addEventListener("change", taskFilterChanged));
+    let taskSearchTimeout;
+    ["taskSearch", "taskCampaignFilter"].forEach((id) => $(id)?.addEventListener("input", () => { clearTimeout(taskSearchTimeout); taskSearchTimeout = setTimeout(taskFilterChanged, 250); }));
+    $("taskViewerNext")?.addEventListener("click", () => { if (taskViewerPage?.nextCursor) { taskViewerCursorStack.push(taskViewerPage.nextCursor); loadTaskViewer(); } });
+    $("taskViewerPrev")?.addEventListener("click", () => { if (taskViewerCursorStack.length > 1) { taskViewerCursorStack.pop(); loadTaskViewer(); } });
+    $("taskSelectAll")?.addEventListener("change", (event) => document.querySelectorAll(".task-row-select").forEach((checkbox) => { checkbox.checked = event.target.checked; }));
+    $("taskViewerTable")?.addEventListener("submit", async (event) => {
+      const form = event.target.closest("[data-task-priority]");
+      if (!form) return;
+      event.preventDefault();
+      const priority = Number(form.querySelector("input").value);
+      try {
+        const response = await api(`${API}/orchestrator/tasks/${encodeURIComponent(form.dataset.taskPriority)}/priority`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ priority }) });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Could not change task priority");
+        taskMessage("Base priority updated and recorded in the action history.");
+        await loadTaskViewer();
+      } catch (error) { taskMessage(error.message, true); }
+    });
+    async function runTaskAction(id, action, body = {}) {
+      const method = action === "priority" ? "PATCH" : "POST";
+      const endpoint = action === "priority" ? "priority" : action === "cancel" ? "skip" : action;
+      const response = await api(`${API}/orchestrator/tasks/${encodeURIComponent(id)}/${endpoint}`, {
+        method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || `Could not ${action} task`);
+      return result;
+    }
+    async function openTaskDetails(id) {
+      const task = (taskViewerPage?.tasks || []).find((item) => item.id === id);
+      if (!task) return;
+      const response = await api(`${API}/orchestrator/actions?jobId=${encodeURIComponent(id)}&limit=100`);
+      const log = await response.json();
+      if (!response.ok) throw new Error(log.error || "Could not load task history");
+      const panel = $("taskDetailContent");
+      const values = [
+        ["Status", taskStatusName(task.status)], ["Platform", taskPlatformName(task.platform)], ["Channel / page", task.channelName],
+        ["File", `${task.filename} · ${task.fileExists ? "readable" : "missing / unreadable"}`], ["Scheduled", taskDate(task.scheduledAt)],
+        ["Privacy", task.privacy], ["Tags", task.tags || "—"], ["Description", task.description || "—"],
+        ["Priority score", `${task.priorityScore} (base ${task.priority})`], ["Risk", `${task.riskScore} · ${task.riskFactors?.join("; ") || "No active risk factors"}`],
+        ["Quota impact", task.estimatedQuotaCost == null ? "Not metered for this platform" : `${task.estimatedQuotaCost} estimated · ${task.remainingQuota} remaining`],
+        ["Suggested window", task.suggestedWindow], ["Workflow / campaign", `${task.workflowStep == null ? "No workflow step" : `Step ${task.workflowStep + 1}`} · ${task.campaignId || "No campaign"}`],
+        ["Retry count", task.retryCount], ["Last error", task.lastError || "—"],
+      ];
+      panel.innerHTML = `<div class="task-detail-grid">${values.map(([label, value]) => `<div class="task-detail-block"><strong>${escape(label)}</strong><div>${escape(value)}</div></div>`).join("")}<div class="task-detail-block"><strong>Priority score breakdown</strong><div>${escape(JSON.stringify(task.priorityBreakdown || {}))}</div></div></div><h3>Task action history</h3>${log.items?.length ? log.items.map((item) => `<div class="task-action-row"><span>${escape(taskDate(item.createdAt))}</span><strong>${escape(item.actionType)} · ${escape(item.result || "")}</strong><span>${escape(item.reason)}</span><span>${escape(item.actor || "orchestrator")}</span></div>`).join("") : '<p class="muted">No action history recorded.</p>'}`;
+      $("taskDetailTitle").textContent = task.title || "Task details";
+      taskDetailActiveId = id;
+      $("taskDetailWorkflow").innerHTML = '<option value="">No workflow</option>' + taskWorkflowDefinitions.filter((workflow) => workflow.active).map((workflow) => `<option value="${escape(workflow.id)}">${escape(workflow.name)}</option>`).join("");
+      $("taskDetailWorkflow").value = task.workflowId || "";
+      $("taskDetailDialog").showModal();
+    }
+    $("taskViewerTable")?.addEventListener("click", async (event) => {
+      const detail = event.target.closest("[data-task-detail]");
+      const approve = event.target.closest("[data-task-approve]");
+      const reject = event.target.closest("[data-task-reject]");
+      const defer = event.target.closest("[data-task-defer]");
+      const force = event.target.closest("[data-task-force]");
+      const cancel = event.target.closest("[data-task-skip]");
+      if (detail) { try { await openTaskDetails(detail.dataset.taskDetail); } catch (error) { taskMessage(error.message, true); } return; }
+      if (!approve && !reject && !defer && !force && !cancel) return;
+      try {
+        const id = approve?.dataset.taskApprove || reject?.dataset.taskReject || defer?.dataset.taskDefer || force?.dataset.taskForce || cancel?.dataset.taskSkip;
+        if (approve) await runTaskAction(id, "approve");
+        else if (reject) { const reason = prompt("Reason for rejecting this task", "Rejected by operator"); if (reason === null) return; await runTaskAction(id, "reject", { reason }); }
+        else if (defer) { const value = prompt("Defer until (ISO date/time)", new Date(Date.now() + 3600000).toISOString()); if (!value) return; await runTaskAction(id, "defer", { deferUntil: value }); }
+        else if (force) { if (!confirm("Move this task to the front of the existing worker queue?")) return; await runTaskAction(id, "force", {}); }
+        else { if (!confirm("Cancel this pending task? It will not be uploaded.")) return; await runTaskAction(id, "skip", {}); }
+        taskMessage("Task action saved to the audit history."); await loadTaskViewer({ reset: true });
+      } catch (error) { taskMessage(error.message, true); }
+    });
+    const selectedTaskIds = () => [...document.querySelectorAll(".task-row-select:checked")].map((checkbox) => checkbox.value);
+    async function runBulkTaskAction(action) {
+      const ids = selectedTaskIds();
+      if (!ids.length) { taskMessage("Select at least one task.", true); return; }
+      let body = {};
+      if (action === "reject") { const reason = prompt("Reason for rejecting selected tasks", "Rejected by operator"); if (reason === null) return; body = { reason }; }
+      if (action === "defer") {
+        const value = $("taskBulkDeferUntil").value;
+        if (!value) { taskMessage("Choose a defer time first.", true); return; }
+        body = { deferUntil: new Date(value).toISOString() };
+      }
+      if (action === "priority") body = { priority: Number($("taskBulkPriority").value) };
+      const confirmation = action === "force" ? "Force the selected tasks to run as soon as the existing worker can claim them?"
+        : action === "cancel" ? "Cancel all selected pending tasks?" : "Apply this action to all selected tasks?";
+      if (["force", "cancel", "reject"].includes(action) && !confirm(confirmation)) return;
+      try {
+        let succeeded = 0; const failures = [];
+        for (const id of ids) {
+          try { await runTaskAction(id, action, body); succeeded++; }
+          catch (error) { failures.push(error.message); }
+        }
+        taskMessage(`${succeeded} of ${ids.length} task actions saved.${failures.length ? ` ${failures.length} could not be applied: ${failures[0]}` : ""}`, failures.length > 0);
+        await loadTaskViewer({ reset: true });
+      } catch (error) { taskMessage(error.message, true); }
+    }
+    $("taskBulkApprove")?.addEventListener("click", () => runBulkTaskAction("approve"));
+    $("taskBulkReject")?.addEventListener("click", () => runBulkTaskAction("reject"));
+    $("taskBulkDefer")?.addEventListener("click", () => runBulkTaskAction("defer"));
+    $("taskBulkCancel")?.addEventListener("click", () => runBulkTaskAction("skip"));
+    $("taskBulkPriorityApply")?.addEventListener("click", () => runBulkTaskAction("priority"));
+    $("taskBulkForce")?.addEventListener("click", () => runBulkTaskAction("force"));
+    setInterval(() => {
+      const now = Date.now();
+      if (location.hash === "#orchestrator" && document.visibilityState === "visible"
+          && now - taskViewerLastRefresh >= taskViewerRefreshSeconds * 1000) {
+        taskViewerLastRefresh = now;
+        loadTaskViewer();
+      }
+    }, 5000);
 
     let mediaLibrarySource = "local";
     let remoteMedia = [];
