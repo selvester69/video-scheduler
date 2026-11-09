@@ -43,6 +43,7 @@ router.get("/library", async (req, res) => {
           tags: (video.snippet?.tags || []).join(", "), thumbnail: video.snippet?.thumbnails?.medium?.url || video.snippet?.thumbnails?.default?.url || "",
           url: `https://www.youtube.com/watch?v=${encodeURIComponent(video.id)}`,
           publishedAt: video.snippet?.publishedAt || null,
+          privacy: video.status?.privacyStatus || "",
         })));
         if (channels.length === 1 && platform === "youtube") nextCursor = page.data.nextPageToken || null;
       }

@@ -200,6 +200,19 @@ CREATE TABLE IF NOT EXISTS media_assets (
   updated_at BIGINT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS youtube_review_notes (
+  id                 TEXT PRIMARY KEY,
+  channel_id         TEXT NOT NULL REFERENCES channels(id) ON DELETE CASCADE,
+  youtube_video_id   TEXT NOT NULL,
+  category           TEXT NOT NULL,
+  timestamp_seconds  INTEGER NOT NULL DEFAULT 0,
+  note               TEXT NOT NULL,
+  created_at         BIGINT NOT NULL,
+  updated_at         BIGINT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_youtube_review_notes_video
+  ON youtube_review_notes(channel_id, youtube_video_id, timestamp_seconds, created_at);
+
 CREATE INDEX IF NOT EXISTS idx_items_folder    ON source_items(folder_id);
 CREATE INDEX IF NOT EXISTS idx_rules_folder    ON rotation_rules(folder_id);
 CREATE INDEX IF NOT EXISTS idx_assign_rule     ON rotation_assignments(rule_id, status, scheduled_at);

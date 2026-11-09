@@ -1220,6 +1220,21 @@
     .media-table-pagination .field { width: auto; min-width: 4.5rem; padding: .4rem .6rem; }
     .media-sort-controls { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
 
+    .review-layout { display: grid; grid-template-columns: minmax(17rem, .8fr) minmax(0, 1.7fr); gap: 1rem; align-items: start; }
+    .review-panel { min-width: 0; padding: 1rem; border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-surface); }
+    .review-video-frame { display: block; width: 100%; aspect-ratio: 9 / 16; max-height: 70vh; border: 0; border-radius: var(--radius-sm); background: #08090d; }
+    .review-video-select { width: 100%; margin-bottom: .8rem; }
+    .review-video-title { margin: .75rem 0 .25rem; font-size: 1rem; overflow-wrap: anywhere; }
+    .review-feedback-list { display: grid; gap: .75rem; margin-top: 1rem; }
+    .review-note-card { padding: .9rem; border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-surface-2); }
+    .review-note-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+    .review-note-content { white-space: pre-wrap; overflow-wrap: anywhere; margin: .6rem 0 0; }
+    .review-note-time { border: 0; padding: .25rem .5rem; border-radius: var(--radius-sm); color: var(--color-fg); background: var(--color-canvas); cursor: pointer; }
+    .review-note-delete { padding: .25rem .5rem; }
+    .review-editor { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+    .review-editor .field-label, .review-editor textarea, .review-editor button { grid-column: 1 / -1; }
+    @media(max-width:850px) { .review-layout { grid-template-columns: 1fr; } .review-video-frame { max-height: 75vh; } }
+
     .media-remote-pager, .media-edit-actions {
       display: flex;
       align-items: center;
@@ -2877,6 +2892,12 @@
         </svg>
         Insights
       </a>
+      <a href="#review" data-section="Review" class="tablink" aria-label="Review">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 4h16v16H4z" /><path d="M8 9h8M8 13h5M8 17h3" />
+        </svg>
+        Review
+      </a>
       <a href="#rotation" data-section="Rotation" class="tablink" aria-label="Rotation">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M12 5v14M5 12h14" />
@@ -3372,6 +3393,14 @@
               <option value="failed">Failed</option><option value="exhausted">Needs attention</option>
             </select>
           </div>
+          <div class="media-filter-field">
+            <label for="mediaPrivacyFilter">YouTube visibility</label>
+            <select id="mediaPrivacyFilter" class="field">
+              <option value="all">All visibility</option><option value="public">Public</option>
+              <option value="unlisted">Unlisted</option><option value="private">Private</option>
+              <option value="unknown">Not available</option>
+            </select>
+          </div>
           <div class="media-filter-field media-date-filter">
             <label for="mediaDateFrom">Date from</label><input id="mediaDateFrom" class="field" type="date" />
           </div>
@@ -3390,6 +3419,42 @@
           <label>Rows per page <select id="mediaPageSize" class="field"><option>10</option><option>20</option><option>50</option></select></label>
           <span id="mediaPageStatus" class="muted" aria-live="polite"></span>
           <div><button type="button" id="mediaPrevPage" class="btn-ghost">Previous</button> <button type="button" id="mediaNextPage" class="btn-ghost">Next</button></div>
+        </div>
+      </section>
+
+      <section id="review" class="card">
+        <div class="page-heading">
+          <div>
+            <h2>YouTube review</h2>
+            <p class="muted">Watch a published video and save timestamped feedback notes. Notes are private to this Castline workspace.</p>
+          </div>
+          <button type="button" id="reviewRefresh" class="btn-ghost">↻ Refresh videos</button>
+        </div>
+        <div class="review-layout">
+          <article class="review-panel">
+            <label class="field-label" for="reviewVideoSelect">Published YouTube video</label>
+            <select id="reviewVideoSelect" class="field review-video-select"><option value="">Loading YouTube videos…</option></select>
+            <div id="reviewPlayerArea" class="empty"><p>Select a video to start your review.</p></div>
+            <p class="muted">Private videos may not play in the embedded player. Open the video on YouTube while signed into the owning account.</p>
+          </article>
+          <div class="review-panel">
+            <h3>Review notes</h3>
+            <p class="muted">Add your own feedback at a specific moment. Select a timestamp later to jump back to it.</p>
+            <form id="reviewNoteForm" class="review-editor">
+              <label class="field-label" for="reviewCategory">Feedback area</label>
+              <select id="reviewCategory" class="field" required>
+                <option>Hook</option><option>Re-hooks &amp; pacing</option><option>B-roll &amp; editing</option>
+                <option>Audio</option><option>Story &amp; clarity</option><option>Call to action</option><option>Other</option>
+              </select>
+              <label class="field-label" for="reviewTimestamp">Timestamp (seconds)</label>
+              <input id="reviewTimestamp" class="field" type="number" min="0" max="86400" step="1" value="0" required />
+              <label class="field-label" for="reviewNoteText">Your feedback</label>
+              <textarea id="reviewNoteText" class="field" rows="3" maxlength="3000" placeholder="What do you notice at this moment?" required></textarea>
+              <button type="submit" id="reviewSaveNote" class="btn-primary">Save review note</button>
+              <p id="reviewMessage" class="muted" role="status" aria-live="polite" hidden></p>
+            </form>
+            <div id="reviewNotes" class="review-feedback-list"><p class="muted">Choose a video to see its review notes.</p></div>
+          </div>
         </div>
       </section>
 
@@ -3633,6 +3698,7 @@
       });
       if (hash === "#media") loadJobs({ refreshMedia: true });
       if (hash === "#insights") setTimeout(() => window.loadInsights?.(), 0);
+      if (hash === "#review") setTimeout(() => loadReviewVideos(), 0);
     }
     window.addEventListener("hashchange", setActiveNav);
     setActiveNav();
@@ -4833,6 +4899,7 @@
       const selectedDestination = activeDestinations.find((destination) => `${destination.platform}:${destination.id}` === nextDestinationFilter);
       const library = $("mediaLibrary");
       const statusFilter = $("mediaStatusFilter")?.value || "all";
+      const privacyFilter = $("mediaPrivacyFilter")?.value || "all";
       const dateFrom = $("mediaDateFrom")?.value ? new Date(`${$("mediaDateFrom").value}T00:00:00`).getTime() : null;
       const dateTo = $("mediaDateTo")?.value ? new Date(`${$("mediaDateTo").value}T23:59:59.999`).getTime() : null;
       const sourceRows = mediaLibrarySource === "remote"
@@ -4841,7 +4908,7 @@
             id: item.id, platform: item.platform, destinationId: item.destinationId,
             destinationName: item.destinationName, name: item.title || "Untitled video",
             description: item.description || "", status: "done", date: item.publishedAt ? new Date(item.publishedAt).getTime() : 0,
-            dateLabel: "Published", url: item.url || "#", filename: "", remote: item,
+            dateLabel: "Published", url: item.url || "#", filename: "", privacy: item.platform === "youtube" ? String(item.privacy || "").toLowerCase() : "", remote: item,
           }))
         : assets.map((job) => {
             const destinationId = job.platform === "instagram" ? job.instagram_account_id
@@ -4855,6 +4922,7 @@
               id: job.id, platform: job.platform || "youtube", destinationId,
               destinationName: destinationsById.get(key) || fallbackName,
               name: job.title || job.filename || "Untitled video", description: job.description || "",
+              privacy: job.platform === "youtube" ? String(job.privacy || "").toLowerCase() : "",
               status: job.status, date: published || uploaded, dateLabel: published ? "Published" : "Uploaded",
               url: `${API}/media/${encodeURIComponent(job.filename)}`, filename: job.filename, job,
             };
@@ -4862,9 +4930,11 @@
       const filteredRows = sourceRows.filter((row) => {
         const statusMatch = statusFilter === "all" || (statusFilter === "done" ? row.status === "done" : row.status === statusFilter);
         const dateMatch = (!dateFrom || row.date >= dateFrom) && (!dateTo || row.date <= dateTo);
-        return statusMatch && dateMatch;
+        const visibility = ["public", "unlisted", "private"].includes(row.privacy) ? row.privacy : "unknown";
+        const privacyMatch = privacyFilter === "all" || (row.platform === "youtube" && visibility === privacyFilter);
+        return statusMatch && dateMatch && privacyMatch;
       });
-      const sortValue = (row) => ({ name: row.name.toLocaleLowerCase(), description: row.description.toLocaleLowerCase(), status: row.status, destination: `${row.platform} ${row.destinationName}`.toLocaleLowerCase(), date: row.date })[mediaSortKey];
+      const sortValue = (row) => ({ name: row.name.toLocaleLowerCase(), description: row.description.toLocaleLowerCase(), status: row.status, privacy: row.privacy, destination: `${row.platform} ${row.destinationName}`.toLocaleLowerCase(), date: row.date })[mediaSortKey];
       filteredRows.sort((a, b) => {
         const av = sortValue(a), bv = sortValue(b);
         const cmp = av < bv ? -1 : av > bv ? 1 : 0;
@@ -4878,6 +4948,7 @@
       const sortHeader = (key, label) => `<button type="button" class="media-sort-button" data-media-sort="${key}">${label}${mediaSortKey === key ? (mediaSortDirection === "asc" ? " ↑" : " ↓") : ""}</button>`;
       const eyeIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2.5 12s3.5-7 9.5-7 9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
       const dateText = (row) => row.date ? `${row.dateLabel} ${new Date(row.date).toLocaleDateString()}` : "Date unavailable";
+      const privacyText = (row) => row.platform !== "youtube" ? "—" : (["public", "unlisted", "private"].includes(row.privacy) ? row.privacy[0].toUpperCase() + row.privacy.slice(1) : "Not available");
       $("mediaTablePagination").hidden = filteredRows.length === 0;
       $("mediaPageStatus").textContent = filteredRows.length ? `Showing ${start + 1}–${Math.min(start + pageSize, filteredRows.length)} of ${filteredRows.length}` : "";
       $("mediaPrevPage").disabled = mediaPage <= 1;
@@ -4886,11 +4957,12 @@
         if (!filteredRows.length) {
           library.innerHTML = `<div class="empty"><h3>No published videos found.</h3><p>${remoteMedia.length ? "Try changing the filters." : "Use Refresh to pull videos from your connected accounts."}</p></div>`;
         } else library.innerHTML = `<table class="media-library-table"><thead><tr>
-            <th>${sortHeader("name", "Name")}</th><th>${sortHeader("description", "Description")}</th><th>${sortHeader("status", "Status")}</th><th>${sortHeader("destination", "Uploaded via")}</th><th>${sortHeader("date", "Published date")}</th><th aria-label="View"></th>
+            <th>${sortHeader("name", "Name")}</th><th>${sortHeader("description", "Description")}</th><th>${sortHeader("status", "Status")}</th><th>${sortHeader("privacy", "Visibility")}</th><th>${sortHeader("destination", "Uploaded via")}</th><th>${sortHeader("date", "Published date")}</th><th aria-label="View"></th>
           </tr></thead><tbody>${rows.map((row) => `<tr>
             <td class="media-name">${escape(row.name)}${row.remote && row.platform !== "instagram" ? `<br><button type="button" class="btn-ghost media-edit-button" data-edit-remote="${escape(row.platform)}:${escape(row.destinationId)}:${escape(row.id)}">Edit details</button>` : row.remote ? `<br><a class="btn-ghost media-edit-button" href="${escape(row.url)}" target="_blank" rel="noopener noreferrer">Edit on Instagram ↗</a>` : ""}</td>
             <td class="media-description">${escape(row.description || "—")}</td>
             <td><span class="pill ${statusPillClass(row.status)}"><span class="dot"></span>${escape(statusLabel(row.status))}</span></td>
+            <td>${escape(privacyText(row))}</td>
             <td class="media-destination">${escape(platformName(row.platform))} · ${escape(row.destinationName)}</td>
             <td class="media-date">${escape(dateText(row))}</td>
             <td><a class="media-eye-link" href="${escape(row.url)}" target="_blank" rel="noopener noreferrer" aria-label="View ${escape(row.name)}">${eyeIcon}</a></td>
@@ -4903,10 +4975,11 @@
       if (!filteredRows.length) {
         library.innerHTML = `<div class="empty"><h3>${selectedDestination ? `No videos for ${escape(selectedDestination.name)} yet.` : "No videos in your library."}</h3><p>Deleted videos are hidden from this library. Adjust your filters or schedule a new upload.</p></div>`;
       } else library.innerHTML = `<table class="media-library-table"><thead><tr>
-          <th>${sortHeader("name", "Name")}</th><th>${sortHeader("description", "Description")}</th><th>${sortHeader("status", "Status")}</th><th>${sortHeader("destination", "Uploaded via")}</th><th>${sortHeader("date", "Uploaded / published date")}</th><th aria-label="View"></th>
+          <th>${sortHeader("name", "Name")}</th><th>${sortHeader("description", "Description")}</th><th>${sortHeader("status", "Status")}</th><th>${sortHeader("privacy", "Visibility")}</th><th>${sortHeader("destination", "Uploaded via")}</th><th>${sortHeader("date", "Uploaded / published date")}</th><th aria-label="View"></th>
         </tr></thead><tbody>${rows.map((row) => `<tr>
           <td class="media-name">${escape(row.name)}</td><td class="media-description">${escape(row.description || "—")}</td>
           <td><span class="pill ${statusPillClass(row.status)}"><span class="dot"></span>${escape(statusLabel(row.status))}</span></td>
+          <td>${escape(privacyText(row))}</td>
           <td class="media-destination">${escape(platformName(row.platform))} · ${escape(row.destinationName)}</td><td class="media-date">${escape(dateText(row))}</td>
           <td><a class="media-eye-link" href="${escape(row.url)}" target="_blank" rel="noopener noreferrer" aria-label="View ${escape(row.name)}">${eyeIcon}</a></td>
         </tr>`).join("")}</tbody></table>`;
@@ -4922,7 +4995,7 @@
       mediaPage = 1;
       renderMedia(window._jobs || []);
     });
-    ["mediaStatusFilter", "mediaDateFrom", "mediaDateTo"].forEach((id) => $(id)?.addEventListener("change", () => { mediaPage = 1; renderMedia(window._jobs || []); }));
+    ["mediaStatusFilter", "mediaPrivacyFilter", "mediaDateFrom", "mediaDateTo"].forEach((id) => $(id)?.addEventListener("change", () => { mediaPage = 1; renderMedia(window._jobs || []); }));
     $("mediaPageSize")?.addEventListener("change", () => { mediaPage = 1; renderMedia(window._jobs || []); });
     $("mediaPrevPage")?.addEventListener("click", () => { mediaPage = Math.max(1, mediaPage - 1); renderMedia(window._jobs || []); });
     $("mediaNextPage")?.addEventListener("click", () => { mediaPage += 1; renderMedia(window._jobs || []); });
@@ -4976,6 +5049,132 @@
     }
     $("mediaRefreshRemote")?.addEventListener("click", () => fetchRemoteMedia());
     $("mediaLoadMore")?.addEventListener("click", () => fetchRemoteMedia({ append: true }));
+
+    let reviewVideos = [];
+    let reviewNotes = [];
+    const reviewSelectionKey = (video) => `${encodeURIComponent(video.destinationId)}:${encodeURIComponent(video.id)}`;
+    const selectedReviewVideo = () => reviewVideos.find((video) => reviewSelectionKey(video) === $("reviewVideoSelect")?.value);
+    function showReviewMessage(message, error = false) {
+      const output = $("reviewMessage");
+      output.textContent = message;
+      output.hidden = !message;
+      output.classList.toggle("error", error);
+    }
+    function renderReviewVideo() {
+      const video = selectedReviewVideo();
+      const area = $("reviewPlayerArea");
+      if (!video) {
+        area.innerHTML = `<p>${reviewVideos.length ? "Select a video to start your review." : "No published videos are available from connected YouTube channels."}</p>`;
+        $("reviewNotes").innerHTML = `<p class="muted">Choose a video to see its review notes.</p>`;
+        return;
+      }
+      const videoId = encodeURIComponent(video.id);
+      area.classList.remove("empty");
+      area.innerHTML = `<iframe class="review-video-frame" src="https://www.youtube-nocookie.com/embed/${videoId}?rel=0" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        <h3 class="review-video-title">${escape(video.title || "Untitled video")}</h3>
+        <a class="inline-link" href="${escape(video.url || `https://www.youtube.com/watch?v=${videoId}`)}" target="_blank" rel="noopener noreferrer">Open on YouTube ↗</a>`;
+    }
+    function formatReviewTimestamp(seconds) {
+      const value = Math.max(0, Number(seconds) || 0);
+      return `${Math.floor(value / 60)}:${String(value % 60).padStart(2, "0")}`;
+    }
+    function renderReviewNotes() {
+      const target = $("reviewNotes");
+      if (!reviewNotes.length) {
+        target.innerHTML = `<p class="muted">No review notes for this video yet.</p>`;
+        return;
+      }
+      target.innerHTML = reviewNotes.map((item) => `<article class="review-note-card">
+        <div class="review-note-head"><strong>${escape(item.category)}</strong>
+          <div><button type="button" class="review-note-time" data-review-seek="${Number(item.timestampSeconds) || 0}" aria-label="Jump to ${formatReviewTimestamp(item.timestampSeconds)}">${formatReviewTimestamp(item.timestampSeconds)}</button>
+          <button type="button" class="btn-ghost review-note-delete" data-review-delete="${escape(item.id)}" aria-label="Delete review note">×</button></div>
+        </div><p class="review-note-content">${escape(item.note)}</p>
+      </article>`).join("");
+    }
+    async function loadReviewNotes() {
+      const video = selectedReviewVideo();
+      if (!video) { reviewNotes = []; renderReviewNotes(); return; }
+      const params = new URLSearchParams({ channelId: video.destinationId });
+      const response = await api(`${API}/reviews/youtube/${encodeURIComponent(video.id)}/notes?${params}`);
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "Could not load review notes");
+      reviewNotes = body.items || [];
+      renderReviewNotes();
+    }
+    async function loadReviewVideos() {
+      const button = $("reviewRefresh");
+      if (!button) return;
+      const previous = $("reviewVideoSelect").value;
+      button.disabled = true;
+      button.textContent = "Loading videos…";
+      try {
+        const response = await api(`${API}/media/library?platform=youtube`);
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.error || "Could not load YouTube videos");
+        reviewVideos = body.items || [];
+        const select = $("reviewVideoSelect");
+        select.innerHTML = reviewVideos.length
+          ? reviewVideos.map((video) => `<option value="${escape(reviewSelectionKey(video))}">${escape(video.title || "Untitled video")} · ${escape(video.destinationName || "YouTube channel")}</option>`).join("")
+          : `<option value="">No published videos found</option>`;
+        if (reviewVideos.some((video) => reviewSelectionKey(video) === previous)) select.value = previous;
+        renderReviewVideo();
+        await loadReviewNotes();
+        showReviewMessage("");
+      } catch (error) {
+        $("reviewVideoSelect").innerHTML = `<option value="">Could not load videos</option>`;
+        $("reviewPlayerArea").innerHTML = `<p>${escape(error.message)}</p>`;
+        $("reviewNotes").innerHTML = "";
+        showReviewMessage(error.message, true);
+      } finally {
+        button.disabled = false;
+        button.textContent = "↻ Refresh videos";
+      }
+    }
+    $("reviewRefresh")?.addEventListener("click", loadReviewVideos);
+    $("reviewVideoSelect")?.addEventListener("change", async () => {
+      renderReviewVideo();
+      showReviewMessage("");
+      try { await loadReviewNotes(); } catch (error) { showReviewMessage(error.message, true); }
+    });
+    $("reviewNoteForm")?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const video = selectedReviewVideo();
+      if (!video) return showReviewMessage("Choose a published YouTube video first.", true);
+      const button = $("reviewSaveNote");
+      button.disabled = true;
+      try {
+        const response = await api(`${API}/reviews/youtube/${encodeURIComponent(video.id)}/notes`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ channelId: video.destinationId, category: $("reviewCategory").value,
+            timestampSeconds: Number($("reviewTimestamp").value), note: $("reviewNoteText").value }),
+        });
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.error || "Could not save review note");
+        $("reviewNoteText").value = "";
+        showReviewMessage("Review note saved.");
+        await loadReviewNotes();
+      } catch (error) { showReviewMessage(error.message, true); }
+      finally { button.disabled = false; }
+    });
+    $("reviewNotes")?.addEventListener("click", async (event) => {
+      const seek = event.target.closest("[data-review-seek]");
+      if (seek) {
+        const player = $("reviewPlayerArea").querySelector("iframe");
+        const video = selectedReviewVideo();
+        if (player && video) player.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(video.id)}?start=${Number(seek.dataset.reviewSeek) || 0}&rel=0`;
+        return;
+      }
+      const remove = event.target.closest("[data-review-delete]");
+      const video = selectedReviewVideo();
+      if (!remove || !video) return;
+      try {
+        const params = new URLSearchParams({ channelId: video.destinationId });
+        const response = await api(`${API}/reviews/youtube/${encodeURIComponent(video.id)}/notes/${encodeURIComponent(remove.dataset.reviewDelete)}?${params}`, { method: "DELETE" });
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.error || "Could not delete review note");
+        await loadReviewNotes();
+      } catch (error) { showReviewMessage(error.message, true); }
+    });
     $("mediaLibrary")?.addEventListener("click", (event) => {
       const button = event.target.closest("[data-edit-remote]");
       if (!button) return;
